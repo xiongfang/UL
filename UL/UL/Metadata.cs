@@ -24,10 +24,12 @@ namespace UL
         public EAccessModifier Modifier;
         public string Type;
         public string Name;
-        public string OwnerType;
+        //public string OwnerType;
         public bool IsStatic;
         public bool IsInternal;
         public Metadata Metadata;
+        [NonSerialized]
+        public UL_Type Owner;
     }
 
     public class UL_Function : UL_Member
@@ -44,9 +46,11 @@ namespace UL
             public string Type;
             public string Name;
         }
-        public Parameter[] Params;
+        public List<Parameter> Params = new List<Parameter>();
 
         public bool IsVirsual;
+
+        public FunctionBody Body;
     }
 
     public class UL_Variable : UL_Member
@@ -58,8 +62,8 @@ namespace UL
 
     public class UL_Type
     {
-        public UL_Function[] Functions;
-        public UL_Variable[] Variables;
+        public List<UL_Function> Functions = new List<UL_Function>();
+        public List<UL_Variable> Variables = new List<UL_Variable>();
         public string Name;
         public string Parent;
         public string Outer;
