@@ -35,3 +35,6 @@ Unity Language used for all platforms,Can be converted to any other language
 - 用来当作脚本解释执行
 
   JSON格式表示的源码，方便的读取和访问。使编译器和虚拟机的实现变得非常简单。首先编译器不再需要了，只需要一个读取JSON文件，就可以获得所有元数据。以及函数实现代码的优化表示结构。只需要实现简单的几个接口，则可以实现一个虚拟机。
+
+# LICENSE
+  [[LICENSE]]
