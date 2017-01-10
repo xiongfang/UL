@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace UL
 {
-    public class Command
+    public class Sentence
     {
-        public enum ECode
+        public enum ESentenceType
         {
-            Statement,
+            Move,
             List,
             Loop_For,
             Loop_WhileDo,
@@ -20,23 +20,25 @@ namespace UL
             Return
         }
 
-        public ECode Code;
+        public ESentenceType Type;
     }
 
 
     public abstract class Exp
     {
-        public abstract string Type { get; }
-        public abstract string Value { get; }
+        public enum EType
+        {
+            Variable,
+            Call
+        }
+
+        public EType Type;
     }
 
     public class Variable : Exp
     {
         public string TypeName;
         public string ObjectName;
-
-        public override string Type { get { return TypeName; } }
-        public override string Value { get { return ObjectName; } }
 
     }
 
@@ -52,12 +54,9 @@ namespace UL
 
         //返回值
         public Variable Ret;
-
-        public override string Type { get { return Ret.Type; } }
-        public override string Value { get { return Ret.Value; } }
     }
 
-    public class Command_Statement : Command
+    public class Sentence_Assign : Sentence
     {
         //调用函数的对象，或者类
         public Variable A;
@@ -65,73 +64,195 @@ namespace UL
         public Exp B;
     }
 
-    public class Command_Return:Command
+    public class Sentence_Return:Sentence
     {
         public Variable Object;
 
-        public Command_Return() { Code = ECode.Return; }
+        public Sentence_Return() { Type = ESentenceType.Return; }
     }
 
-    public class Command_List : Command
+    public class Sentence_List : Sentence
     {
-        public Command[] Body;
+        public Sentence[] Body;
 
-        public Command_List() { Code = ECode.List; }
+        public Sentence_List() { Type = ESentenceType.List; }
     }
 
-    public class Command_Loop_For:Command
+    public class Sentence_List_Loop_For:Sentence
     {
-        public Command_Statement Start;
+        public Sentence_Assign Start;
         public Exp Condition;
-        public Command_Statement End;
-        public Command_List Body;
+        public Sentence_Assign End;
+        public Sentence_List Body;
 
-        public Command_Loop_For() { Code = ECode.Loop_For; }
+        public Sentence_List_Loop_For() { Type = ESentenceType.Loop_For; }
     }
 
-    public class Command_Loop_WhileDo:Command
+    public class Sentence_Loop_WhileDo:Sentence
     {
         public Exp ConditionObject;
-        public Command_List Body;
+        public Sentence_List Body;
 
-        public Command_Loop_WhileDo() { Code = ECode.Loop_WhileDo; }
+        public Sentence_Loop_WhileDo() { Type = ESentenceType.Loop_WhileDo; }
     }
-    public class Command_Loop_DoWhile : Command
+    public class Sentence_Loop_DoWhile : Sentence
     {
-        public Command_List Body;
+        public Sentence_List Body;
         public Exp ConditionObject;
-        public Command_Loop_DoWhile() { Code = ECode.Loop_DoWhile; }
+        public Sentence_Loop_DoWhile() { Type = ESentenceType.Loop_DoWhile; }
     }
-    public class Command_If : Command
+    public class Sentence_If : Sentence
     {
         public Exp Condition;
-        public Command_List TrueBody;
-        public Command_List FalseBody;
+        public Sentence_List TrueBody;
+        public Sentence_List FalseBody;
 
-        public Command_If() { Code = ECode.If; }
+        public Sentence_If() { Type = ESentenceType.If; }
     }
 
-    public class Command_Switch : Command
+    public class Sentence_Switch : Sentence
     {
         public Exp Condition;
         public class Case
         {
             public Variable CaseValue;
-            public Command_List Body;
+            public Sentence_List Body;
         }
         public Case[] Cases;
-        public Command_List Default;
+        public Sentence_List Default;
 
-        public Command_Switch() { Code = ECode.Switch; }
+        public Sentence_Switch() { Type = ESentenceType.Switch; }
     }
 
     public class FunctionBody
     {
-        public Command_List Body;
+        public Sentence_List Body;
     }
 
     public class VisualMachine
     {
+        public Dictionary<string, UL_Type> NameTypeMap = new Dictionary<string, UL_Type>();
 
+        //指令
+        List<Command> Commands = new List<Command>();
+        int EIP;    //指令指针
+        bool Z;     //跳转标记 寄存器
+
+        Scope GlobalScope;  //全局域
+
+        //运行时栈
+        Stack<Frame> RuntimeStack = new Stack<Frame>();
+
+        public class Scope
+        {
+            public Scope Outer;
+            public Dictionary<string, object> Variables = new Dictionary<string, object>();
+
+            public int Index;
+        }
+
+        public class Frame
+        {
+            public VisualMachine Machine;
+            public int EIP;
+            
+            public Stack<Scope> ScopeStack = new Stack<Scope>();
+
+            public void Push()
+            {
+                Scope sp = new Scope();
+
+                if (ScopeStack.Count > 0)
+                    sp.Outer = Top;
+                else
+                    sp.Outer = Machine.GlobalScope;
+                ScopeStack.Push(sp);
+
+            }
+
+            public void Pop()
+            {
+                ScopeStack.Pop();
+            }
+
+            public Scope Top
+            {
+                get
+                {
+                    return ScopeStack.Last();
+                }
+            }
+        }
+
+        
+
+
+        void PushFrame()
+        {
+            Frame f = new Frame();
+            f.Push();
+            RuntimeStack.Push(f);
+        }
+
+        Frame TopFrame
+        {
+            get { return RuntimeStack.Last(); }
+        }
+
+        void PopFrame()
+        {
+            RuntimeStack.Pop();
+        }
+
+        public void DoString(string code)
+        {
+
+        }
+
+        void Do(Command cmd)
+        {
+            switch (cmd.Code)
+            {
+                case ECode.BeginScope:
+                    {
+                        TopFrame.Push();
+                    }
+                    break;
+                case ECode.EndScope:
+                    {
+                        TopFrame.Pop();
+                    }
+                    break;
+                case ECode.Call:
+                    Do_Call(cmd as Command_Call);
+                    break;
+                case ECode.Move:
+                    Do_Move(cmd);
+                    break;
+                case ECode.Return:
+                    Do_Return(cmd);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+
+        void Do_Call(Command_Call cmd)
+        {
+            PushFrame();
+
+        }
+
+        void Do_Move(Command cmd)
+        {
+
+        }
+
+        void Do_Return(Command cmd)
+        {
+            EIP = TopFrame.EIP + 1;
+            PopFrame();
+        }
     }
 }

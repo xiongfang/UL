@@ -24,7 +24,6 @@ namespace UL
         public EAccessModifier Modifier;
         public string Type;
         public string Name;
-        //public string OwnerType;
         public bool IsStatic;
         public bool IsInternal;
         public Metadata Metadata;
@@ -65,14 +64,13 @@ namespace UL
         public List<UL_Function> Functions = new List<UL_Function>();
         public List<UL_Variable> Variables = new List<UL_Variable>();
         public string Name;
-        public string Parent;
-        public string Outer;
+        public string ParentName;
+        public List<UL_Type> Inners = new List<UL_Type>();
         public EAccessModifier Modifier;
-    }
 
-    public class Data
-    {
-        public static List<UL_Type> AllTypes;
-        public static Dictionary<string, UL_Type> NameTypeMap;
+        [NonSerialized]
+        public UL_Type Outer;
+        [NonSerialized]
+        public UL_Type Parent;
     }
 }

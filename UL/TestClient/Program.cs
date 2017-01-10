@@ -9,11 +9,23 @@ namespace TestClient
 {
     class Program
     {
+
         static void Main(string[] args)
+        {
+
+        }
+
+
+        static void TestVM()
+        {
+
+        }
+
+        static void TestUL()
         {
             UL_Type ulType = new UL_Type();
             ulType.Name = "TestClass";
-            
+
             UL_Function ulFunc = new UL_Function();
             ulFunc.Name = "Add";
             ulFunc.Modifier = EAccessModifier.Public;
