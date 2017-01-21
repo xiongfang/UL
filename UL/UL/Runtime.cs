@@ -6,253 +6,305 @@ using System.Threading.Tasks;
 
 namespace UL
 {
-    public class Sentence
+    namespace Runtime
     {
-        public enum ESentenceType
+        public enum ECode
         {
-            Move,
-            List,
-            Loop_For,
-            Loop_WhileDo,
-            Loop_DoWhile,
-            If,
-            Switch,
-            Return
+            Invoke, //调用一个注册函数
+            Call,   //调用一个函数
+            Ret, //返回函数
+            Push,       //将一个值压栈
+            Pop,        //将一个值Pop出栈
+            PushRet,    //将返回值压栈
+            //Move,       //将源数据传送到目的地址
+            Jump,  //无条件跳转指令
+            JZ,    //标记为真则跳转
         }
 
-        public ESentenceType Type;
-    }
-
-
-    public abstract class Exp
-    {
-        public enum EType
+        public class Command
         {
-            Variable,
-            Call
+            public ECode Code;
+        }
+        public class Command_Invoke : Command
+        {
+            //注册函数地址
+            public int FuncID;
+            public Command_Invoke() { Code = ECode.Invoke; }
+        }
+        public class Command_Call : Command
+        {
+            //代码地址
+            public int CodeID;   
+            public Command_Call() { Code = ECode.Call; }
+        }
+        public class Command_Ret : Command
+        {
+            public Command_Ret() { Code = ECode.Ret; }
+        }
+        public class Command_Push : Command
+        {
+            //public int MemoryID; //内存地址(为0则push一个空对象到栈顶)
+            public object Value;
+            public Command_Push() { Code = ECode.Push; }
+        }
+        public class Command_Pop : Command
+        {
+            //public int MemoryID; //内存地址(为0则pop一个对象，不存放到内存)
+            public int Count;   //Pop数量
+            public Command_Pop() { Code = ECode.Pop; }
         }
 
-        public EType Type;
-    }
+        //public class Command_Move : Command
+        //{
+        //    public enum AddrType
+        //    {
+        //        register,
+        //        memory,
+        //        stack
+        //    }
+        //    public int DestType;
+        //    public int DestIndex;
+        //    public int SourceType;
+        //    public int SourceIndex;
+        //    public Command_Move() { Code = ECode.Pop; }
+        //}
 
-    public class Variable : Exp
-    {
-        public string TypeName;
-        public string ObjectName;
-
-    }
-
-    public class Call : Exp
-    {
-        //调用函数的对象，或者类
-        public Variable Object;
-        //调用的函数名
-        public string Function;
-
-        //调用的参数
-        public Exp[] Args;
-
-        //返回值
-        public Variable Ret;
-    }
-
-    public class Sentence_Assign : Sentence
-    {
-        //调用函数的对象，或者类
-        public Variable A;
-        //调用函数的对象，或者类
-        public Exp B;
-    }
-
-    public class Sentence_Return:Sentence
-    {
-        public Variable Object;
-
-        public Sentence_Return() { Type = ESentenceType.Return; }
-    }
-
-    public class Sentence_List : Sentence
-    {
-        public Sentence[] Body;
-
-        public Sentence_List() { Type = ESentenceType.List; }
-    }
-
-    public class Sentence_List_Loop_For:Sentence
-    {
-        public Sentence_Assign Start;
-        public Exp Condition;
-        public Sentence_Assign End;
-        public Sentence_List Body;
-
-        public Sentence_List_Loop_For() { Type = ESentenceType.Loop_For; }
-    }
-
-    public class Sentence_Loop_WhileDo:Sentence
-    {
-        public Exp ConditionObject;
-        public Sentence_List Body;
-
-        public Sentence_Loop_WhileDo() { Type = ESentenceType.Loop_WhileDo; }
-    }
-    public class Sentence_Loop_DoWhile : Sentence
-    {
-        public Sentence_List Body;
-        public Exp ConditionObject;
-        public Sentence_Loop_DoWhile() { Type = ESentenceType.Loop_DoWhile; }
-    }
-    public class Sentence_If : Sentence
-    {
-        public Exp Condition;
-        public Sentence_List TrueBody;
-        public Sentence_List FalseBody;
-
-        public Sentence_If() { Type = ESentenceType.If; }
-    }
-
-    public class Sentence_Switch : Sentence
-    {
-        public Exp Condition;
-        public class Case
+        public class Command_Jump : Command
         {
-            public Variable CaseValue;
-            public Sentence_List Body;
+            //代码地址
+            public int CodeID; 
+            public Command_Jump() { Code = ECode.Jump; }
         }
-        public Case[] Cases;
-        public Sentence_List Default;
-
-        public Sentence_Switch() { Type = ESentenceType.Switch; }
-    }
-
-    public class FunctionBody
-    {
-        public Sentence_List Body;
-    }
-
-    public class VisualMachine
-    {
-        public Dictionary<string, UL_Type> NameTypeMap = new Dictionary<string, UL_Type>();
-
-        //指令
-        List<Command> Commands = new List<Command>();
-        int EIP;    //指令指针
-        bool Z;     //跳转标记 寄存器
-
-        Scope GlobalScope;  //全局域
-
-        //运行时栈
-        Stack<Frame> RuntimeStack = new Stack<Frame>();
-
-        public class Scope
+        public class Command_JZ : Command
         {
-            public Scope Outer;
-            public Dictionary<string, object> Variables = new Dictionary<string, object>();
-
-            public int Index;
+            //代码地址
+            public int CodeID;
+            public Command_JZ() { Code = ECode.JZ; }
         }
 
-        public class Frame
+        public class VisualMachine
         {
-            public VisualMachine Machine;
-            public int EIP;
-            
-            public Stack<Scope> ScopeStack = new Stack<Scope>();
+            //内存
+            List<object> Memory = new List<object>();
 
-            public void Push()
+            //指令
+            List<Command> Commands = new List<Command>();
+
+            VM_State _State;
+
+            public class VM_State
             {
-                Scope sp = new Scope();
+                VisualMachine This;
+                public VM_State(VisualMachine vm) { This = vm; }
 
-                if (ScopeStack.Count > 0)
-                    sp.Outer = Top;
-                else
-                    sp.Outer = Machine.GlobalScope;
-                ScopeStack.Push(sp);
+                //public void Push(object o)
+                //{
+                //    This.RuntimeStack.Push(o);
+                //}
 
-            }
+                //public object Pop()
+                //{
+                //    return This.RuntimeStack.Pop();
+                //}
 
-            public void Pop()
-            {
-                ScopeStack.Pop();
-            }
-
-            public Scope Top
-            {
-                get
+                public object Get(int Index)
                 {
-                    return ScopeStack.Last();
+                    return This.RuntimeStack.ElementAt((This.RuntimeStack.Count - 1) - ((This.EBP - 2) - Index));
+                }
+
+                public void Ret(object o)
+                {
+                    This.PopFrame();
+                    This.RetValue = o;
+                }
+
+                public void Ret()
+                {
+                    This.PopFrame();
+                    This.RetValue = null;
                 }
             }
-        }
+            public delegate void RefistFunc(VM_State vm);
 
-        
+            List<RefistFunc> RegistFunctions = new List<RefistFunc>();
+
+            //指令指针
+            int EIP;
+            ////栈顶指针
+            //int ESP;
+            //栈基指针
+            int EBP;
+            //跳转标记 寄存器
+            bool Z;
+
+            object RetValue;
+
+            //运行时栈
+            Stack<object> RuntimeStack = new Stack<object>();
 
 
-        void PushFrame()
-        {
-            Frame f = new Frame();
-            f.Push();
-            RuntimeStack.Push(f);
-        }
-
-        Frame TopFrame
-        {
-            get { return RuntimeStack.Last(); }
-        }
-
-        void PopFrame()
-        {
-            RuntimeStack.Pop();
-        }
-
-        public void DoString(string code)
-        {
-
-        }
-
-        void Do(Command cmd)
-        {
-            switch (cmd.Code)
+            void PushFrame()
             {
-                case ECode.BeginScope:
-                    {
-                        TopFrame.Push();
-                    }
-                    break;
-                case ECode.EndScope:
-                    {
-                        TopFrame.Pop();
-                    }
-                    break;
-                case ECode.Call:
-                    Do_Call(cmd as Command_Call);
-                    break;
-                case ECode.Move:
-                    Do_Move(cmd);
-                    break;
-                case ECode.Return:
-                    Do_Return(cmd);
-                    break;
-                default:
-                    break;
+                //保存上一个位置
+                RuntimeStack.Push(EBP);
+                RuntimeStack.Push(EIP);
+                EBP = RuntimeStack.Count;
             }
-        }
+
+            void PopFrame()
+            {
+                while (RuntimeStack.Count>EBP)
+                {
+                    RuntimeStack.Pop();
+                }
+                EIP = (int)RuntimeStack.Pop();
+                EBP = (int)RuntimeStack.Pop();
+            }
+
+            
+
+            void Do(Command cmd)
+            {
+                switch (cmd.Code)
+                {
+                    case ECode.Call:
+                        Do_Call(cmd as Command_Call);
+                        break;
+                    case ECode.Invoke:
+                        Do_Invoke(cmd as Command_Invoke);
+                        break;
+                    case ECode.Push:
+                        Do_Push(cmd as Command_Push);
+                        break;
+                    case ECode.Ret:
+                        Do_Return(cmd);
+                        break;
+                    case ECode.PushRet:
+                        Do_PushRet(cmd);
+                        break;
+                    case ECode.Pop:
+                        Do_Pop(cmd as Command_Pop);
+                        break;
+                    default:
+                        break;
+                }
+            }
 
 
-        void Do_Call(Command_Call cmd)
-        {
-            PushFrame();
+            void Do_Pop(Command_Pop cmd)
+            {
+                for (int i = 0; i < cmd.Count;i++ )
+                {
+                    RuntimeStack.Pop();
+                }
+                EIP++;
+            }
 
-        }
+            void Do_PushRet(Command cmd)
+            {
+                RuntimeStack.Push(RetValue);
+                EIP++;
+            }
 
-        void Do_Move(Command cmd)
-        {
+            void Do_Invoke(Command_Invoke cmd)
+            {
+                PushFrame();
+                RegistFunctions[cmd.FuncID - 1](_State);
+                EIP++;
+            }
 
-        }
+            void Do_Push(Command_Push cmd)
+            {
+                RuntimeStack.Push(cmd.Value);
+                EIP++;
+            }
 
-        void Do_Return(Command cmd)
-        {
-            EIP = TopFrame.EIP + 1;
-            PopFrame();
+            void Do_Call(Command_Call cmd)
+            {
+                PushFrame();
+                EIP = cmd.CodeID;
+            }
+
+            //void Do_Move(Command cmd)
+            //{
+
+            //}
+
+            void Do_Return(Command cmd)
+            {
+                PopFrame();
+                EIP++;
+            }
+
+            /*
+            int AddTest(int a, int b)
+            {
+                return a + 5 + b;
+            }
+            */
+
+            static void Add(VM_State state)
+            {
+                int a= (int)state.Get(1);
+                int b = (int)state.Get(2);
+                state.Ret(a + b);
+            }
+            static void Printf(VM_State state)
+            {
+                Console.Out.WriteLine("打印 " + state.Get(1));
+                state.Ret();
+            }
+
+            public void RunTest()
+            {
+                RegistFunctions.Add(Add);
+                RegistFunctions.Add(Printf);
+
+                Commands = new List<Command>();
+
+                //起始函数，调用main函数
+                Commands.Add(new Command_Call() { CodeID = 3 });
+                Commands.Add(new Command_Ret());
+
+                //main函数体
+                Commands.Add(new Command_Push() { Value = 5 });
+                Commands.Add(new Command_Push() { Value = 6 });
+                Commands.Add(new Command_Push() { Value = 7 });
+
+                Commands.Add(new Command_Invoke() { FuncID = 1 });
+                Commands.Add(new Command_Pop() { Count = 2 });
+                Commands.Add(new Command() { Code = ECode.PushRet  });
+                Commands.Add(new Command_Invoke() { FuncID = 1 });
+                Commands.Add(new Command_Pop() { Count = 2 });
+                
+
+                //打印返回值
+                Commands.Add(new Command() { Code = ECode.PushRet });
+                Commands.Add(new Command_Invoke() { FuncID = 2 });
+
+                //主函数返回
+                Commands.Add(new Command_Ret());
+                Run(1);
+            }
+
+
+            void Run(int EIP_POS)
+            {
+                EIP = EIP_POS;
+                EBP = 0;
+                _State = new VM_State(this);
+
+                if(!(Commands[EIP-1] is Command_Call))
+                {
+                    throw new Exception("起始方法必须是函数");
+                }
+
+
+                do
+                {
+                    Do(Commands[EIP - 1]);
+                } while (EIP <= Commands.Count && EBP != 0);
+            }
         }
     }
 }
