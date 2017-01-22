@@ -1,0 +1,49 @@
+﻿{
+    "Types": [
+        {
+            "Name": "Int32",
+            "Functions": [
+                {
+                    "Name": "Add",
+                    "Metadata": {
+                        "MetaStrings": [
+                            "Invoke=Add"
+                        ]
+                    }
+                },
+                {
+                    "Name": "Printf",
+                    "Metadata": {
+                        "MetaStrings": [
+                            "Invoke=Printf"
+                        ]
+                    }
+                }
+            ]
+
+        },
+
+        {
+            "Name": "TestClass",
+            "Functions": [
+                {
+                    "Name": "TestMain",
+                    "Body": [
+                        { "Type": "Ret", "Object": { "Type": "Call", "Object": "TestClass", "Function": "TestAdd", "Args": [ {} ] } }
+                    ]
+                },
+                {
+                    "Name": "TestAdd",
+                    "Params": [ { "TypeFulleName": "Int32", "Name": "A" }, { "TypeFulleName": "Int32", "Name": "B" } ],
+                    "Body": [
+                        { "Type": "Ret", "Object": { "Type": "Call", "Object": "Int32", "Function": "Add", "Ret": "Int32", "Args": [ { "Type": "Variable", "TypeName": "Int32", "ObjectName": "A" }, { "Type": "Variable", "TypeName": "Int32", "ObjectName": "B" } ] } }
+                    ]
+                }
+
+
+            ]
+
+        }
+
+    ]
+}
