@@ -15,7 +15,6 @@ namespace TestClient
             TestVM();
         }
 
-
         static void TestVM()
         {
             UL.Runtime.VisualMachine vm = new UL.Runtime.VisualMachine();

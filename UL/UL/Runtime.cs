@@ -19,6 +19,7 @@ namespace UL
             //Move,       //将源数据传送到目的地址
             Jump,  //无条件跳转指令
             JZ,    //标记为真则跳转
+            Move    //栈上的值拷贝
         }
 
         public class Command
@@ -44,7 +45,7 @@ namespace UL
         public class Command_Push : Command
         {
             //public int MemoryID; //内存地址(为0则push一个空对象到栈顶)
-            public object Value;
+            public Metadata.Const Value;
             public Command_Push() { Code = ECode.Push; }
         }
         public class Command_Pop : Command
@@ -54,20 +55,19 @@ namespace UL
             public Command_Pop() { Code = ECode.Pop; }
         }
 
-        //public class Command_Move : Command
-        //{
-        //    public enum AddrType
-        //    {
-        //        register,
-        //        memory,
-        //        stack
-        //    }
-        //    public int DestType;
-        //    public int DestIndex;
-        //    public int SourceType;
-        //    public int SourceIndex;
-        //    public Command_Move() { Code = ECode.Pop; }
-        //}
+        public class Command_Move : Command
+        {
+            public enum AddressType
+            {
+                EBP,
+                ESP
+            }
+            public AddressType SourceType;
+            public int SourceIndex;  //相对于EBP
+            public AddressType DestType;
+            public int DestIndex; //相对于EBP
+            public Command_Move() { Code = ECode.Move; }
+        }
 
         public class Command_Jump : Command
         {
@@ -215,7 +215,7 @@ namespace UL
 
             void Do_Push(Command_Push cmd)
             {
-                RuntimeStack.Push(cmd.Value);
+                RuntimeStack.Push(cmd.Value.Value);
                 EIP++;
             }
 
@@ -287,6 +287,45 @@ namespace UL
                 Run(1);
             }
 
+            public void RunTestCompiler(string json)
+            {
+                UL.Metadata.UL_Domain domain = Newtonsoft.Json.JsonConvert.DeserializeObject<Metadata.UL_Domain>(json);
+                Compiler.Compiler cp = new Compiler.Compiler();
+                cp.Compile(domain);
+
+                //起始函数，调用main函数
+                Commands.Add(new Command_Call() { CodeID = 3 });
+                Commands.Add(new Command_Ret());
+                Commands.AddRange(cp.Results);
+
+
+                RegistFunctions.Add(Add);
+                RegistFunctions.Add(Printf);
+
+
+                for (int i = 0; i < RegistFunctions.Count;i++ )
+                {
+                    RefistFunc temp = RegistFunctions[i];
+                    int index = cp.InvokeList.IndexOf(temp.Method.Name);
+
+                    if (index != -1)
+                    {
+                        if(index < RegistFunctions.Count)
+                        {
+                            RegistFunctions[i] = RegistFunctions[index];
+                            RegistFunctions[index] = temp;
+                        }
+                        else
+                        {
+                            throw new Exception("无效的调用");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("无效的调用");
+                    }
+                }
+            }
 
             void Run(int EIP_POS)
             {
