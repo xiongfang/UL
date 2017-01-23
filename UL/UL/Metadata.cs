@@ -37,7 +37,7 @@ namespace UL
             public string Name;
             public bool IsStatic;
             public bool IsInternal;
-            public Metadata Metadata;
+            public Metadata Metadata = new Metadata();
             [NonSerialized]
             public UL_Type Owner;
         }
@@ -62,7 +62,7 @@ namespace UL
 
             public bool IsVirsual;
 
-            public Sentence_List Body;
+            public Sentence[] Body;
 
             public string UnicodeFullName
             {
@@ -152,7 +152,10 @@ namespace UL
 
             public void PostInit()
             {
-                Domain.TypeDic.TryGetValue(ParentFullName, out Parent);
+                if (ParentFullName!=null)
+                {
+                    Domain.TypeDic.TryGetValue(ParentFullName, out Parent);
+                }
                 foreach (var func in Functions)
                 {
                     func.PostInit();
@@ -303,96 +306,97 @@ namespace UL
         }
 
 
-        public class Sentence_Assign : Sentence
+        public class Sentence_Assign// : Sentence
         {
             //调用函数的对象，或者类
             public string A;
             //调用函数的对象，或者类
             public Exp B;
-            public Sentence_Assign() { Type = ESentenceType.Assign; }
+            //public Sentence_Assign() { Type = ESentenceType.Assign; }
         }
 
-        public class Sentence_Return : Sentence
+        public class Sentence_Return// : Sentence
         {
-            public Exp Object;
-            public Sentence_Return() { Type = ESentenceType.Return; }
+            public Exp Value;
+            //public Sentence_Return() { Type = ESentenceType.Return; }
         }
 
-        public class Sentence_List : Sentence
+        public class Sentence_List// : Sentence
         {
             public Sentence[] Body;
-            public Sentence_List() { Type = ESentenceType.List; }
+            //public Sentence_List() { Type = ESentenceType.List; }
         }
 
-        public class Sentence_List_Loop_For : Sentence
+        public class Sentence_List_Loop_For// : Sentence
         {
-            public Sentence_Assign Start;
+            public Sentence Start;
             public Exp Condition;
-            public Sentence_Assign End;
-            public Sentence_List Body;
-            public Sentence_List_Loop_For() { Type = ESentenceType.Loop_For; }
+            public Sentence End;
+            public Sentence Body;
+            //public Sentence_List_Loop_For() { Type = ESentenceType.Loop_For; }
         }
 
-        public class Sentence_Loop_WhileDo : Sentence
+        public class Sentence_Loop_WhileDo// : Sentence
         {
             public Exp ConditionObject;
-            public Sentence_List Body;
-            public Sentence_Loop_WhileDo() { Type = ESentenceType.Loop_WhileDo; }
+            public Sentence Body;
+            //public Sentence_Loop_WhileDo() { Type = ESentenceType.Loop_WhileDo; }
         }
-        public class Sentence_Loop_DoWhile : Sentence
+        public class Sentence_Loop_DoWhile// : Sentence
         {
-            public Sentence_List Body;
+            public Sentence Body;
             public Exp ConditionObject;
-            public Sentence_Loop_DoWhile() { Type = ESentenceType.Loop_DoWhile; }
+            //public Sentence_Loop_DoWhile() { Type = ESentenceType.Loop_DoWhile; }
         }
-        public class Sentence_If : Sentence
+        public class Sentence_If// : Sentence
         {
             public Exp Condition;
-            public Sentence_List TrueBody;
-            public Sentence_List FalseBody;
-            public Sentence_If() { Type = ESentenceType.If; }
+            public Sentence TrueBody;
+            public Sentence FalseBody;
+            //public Sentence_If() { Type = ESentenceType.If; }
         }
 
-        public class Sentence_Switch : Sentence
+        public class Sentence_Switch// : Sentence
         {
             public Exp Condition;
             public class Case
             {
                 public Const CaseValue;
-                public Sentence_List Body;
+                public Sentence Body;
             }
             public Case[] Cases;
-            public Sentence_List Default;
-            public Sentence_Switch() { Type = ESentenceType.Switch; }
+            public Sentence Default;
+            //public Sentence_Switch() { Type = ESentenceType.Switch; }
         }
 
-        public class Sentence_Local : Sentence
+        public class Sentence_Local// : Sentence
         {
             //调用函数的对象，或者类
-            public Variable A;
-            public Sentence_Local() { Type = ESentenceType.Local; }
+            public Variable Var;
+            //public Sentence_Local() { Type = ESentenceType.Local; }
         }
+
+        public enum ESentenceType
+        {
+            Assign,
+            List,
+            Loop_For,
+            Loop_WhileDo,
+            Loop_DoWhile,
+            If,
+            Switch,
+            Return,
+            Local
+        }
+
+        //public class Sentence
+        //{
+        //    public ESentenceType Type;
+        //}
 
         public class Sentence
         {
-            public enum ESentenceType
-            {
-                Assign,
-                List,
-                Loop_For,
-                Loop_WhileDo,
-                Loop_DoWhile,
-                If,
-                Switch,
-                Return,
-                Local
-            }
-
             public ESentenceType Type;
-        }
-
-        public class Sentence_Args
-        {
             public Sentence_Assign Assign;
             public Sentence_Return Return;
             public Sentence_List List;

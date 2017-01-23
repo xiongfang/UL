@@ -109,7 +109,7 @@ namespace UL
 
                 public object Get(int Index)
                 {
-                    return This.RuntimeStack.ElementAt((This.RuntimeStack.Count - 1) - ((This.EBP - 2) - Index));
+                    return This.RuntimeStack[((This.EBP - 2) - Index)];
                 }
 
                 public void Ret(object o)
@@ -139,8 +139,44 @@ namespace UL
 
             object RetValue;
 
+
+            public class Stack
+            {
+                //运行时栈
+                List<object> RuntimeStack = new List<object>();
+
+                public void Push(object v)
+                {
+                    RuntimeStack.Add(v);
+                }
+
+                public object Pop()
+                {
+                    object v = RuntimeStack[RuntimeStack.Count - 1];
+                    RuntimeStack.RemoveAt(RuntimeStack.Count - 1);
+                    return v;
+                }
+
+                public object this[int Index]
+                {
+                    get
+                    {
+                        return RuntimeStack[Index];
+                    }
+
+                    set
+                    {
+                        RuntimeStack[Index] = value;
+                    }
+                }
+
+                public int Count
+                {
+                    get { return RuntimeStack.Count; }
+                }
+            }
             //运行时栈
-            Stack<object> RuntimeStack = new Stack<object>();
+            Stack RuntimeStack = new Stack();
 
 
             void PushFrame()
@@ -185,9 +221,39 @@ namespace UL
                     case ECode.Pop:
                         Do_Pop(cmd as Command_Pop);
                         break;
+                    case ECode.Move:
+                        Do_Move(cmd as Command_Move);
+                        break;
+
                     default:
                         break;
                 }
+            }
+
+            void Do_Move(Command_Move cmd)
+            {
+                object src = null;
+                switch(cmd.SourceType)
+                {
+                    case Command_Move.AddressType.EBP:
+                        src = RuntimeStack[EBP + cmd.SourceIndex];
+                        break;
+                    case Command_Move.AddressType.ESP:
+                        src = RuntimeStack[RuntimeStack.Count + cmd.SourceIndex];
+                        break;
+                }
+
+                switch(cmd.DestType)
+                {
+                    case Command_Move.AddressType.EBP:
+                        RuntimeStack[EBP + cmd.DestIndex] = src;
+                        break;
+                    case Command_Move.AddressType.ESP:
+                        RuntimeStack[RuntimeStack.Count + cmd.DestIndex] = src;
+                        break;
+                }
+
+                EIP++;
             }
 
 
@@ -215,7 +281,11 @@ namespace UL
 
             void Do_Push(Command_Push cmd)
             {
-                RuntimeStack.Push(cmd.Value.Value);
+                if (cmd.Value != null)
+                    RuntimeStack.Push(cmd.Value.Value);
+                else
+                    RuntimeStack.Push(null);
+
                 EIP++;
             }
 
@@ -232,6 +302,7 @@ namespace UL
 
             void Do_Return(Command cmd)
             {
+                RetValue = RuntimeStack[RuntimeStack.Count - 1];
                 PopFrame();
                 EIP++;
             }
@@ -290,14 +361,15 @@ namespace UL
             public void RunTestCompiler(string json)
             {
                 UL.Metadata.UL_Domain domain = Newtonsoft.Json.JsonConvert.DeserializeObject<Metadata.UL_Domain>(json);
+                domain.Init();
                 Compiler.Compiler cp = new Compiler.Compiler();
                 cp.Compile(domain);
 
                 //起始函数，调用main函数
-                Commands.Add(new Command_Call() { CodeID = 3 });
-                Commands.Add(new Command_Ret());
-                Commands.AddRange(cp.Results);
 
+                Commands.AddRange(cp.Results);
+                Commands.Add(new Command_Call() { CodeID = 1 });
+                Commands.Add(new Command_Ret());
 
                 RegistFunctions.Add(Add);
                 RegistFunctions.Add(Printf);
@@ -325,6 +397,8 @@ namespace UL
                         throw new Exception("无效的调用");
                     }
                 }
+
+                Run(Commands.Count-1);
             }
 
             void Run(int EIP_POS)

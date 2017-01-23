@@ -18,7 +18,10 @@ namespace TestClient
         static void TestVM()
         {
             UL.Runtime.VisualMachine vm = new UL.Runtime.VisualMachine();
-            vm.RunTest();
+            //vm.RunTest();
+
+            string json = System.IO.File.ReadAllText("json1.json");
+            vm.RunTestCompiler(json);
         }
 
         static void TestUL()

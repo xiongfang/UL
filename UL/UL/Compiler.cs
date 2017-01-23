@@ -64,7 +64,7 @@ namespace UL
                     LocalVariables.Clear();
                     foreach(var p in m.Params)
                     {
-                        LocalVariables[p.Name] = -2 - LocalVariables.Count;
+                        LocalVariables[p.Name] = -4 - LocalVariables.Count+1;
                     }
                     FuncCodeTable.Add(Results.Count+1);
                     Compile(m.Body);
@@ -81,27 +81,30 @@ namespace UL
                 }
             }
 
-            ////编译一个方法，返回方法的起始命令索引
-            //void Compile(UL.Metadata.FunctionBody Body)
-            //{
-            //    Compile(Body.Body);
-            //}
+            //编译一个方法，返回方法的起始命令索引
+            void Compile(UL.Metadata.Sentence[] Body)
+            {
+                for (int i = 0; i < Body.Length;i++ )
+                {
+                    Compile(Body[i]);
+                }
+            }
 
             void Compile(UL.Metadata.Sentence sentence)
             {
                 switch (sentence.Type)
                 {
-                    case UL.Metadata.Sentence.ESentenceType.List:
-                        Compile_List(sentence as UL.Metadata.Sentence_List);
+                    case UL.Metadata.ESentenceType.List:
+                        Compile_List(sentence.List);
                         break;
-                    case UL.Metadata.Sentence.ESentenceType.Assign:
-                        Compile_Assign(sentence as UL.Metadata.Sentence_Assign);
+                    case UL.Metadata.ESentenceType.Assign:
+                        Compile_Assign(sentence.Assign);
                         break;
-                    case UL.Metadata.Sentence.ESentenceType.Return:
-                        Compile_Return(sentence as UL.Metadata.Sentence_Return);
+                    case UL.Metadata.ESentenceType.Return:
+                        Compile_Return(sentence.Return);
                         break;
-                    case Metadata.Sentence.ESentenceType.Local:
-                        Compile_Local(sentence as UL.Metadata.Sentence_Local);
+                    case Metadata.ESentenceType.Local:
+                        Compile_Local(sentence.Local);
                         break;
                     default:
                         break;
@@ -112,11 +115,12 @@ namespace UL
             void Compile_Local( UL.Metadata.Sentence_Local sentence )
             {
                 Command_Push cmd = new Command_Push();
-                if(LocalVariables.ContainsKey(sentence.A.ObjectName))
+                if(LocalVariables.ContainsKey(sentence.Var.ObjectName))
                 {
                     throw new Exception("本地变量名称重复");
                 }
-                LocalVariables[sentence.A.ObjectName] = LocalVariables.Count;
+                LocalVariables[sentence.Var.ObjectName] = LocalVariables.Count;
+                Results.Add(cmd);
             }
 
             void Compile_List(UL.Metadata.Sentence_List sentence)
@@ -129,9 +133,6 @@ namespace UL
 
             void Compile_Assign(UL.Metadata.Sentence_Assign sentence)
             {
-                {
-
-                }
 
                 if (sentence.B != null)
                 {
@@ -139,6 +140,7 @@ namespace UL
                 }
 
                 //赋值，默认返回值放在下一个本地变量处
+                if(sentence.A!=null)
                 {
                     int StackIndex = LocalVariables[sentence.A];
                     Command_Move Mv = new Command_Move();
@@ -160,13 +162,14 @@ namespace UL
                             Command_Push cmd = new Command_Push();
                             Results.Add(cmd);
 
+                            //将本地变量赋值到栈顶
                             int StackIndex = LocalVariables[exp.ArgVar.ObjectName];
                             Command_Move Mv = new Command_Move();
-                            Mv.SourceIndex = -1;
-                            Mv.SourceType = Command_Move.AddressType.ESP;
+                            Mv.DestIndex = -1;
+                            Mv.DestType = Command_Move.AddressType.ESP;
 
-                            Mv.DestType = Command_Move.AddressType.EBP;
-                            Mv.DestIndex = StackIndex;
+                            Mv.SourceType = Command_Move.AddressType.EBP;
+                            Mv.SourceIndex = StackIndex;
                             Results.Add(Mv);
                         }
                         break;
@@ -193,31 +196,36 @@ namespace UL
                 {
                     Compile_Exp(call.Args[i]);
                 }
-                
-                string Invoke = FunctionMap[call.Function].Func.Metadata.Find("Invoke");
+
+                string CallFullName = call.Object+"."+call.Function;
+                string Invoke = FunctionMap[CallFullName].Func.Metadata.Find("Invoke");
                 if(Invoke == null)
                 {
                     Command_Call cmd = new Command_Call();
-                    cmd.CodeID = FunctionMap[call.Function].Index;
+                    cmd.CodeID = FunctionMap[CallFullName].Index;
                     Results.Add(cmd);
                 }
                 else
                 {
                     string Value = Invoke.Split('=')[1];
                     Command_Invoke cmd = new Command_Invoke();
-                    cmd.FuncID = InvokeList.FindIndex((a) => { return a == Value; });
+                    cmd.FuncID = InvokeList.FindIndex((a) => { return a == Value; }) +1;
                     Results.Add(cmd);
                 }
                 Command_Pop cmdPopParams = new Command_Pop();
                 cmdPopParams.Count = call.Args.Length;
                 Results.Add(cmdPopParams);
+
+                Command cmdPushRet = new Command();
+                cmdPushRet.Code = ECode.PushRet;
+                Results.Add(cmdPushRet);
             }
 
             void Compile_Return(UL.Metadata.Sentence_Return sentence)
             {
-                if(sentence.Object!=null)
+                if(sentence.Value!=null)
                 {
-                    Compile_Exp(sentence.Object);
+                    Compile_Exp(sentence.Value);
                 }
 
                 {
