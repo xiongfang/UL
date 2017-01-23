@@ -16,7 +16,6 @@ namespace UL
             Push,       //将一个值压栈
             Pop,        //将一个值Pop出栈
             PushRet,    //将返回值压栈
-            //Move,       //将源数据传送到目的地址
             Jump,  //无条件跳转指令
             JZ,    //标记为真则跳转
             Move    //栈上的值拷贝
