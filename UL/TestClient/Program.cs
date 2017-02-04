@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using UL;
@@ -9,10 +10,13 @@ namespace TestClient
 {
     class Program
     {
+        [DllImport("UL_CPP_VM")]
+        static extern void Test();
+
 
         static void Main(string[] args)
         {
-            TestVM();
+            Test();
         }
 
         static void TestVM()
