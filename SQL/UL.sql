@@ -66,6 +66,7 @@ CREATE TABLE `type` (
   `is_interface` bit(1) NOT NULL,
   `imports` json NOT NULL,
   `ext` json NOT NULL,
+  `is_value_type` bit(1) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='类型';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -76,7 +77,7 @@ CREATE TABLE `type` (
 
 LOCK TABLES `type` WRITE;
 /*!40000 ALTER TABLE `type` DISABLE KEYS */;
-INSERT INTO `type` VALUES (1,'Int32','',0,'\0',0,'System','\0','[]','[]'),(2,'Int64','',0,'\0',0,'System','\0','[]','[]'),(3,'Single','',0,'\0',0,'System','\0','[]','[]'),(4,'Double','',0,'\0',0,'System','\0','[]','[]'),(5,'String','',0,'\0',0,'System','\0','[]','[]'),(6,'Byte','',0,'\0',0,'System','\0','[]','[]');
+INSERT INTO `type` VALUES (1,'Int32','',0,'\0',0,'System','\0','[]','[]',''),(2,'Int64','',0,'\0',0,'System','\0','[]','[]',''),(3,'Single','',0,'\0',0,'System','\0','[]','[]',''),(4,'Double','',0,'\0',0,'System','\0','[]','[]',''),(5,'String','',0,'\0',0,'System','\0','[]','[]',''),(6,'Byte','',0,'\0',0,'System','\0','[]','[]','');
 /*!40000 ALTER TABLE `type` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -89,4 +90,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-08-22 16:25:47
+-- Dump completed on 2017-08-22 17:59:25
