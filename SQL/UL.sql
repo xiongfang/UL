@@ -49,6 +49,30 @@ LOCK TABLES `member` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `namespace`
+--
+
+DROP TABLE IF EXISTS `namespace`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `namespace` (
+  `id` int(11) NOT NULL,
+  `fullname` varchar(1024) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `namespace`
+--
+
+LOCK TABLES `namespace` WRITE;
+/*!40000 ALTER TABLE `namespace` DISABLE KEYS */;
+INSERT INTO `namespace` VALUES (1,'System');
+/*!40000 ALTER TABLE `namespace` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `type`
 --
 
@@ -62,7 +86,7 @@ CREATE TABLE `type` (
   `modifier` int(11) NOT NULL,
   `is_abstract` bit(1) NOT NULL,
   `parent_id` int(11) NOT NULL,
-  `namespace` varchar(1024) NOT NULL,
+  `namespace` int(11) NOT NULL,
   `is_interface` bit(1) NOT NULL,
   `imports` json NOT NULL,
   `ext` json NOT NULL,
@@ -77,7 +101,7 @@ CREATE TABLE `type` (
 
 LOCK TABLES `type` WRITE;
 /*!40000 ALTER TABLE `type` DISABLE KEYS */;
-INSERT INTO `type` VALUES (1,'Int32','',0,'\0',0,'System','\0','[]','[]',''),(2,'Int64','',0,'\0',0,'System','\0','[]','[]',''),(3,'Single','',0,'\0',0,'System','\0','[]','[]',''),(4,'Double','',0,'\0',0,'System','\0','[]','[]',''),(5,'String','',0,'\0',0,'System','\0','[]','[]',''),(6,'Byte','',0,'\0',0,'System','\0','[]','[]','');
+INSERT INTO `type` VALUES (1,'Int32','',0,'\0',0,1,'\0','[]','[]',''),(2,'Int64','',0,'\0',0,1,'\0','[]','[]',''),(3,'Single','',0,'\0',0,1,'\0','[]','[]',''),(4,'Double','',0,'\0',0,1,'\0','[]','[]',''),(5,'String','',0,'\0',0,1,'\0','[]','[]',''),(6,'Byte','',0,'\0',0,1,'\0','[]','[]','');
 /*!40000 ALTER TABLE `type` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -90,4 +114,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-08-22 17:59:25
+-- Dump completed on 2017-08-23 10:20:44
