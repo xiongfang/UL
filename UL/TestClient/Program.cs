@@ -4,7 +4,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using UL;
 
 namespace TestClient
 {
@@ -16,33 +15,15 @@ namespace TestClient
 
         static void Main(string[] args)
         {
-            Test();
+            string v = "5";
+            TestString(v);
+            Console.WriteLine("v:{0}", v);
         }
 
-        static void TestVM()
+        static void TestString(string v)
         {
-            UL.Runtime.VisualMachine vm = new UL.Runtime.VisualMachine();
-            //vm.RunTest();
-
-            string json = System.IO.File.ReadAllText("json1.json");
-            vm.RunTestCompiler(json);
+            v = "6";
         }
 
-        static void TestUL()
-        {
-            //UL_Type ulType = new UL_Type();
-            //ulType.Name = "TestClass";
-
-            //UL_Function ulFunc = new UL_Function();
-            //ulFunc.Name = "Add";
-            //ulFunc.Modifier = EAccessModifier.Public;
-            //ulFunc.Owner = ulType;
-            //ulType.Functions.Add(ulFunc);
-
-            //string json = Newtonsoft.Json.JsonConvert.SerializeObject(ulType);
-            //Console.WriteLine(json);
-            //UL_Type ret = Newtonsoft.Json.JsonConvert.DeserializeObject<UL_Type>(json);
-
-        }
     }
 }
