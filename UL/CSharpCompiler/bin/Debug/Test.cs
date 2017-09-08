@@ -6,8 +6,10 @@ using System.Text;
 
 namespace HelloWorld
 {
-    class Program
+    public class Program
     {
+        public static int a = 6;
+
         static void Main(string[] args)
         {
             if(true)

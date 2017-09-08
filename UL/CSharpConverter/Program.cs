@@ -33,7 +33,6 @@ namespace CSharpConverter
             db_t.is_abstract = type.IsAbstract;
             db_t.is_value_type = type.IsValueType;
             db_t.modifier = type.IsPublic ? 0 : 1;
-            db_t.id = type.GUID.ToString();
             db_t._namespace = type.Namespace;
             db_t.is_interface = type.IsInterface;
             typeList.Add(type.GUID,db_t);
@@ -41,7 +40,7 @@ namespace CSharpConverter
             if (type.BaseType != null)
             {
                 AddType(type.BaseType);
-                db_t.parent_id = typeList[type.BaseType.GUID].id;
+                db_t._parent = type.BaseType.FullName;
             }
 
             DB.SaveDBType(db_t,_con,_trans);
@@ -58,22 +57,12 @@ namespace CSharpConverter
             
         }
 
-        static int MakeModifier(bool isPublic,bool isPrivate,bool isProtected)
-        {
-            if (isPublic)
-                return 1;
-            else if (isPrivate)
-                return 2;
-            else if (isProtected)
-                return 3;
-            return 0;
-        }
 
         static void AddMember(string type_id, int id, MemberInfo mi)
         {
             DB_Member member = new DB_Member();
-            member.id = id;
-            member.declaring_type_id = type_id;
+            //member.id = id;
+            member.declaring_type = type_id;
             member.name = mi.Name;
             member.member_type = (int)mi.MemberType;
 
@@ -81,13 +70,13 @@ namespace CSharpConverter
             {
                 FieldInfo fi = mi as FieldInfo;
                 member.is_static = fi.IsStatic;
-                member.modifier = MakeModifier(fi.IsPublic, fi.IsPrivate, false);
+                member.modifier = DB.MakeModifier(fi.IsPublic, fi.IsPrivate, false);
 
 
                 AddType(fi.FieldType);
 
                 MemberVaiable mv = new MemberVaiable();
-                mv.type_id = typeList[fi.FieldType.GUID].id;
+                mv.type_fullname = fi.FieldType.FullName;
 
                 member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mv);
             }
@@ -96,7 +85,7 @@ namespace CSharpConverter
             {
                 MethodInfo method = mi as MethodInfo;
                 member.is_static = method.IsStatic;
-                member.modifier = MakeModifier(method.IsPublic, method.IsPrivate, false);
+                member.modifier = DB.MakeModifier(method.IsPublic, method.IsPrivate, false);
 
 
                 MemberFunc mf = new MemberFunc();
@@ -114,9 +103,9 @@ namespace CSharpConverter
 
                     AddType(pars[i].ParameterType);
 
-                    mf.args[i].type_id = typeList[ pars[i].ParameterType.GUID].id;
+                    mf.args[i].type_fullname = pars[i].ParameterType.FullName;
 
-                    if(pars[i].HasDefaultValue)
+                    if (pars[i].HasDefaultValue)
                     {
                         if (pars[i].RawDefaultValue != null)
                             mf.args[i].default_value = pars[i].RawDefaultValue.ToString();
