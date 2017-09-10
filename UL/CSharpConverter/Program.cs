@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Data.Odbc;
 using Metadata;
+using System.Reflection.Emit;
+using System.IO;
 
 namespace CSharpConverter
 {
@@ -24,6 +26,8 @@ namespace CSharpConverter
             if (typeList.ContainsKey(type.GUID))
                 return;
 
+            if (type != typeof(string))
+                return;
 
             Console.WriteLine("ExportType: " + type.Name);
             
@@ -56,6 +60,7 @@ namespace CSharpConverter
             
         }
 
+        static int PrintIL_Count = 0;
 
         static void AddMember(string type_id, int id, MemberInfo mi)
         {
@@ -114,12 +119,66 @@ namespace CSharpConverter
 
                 }
 
-                MethodBody body = method.GetMethodBody();
+                PrintIL_Count++;
+                if(PrintIL_Count<3)
+                {
+                    SDILReader.MethodBodyReader reader = new SDILReader.MethodBodyReader(method);
+
+                    if (reader.instructions != null)
+                    {
+                        foreach (var ins in reader.instructions)
+                        {
+                            Console.WriteLine(ins.GetCode());
+                        }
+                    }
+                }
+
+
 
                 member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mf);
             }
 
             DB.SaveDBMember(member, _con, _trans);
+        }
+
+
+        public static OpCode[] GetOpCodes(byte[] data)
+        {
+            List<OpCode> opCodes = new List<OpCode>();
+
+            MemoryStream ms = new MemoryStream(data);
+            BinaryReader br = new BinaryReader(ms);
+
+            short code = br.ReadByte();
+            int size = 1;
+            if (code == 0xfe)
+            {
+                ms.Position -= 1;
+                code = br.ReadByte();
+                size = 2;
+            }
+
+            try
+            {
+                OpCode result = (OpCode)typeof(OpCodes).GetFields(BindingFlags.Static).First((a) =>
+                {
+                    OpCode oc = (OpCode)a.GetValue(null);
+                    if (oc != null)
+                    {
+                        return oc.Value == code && oc.Size == size;
+                    }
+                    return false;
+                }).GetValue(null);
+
+                opCodes.Add(result);
+            }
+            catch(Exception )
+            {
+
+            }
+
+
+            return opCodes.ToArray();
         }
 
         static OdbcConnection _con;
@@ -128,9 +187,9 @@ namespace CSharpConverter
         static void Main(string[] args)
         {
 
+            SDILReader.Globals.LoadOpCodes();
 
-
-            using (OdbcConnection con = new OdbcConnection("Dsn=MySql"))
+            using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
             {
                 con.Open();
                 _con = con;
@@ -147,7 +206,7 @@ namespace CSharpConverter
                 }
 
                 Console.WriteLine("Commit...");
-                trans.Commit();
+                //trans.Commit();
             }
 
             
