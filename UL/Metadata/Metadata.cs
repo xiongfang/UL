@@ -10,23 +10,37 @@ namespace Metadata
     public class DB_Type
     {
         //public string id;
-        public string name;
+        public string full_name;
         public string comments = "";
         public int modifier;
         public bool is_abstract;
         public string _parent = "";
-        public string _namespace = "";
+
         public int[] imports;
         public string ext = "";
         public bool is_value_type;
         public bool is_interface;
-        public string full_name
+
+        public string _namespace
         {
             get
             {
-                return _namespace + "." + name;
+                if (full_name.Contains("."))
+                    return full_name.Substring(0,full_name.LastIndexOf("."));
+                return "";
             }
         }
+
+        public string name
+        {
+            get
+            {
+                if (full_name.Contains("."))
+                    return full_name.Substring(full_name.LastIndexOf(".")+1);
+                return full_name;
+            }
+        }
+
     }
 
     public class DB_Member
@@ -53,20 +67,15 @@ namespace Metadata
         {
             public string type_fullname;
             public string name;
-            public bool is_in;
-            public bool is_ret;
+            public bool is_ref;
             public bool is_out;
             public string default_value = "";
         }
         public Args[] args;
 
-        public class Body
-        {
-            public int stack;
+        public string ret_type;
 
-        }
-
-        public Body body;
+        public DB_BlockSyntax body;
     }
 
     //语句
@@ -75,16 +84,78 @@ namespace Metadata
 
     }
 
+    public class DB_BlockSyntax: DB_StatementSyntax
+    {
+        public List<DB_StatementSyntax> List = new List<DB_StatementSyntax>();
+    }
+
     public class DB_IfStatementSyntax:DB_StatementSyntax
     {
+        public DB_ExpressionSyntax Condition;
+        public DB_StatementSyntax Statement;
+        public DB_StatementSyntax Else;
+    }
+    public class DB_ExpressionStatementSyntax : DB_StatementSyntax
+    {
         public DB_ExpressionSyntax Exp;
+    }
+    public class DB_LocalDeclarationStatementSyntax : DB_StatementSyntax
+    {
+        public string Type;
+        public List<VariableDeclaratorSyntax> Variables = new List<VariableDeclaratorSyntax>();
 
     }
+
+    public class VariableDeclaratorSyntax
+    {
+        public string Identifier;
+        //public List<DB_ArgumentSyntax> ArgumentList = new List<DB_ArgumentSyntax>();
+        public DB_InitializerExpressionSyntax Initializer;
+    }
+
 
     //表达式
     public class DB_ExpressionSyntax
     {
 
+    }
+
+    public class DB_LiteralExpressionSyntax : DB_ExpressionSyntax
+    {
+        public string token;
+    }
+
+    public class DB_MemberAccessExpressionSyntax : DB_ExpressionSyntax
+    {
+        public DB_ExpressionSyntax Exp;
+        public string name;
+    }
+
+    public class DB_ArgumentSyntax:DB_ExpressionSyntax
+    {
+        public DB_ExpressionSyntax Expression;
+    }
+    public class DB_InvocationExpressionSyntax : DB_ExpressionSyntax
+    {
+        public DB_ExpressionSyntax Exp;
+        public List<DB_ArgumentSyntax> Arguments = new List<DB_ArgumentSyntax>();
+
+    }
+
+    public class DB_IdentifierNameSyntax : DB_ExpressionSyntax
+    {
+        public string Name;
+    }
+
+    public class DB_InitializerExpressionSyntax : DB_ExpressionSyntax
+    {
+        public List<DB_ExpressionSyntax> Expressions = new List<DB_ExpressionSyntax>();
+    }
+    public class DB_ObjectCreationExpressionSyntax:DB_ExpressionSyntax
+    {
+        public string Type;
+        public List<DB_ArgumentSyntax> Arguments = new List<DB_ArgumentSyntax>();
+        public DB_InitializerExpressionSyntax Initializer;
     }
 
     //
@@ -154,14 +225,20 @@ namespace Metadata
         public static void SaveDBType(DB_Type type, OdbcConnection _con, OdbcTransaction _trans)
         {
             {
-                string cmdText = string.Format("delete from type where name='{0}' and namespace='{1}'", type.name, type._namespace);
+                string cmdText = string.Format("delete from type where full_name='{0}'", type.full_name);
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
                 cmd.ExecuteNonQuery();
             }
 
             {
-                string cmdText = string.Format("insert into type(name,comments,modifier,is_abstract,parent,namespace,imports,ext,is_value_type,is_interface) values(\"{1}\",\"{2}\",{3},{4},\"{5}\",\"{6}\",?,?,?,?);",
-                    "",type.name, type.comments, type.modifier, type.is_abstract, type._parent, type._namespace);
+                string cmdText = string.Format("delete from member where declaring_type='{0}'", type.full_name);
+                OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
+                cmd.ExecuteNonQuery();
+            }
+
+            {
+                string cmdText = string.Format("insert into type(full_name,comments,modifier,is_abstract,parent,imports,ext,is_value_type,is_interface) values(\"{1}\",\"{2}\",{3},{4},\"{5}\",?,?,?,?);",
+                    "",type.full_name, type.comments, type.modifier, type.is_abstract, type._parent);
 
 
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);

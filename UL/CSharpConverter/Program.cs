@@ -29,11 +29,10 @@ namespace CSharpConverter
             
 
             DB_Type db_t = new DB_Type();
-            db_t.name = type.Name;
+            db_t.full_name = type.FullName;
             db_t.is_abstract = type.IsAbstract;
             db_t.is_value_type = type.IsValueType;
             db_t.modifier = type.IsPublic ? 0 : 1;
-            db_t._namespace = type.Namespace;
             db_t.is_interface = type.IsInterface;
             typeList.Add(type.GUID,db_t);
 
@@ -87,31 +86,29 @@ namespace CSharpConverter
                 member.is_static = method.IsStatic;
                 member.modifier = DB.MakeModifier(method.IsPublic, method.IsPrivate, false);
 
-
                 MemberFunc mf = new MemberFunc();
 
                 ParameterInfo[] pars = method.GetParameters();
 
-                mf.args = new MemberFunc.Args[pars.Length];
+                List<MemberFunc.Args> args = new List<MemberFunc.Args>();
                 for (int i = 0; i < pars.Length;i++ )
                 {
-                    mf.args[i] = new MemberFunc.Args();
-                    mf.args[i].is_in = pars[i].IsIn;
-                    mf.args[i].is_out = pars[i].IsOut;
-                    mf.args[i].is_ret = pars[i].IsRetval;
-                    mf.args[i].name = pars[i].Name;
+                    MemberFunc.Args arg = new MemberFunc.Args();
+                    arg.is_out = pars[i].IsOut;
+                    arg.is_ref = pars[i].IsIn;
+                    arg.name = pars[i].Name;
 
                     AddType(pars[i].ParameterType);
 
-                    mf.args[i].type_fullname = pars[i].ParameterType.FullName;
+                    arg.type_fullname = pars[i].ParameterType.FullName;
 
                     if (pars[i].HasDefaultValue)
                     {
                         if (pars[i].RawDefaultValue != null)
-                            mf.args[i].default_value = pars[i].RawDefaultValue.ToString();
+                            arg.default_value = pars[i].RawDefaultValue.ToString();
                         else
                         {
-                            mf.args[i].default_value = "null";
+                            arg.default_value = "null";
                         }
                     }
 

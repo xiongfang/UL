@@ -6,6 +6,11 @@ using System.Text;
 
 namespace HelloWorld
 {
+
+    public class TestInt
+    {
+
+    }
     public class Program
     {
         public static int a = 6;
@@ -22,6 +27,12 @@ namespace HelloWorld
                 Console.WriteLine("Hello, World!2");
 
             }
+        }
+
+        void Print(ref TestInt hello)
+        {
+            TestInt c = new TestInt();
+            Console.WriteLine("Print");
         }
     }
 }
