@@ -272,5 +272,30 @@ namespace Metadata
             }
 
         }
+
+        public static Dictionary<string,DB_Type> Load(string ns, OdbcConnection _con)
+        {
+            Dictionary<string, DB_Type> results = new Dictionary<string, DB_Type>();
+            string cmdText = string.Format("select * from type where full_name like ?%");
+            OdbcCommand cmd = new OdbcCommand(cmdText, _con);
+            cmd.Parameters.AddWithValue("1", ns);
+            var reader = cmd.ExecuteReader();
+            while(reader.Read())
+            {
+                DB_Type type = new DB_Type();
+                type.full_name = (string)reader["full_name"];
+                type.modifier = (int)reader["modifier"];
+                type.comments = (string)reader["comments"];
+                type.ext = (string)reader["ext"];
+                //type.imports = (string)reader["imports"];
+                type.is_abstract = (bool)reader["is_abstract"];
+                type.is_interface = (bool)reader["is_interface"];
+                type.is_value_type = (bool)reader["is_value_type"];
+                type._parent = (string)reader["parent"];
+                results.Add(type.name, type);
+            }
+
+            return results;
+        }
     }
 }

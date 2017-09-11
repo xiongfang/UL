@@ -17,8 +17,10 @@ namespace CSharpCompiler
         static OdbcConnection _con;
         static OdbcTransaction _trans;
 
+        static Dictionary<string, Dictionary<string, Metadata.DB_Type>> usingTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
+        static Dictionary<string, Dictionary<string, Metadata.DB_Type>> compilerTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
 
-        static SemanticModel model;
+        //static SemanticModel model;
 
         static void Main(string[] args)
         {
@@ -26,15 +28,15 @@ namespace CSharpCompiler
             SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
 
 
-            var compilation = CSharpCompilation.Create("HelloWorld")
-                                               .AddReferences(
-                                                    MetadataReference.CreateFromFile(
-                                                        typeof(object).Assembly.Location))
-                                               .AddSyntaxTrees(tree);
+            //var compilation = CSharpCompilation.Create("HelloWorld")
+            //                                   .AddReferences(
+            //                                        MetadataReference.CreateFromFile(
+            //                                            typeof(object).Assembly.Location))
+            //                                   .AddSyntaxTrees(tree);
 
             //获取所有类
             {
-                model = compilation.GetSemanticModel(tree);
+                //model = compilation.GetSemanticModel(tree);
             }
 
 
@@ -59,6 +61,22 @@ namespace CSharpCompiler
                 Console.WriteLine("Commit...");
                 trans.Commit();
             }
+        }
+
+        static void ScanType(string file)
+        {
+            string code = System.IO.File.ReadAllText(file);
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+            IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
+
+            //导出所有类
+            var classNodes = nodes.OfType<ClassDeclarationSyntax>();
+            foreach (var c in classNodes)
+            {
+                ExportClass(c);
+            }
+
         }
 
         static bool ContainModifier(SyntaxTokenList Modifiers,string token)
@@ -113,50 +131,53 @@ namespace CSharpCompiler
 
         static void ExportVariable(VariableDeclarationSyntax v, Metadata.DB_Type type)
         {
-            TypeInfo ti = model.GetTypeInfo(v.Type);
-            foreach(var ve in v.Variables)
-            {
-                Metadata.DB_Member dB_Member = new Metadata.DB_Member();
-                dB_Member.name = ve.Identifier.Text;
-                dB_Member.is_static = ti.Type.IsStatic;
-                dB_Member.declaring_type = type.full_name; 
-                dB_Member.member_type = (int)Metadata.MemberTypes.Field;
-                dB_Member.modifier = 0;
-                Metadata.MemberVaiable mv = new Metadata.MemberVaiable();
+            PredefinedTypeSyntax predefinedTypeSyntax = v.Type as PredefinedTypeSyntax;
 
-                mv.type_fullname = GetTypeFullName(ti);
+            //TypeInfo ti = model.GetTypeInfo(v.Type);
+            //foreach(var ve in v.Variables)
+            //{
+            //    Metadata.DB_Member dB_Member = new Metadata.DB_Member();
+            //    dB_Member.name = ve.Identifier.Text;
+            //    dB_Member.is_static = ti.Type.IsStatic;
+            //    dB_Member.declaring_type = type.full_name; 
+            //    dB_Member.member_type = (int)Metadata.MemberTypes.Field;
+            //    dB_Member.modifier = 0;
+            //    Metadata.MemberVaiable mv = new Metadata.MemberVaiable();
 
-                dB_Member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mv);
+            //    mv.type_fullname = GetTypeFullName(ti);
 
-                Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
-            }
-            
+            //    dB_Member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mv);
+
+            //    Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
+            //}
+
         }
 
-        static string GetTypeFullName(TypeInfo ti)
-        {
-            return GetTypeFullName(ti.Type);
-        }
+        //static string GetTypeFullName(TypeInfo ti)
+        //{
+        //    return GetTypeFullName(ti.Type);
+        //}
 
-        static string GetTypeFullName(ITypeSymbol Type)
-        {
-            if (Type.TypeKind == TypeKind.Array)
-            {
-                IArrayTypeSymbol arrayType = (IArrayTypeSymbol)Type;
-                return GetTypeFullName(arrayType.ElementType)+"[]";
-            }
+        //static string GetTypeFullName(ITypeSymbol Type)
+        //{
+        //    if (Type.TypeKind == TypeKind.Array)
+        //    {
+        //        IArrayTypeSymbol arrayType = (IArrayTypeSymbol)Type;
+        //        return GetTypeFullName(arrayType.ElementType)+"[]";
+        //    }
 
-            if (Type.ContainingNamespace != null)
-                return Type.ContainingNamespace.Name + "." + Type.Name;
-            else if (Type.ContainingType != null)
-                return Type.ContainingType.Name + "." + Type.Name;
-            return Type.Name;
-        }
+        //    if (Type.ContainingNamespace != null)
+        //        return Type.ContainingNamespace.Name + "." + Type.Name;
+        //    else if (Type.ContainingType != null)
+        //        return Type.ContainingType.Name + "." + Type.Name;
+        //    return Type.Name;
+        //}
 
         static string GetTypeFullName(TypeSyntax ts)
         {
-            TypeInfo ti = model.GetTypeInfo(ts);
-            return GetTypeFullName(ti);
+            //TypeInfo ti = model.GetTypeInfo(ts);
+            //return GetTypeFullName(ti);
+            return "";
         }
 
         static void ExportMethod(MethodDeclarationSyntax f, Metadata.DB_Type type)
@@ -164,35 +185,35 @@ namespace CSharpCompiler
             Console.WriteLine("\tIdentifier:" + f.Identifier);
             Console.WriteLine("\tModifiers:" + f.Modifiers);
             Console.WriteLine("\tReturnType:" + f.ReturnType);
-            TypeInfo ti = model.GetTypeInfo(f.ReturnType);
+            //TypeInfo ti = model.GetTypeInfo(f.ReturnType);
 
-            Metadata.DB_Member dB_Member = new Metadata.DB_Member();
-            dB_Member.name = f.Identifier.Text;
-            dB_Member.is_static = ti.Type.IsStatic;
-            dB_Member.declaring_type = type.full_name;
-            dB_Member.member_type = (int)Metadata.MemberTypes.Field;
-            dB_Member.modifier = 0;
+            //Metadata.DB_Member dB_Member = new Metadata.DB_Member();
+            //dB_Member.name = f.Identifier.Text;
+            //dB_Member.is_static = ti.Type.IsStatic;
+            //dB_Member.declaring_type = type.full_name;
+            //dB_Member.member_type = (int)Metadata.MemberTypes.Field;
+            //dB_Member.modifier = 0;
 
-            Metadata.MemberFunc mf = new Metadata.MemberFunc();
-            mf.args = new Metadata.MemberFunc.Args[f.ParameterList.Parameters.Count];
-            for (int i=0;i< f.ParameterList.Parameters.Count;i++)
-            {
-                mf.args[i] = new Metadata.MemberFunc.Args();
-                mf.args[i].name = f.ParameterList.Parameters[i].Identifier.Text;
-                mf.args[i].type_fullname = GetTypeFullName(f.ParameterList.Parameters[i].Type);
-                mf.args[i].is_out = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "out");
-                mf.args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
-            }
+            //Metadata.MemberFunc mf = new Metadata.MemberFunc();
+            //mf.args = new Metadata.MemberFunc.Args[f.ParameterList.Parameters.Count];
+            //for (int i=0;i< f.ParameterList.Parameters.Count;i++)
+            //{
+            //    mf.args[i] = new Metadata.MemberFunc.Args();
+            //    mf.args[i].name = f.ParameterList.Parameters[i].Identifier.Text;
+            //    mf.args[i].type_fullname = GetTypeFullName(f.ParameterList.Parameters[i].Type);
+            //    mf.args[i].is_out = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "out");
+            //    mf.args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
+            //}
 
-            mf.ret_type = GetTypeFullName(f.ReturnType);
+            //mf.ret_type = GetTypeFullName(f.ReturnType);
 
             
-            ExportBody(f.Body, mf);
+            //ExportBody(f.Body, mf);
 
-            dB_Member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mf);
-            Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
+            //dB_Member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mf);
+            //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
 
-            Console.WriteLine();
+            //Console.WriteLine();
         }
 
         static void ExportBody(BlockSyntax bs, Metadata.MemberFunc mf)

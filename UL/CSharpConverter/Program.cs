@@ -26,9 +26,6 @@ namespace CSharpConverter
             if (typeList.ContainsKey(type.GUID))
                 return;
 
-            if (type != typeof(string))
-                return;
-
             Console.WriteLine("ExportType: " + type.Name);
             
 
@@ -184,6 +181,7 @@ namespace CSharpConverter
         static OdbcConnection _con;
         static OdbcTransaction _trans;
 
+        
         static void Main(string[] args)
         {
 
@@ -206,7 +204,7 @@ namespace CSharpConverter
                 }
 
                 Console.WriteLine("Commit...");
-                //trans.Commit();
+                trans.Commit();
             }
 
             
