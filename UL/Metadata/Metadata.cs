@@ -25,9 +25,7 @@ namespace Metadata
         {
             get
             {
-                if (full_name.Contains("."))
-                    return full_name.Substring(0,full_name.LastIndexOf("."));
-                return "";
+                return GetNamespace(full_name);
             }
         }
 
@@ -35,12 +33,23 @@ namespace Metadata
         {
             get
             {
-                if (full_name.Contains("."))
-                    return full_name.Substring(full_name.LastIndexOf(".")+1);
-                return full_name;
+                return GetName(full_name);
             }
         }
 
+        public static string GetNamespace(string full_name)
+        {
+            if (full_name.Contains("."))
+                return full_name.Substring(0, full_name.LastIndexOf("."));
+            return "";
+        }
+
+        public static string GetName(string full_name)
+        {
+            if (full_name.Contains("."))
+                return full_name.Substring(full_name.LastIndexOf(".") + 1);
+            return full_name;
+        }
     }
 
     public class DB_Member
