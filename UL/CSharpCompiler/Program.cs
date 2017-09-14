@@ -197,6 +197,15 @@ namespace CSharpCompiler
             return Modifiers.Count > 0 && Modifiers.Count((a) => { return a.Text == token; }) > 0;
         }
 
+        static int GetModifier(SyntaxTokenList Modifiers)
+        {
+            bool isPublic = ContainModifier(Modifiers, "public");
+            bool isProtected = ContainModifier(Modifiers, "protected");
+            bool isPrivate = !isPublic && !isProtected;
+
+            return Metadata.DB.MakeModifier(isPublic, isPrivate, isProtected); ;
+        }
+
         //static void LoadTypesIfNotLoaded(string ns)
         //{
         //    if(FindNamespace(ns)==null)
@@ -206,20 +215,22 @@ namespace CSharpCompiler
         //    }
         //}
 
+
+
         static void ExportClass(ClassDeclarationSyntax c)
         {
             if(step == ECompilerStet.ScanType)
             {
                 Metadata.DB_Type type = new Metadata.DB_Type();
 
-                bool isPublic = ContainModifier(c.Modifiers, "public");
-                bool isProtected = ContainModifier(c.Modifiers, "protected");
-                bool isPrivate = !isPublic && !isProtected;
+                //bool isPublic = ContainModifier(c.Modifiers, "public");
+                //bool isProtected = ContainModifier(c.Modifiers, "protected");
+                //bool isPrivate = !isPublic && !isProtected;
                 type.is_abstract = ContainModifier(c.Modifiers, "abstract");
 
                 Console.WriteLine("Identifier:" + c.Identifier);
                 Console.WriteLine("Modifiers:" + c.Modifiers);
-                type.modifier = Metadata.DB.MakeModifier(isPublic, isPrivate, isProtected);
+                type.modifier = GetModifier(c.Modifiers);
                 type.is_interface = false;
                 type.is_value_type = false;
 
@@ -268,6 +279,16 @@ namespace CSharpCompiler
                 }
                 Console.WriteLine();
             }
+            else if(step == ECompilerStet.Compile)
+            {
+                Metadata.DB_Type type = FindType(c.Identifier.Text);
+                //导出所有方法
+                var funcNodes = c.ChildNodes().OfType<MethodDeclarationSyntax>();
+                foreach (var f in funcNodes)
+                {
+                    ExportMethod(f, type);
+                }
+            }
         }
 
         static string GetKeywordTypeName(string kw)
@@ -293,12 +314,12 @@ namespace CSharpCompiler
                 string typeName = GetKeywordTypeName(predefinedTypeSyntax.Keyword.Text);
                 return FindType(typeName);
             }
-            else if(typeSyntax is ArrayTypeSyntax)
-            {
-                ArrayTypeSyntax ts = typeSyntax as ArrayTypeSyntax;
-                Metadata.DB_Type elementType = GetType(ts.ElementType);
+            //else if(typeSyntax is ArrayTypeSyntax)
+            //{
+            //    ArrayTypeSyntax ts = typeSyntax as ArrayTypeSyntax;
+            //    Metadata.DB_Type elementType = GetType(ts.ElementType);
 
-            }
+            //}
             else if(typeSyntax is IdentifierNameSyntax)
             {
                 IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
@@ -324,10 +345,10 @@ namespace CSharpCompiler
                 {
                     Metadata.DB_Member dB_Member = new Metadata.DB_Member();
                     dB_Member.name = ve.Identifier.Text;
-                    //dB_Member.is_static = ti.Type.IsStatic;
+                    dB_Member.is_static = ContainModifier(v.Modifiers, "static");
                     dB_Member.declaring_type = type.full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Field;
-                    dB_Member.modifier = 0;
+                    dB_Member.modifier = GetModifier(v.Modifiers);
                     dB_Member.field_type_fullname = v_type.full_name;
 
                     //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
@@ -338,6 +359,8 @@ namespace CSharpCompiler
 
         }
 
+
+        static Dictionary<MethodDeclarationSyntax, Metadata.DB_Member> MemberMap = new Dictionary<MethodDeclarationSyntax, Metadata.DB_Member>();
         static void ExportMethod(MethodDeclarationSyntax f, Metadata.DB_Type type)
         {
             if(step == ECompilerStet.ScanMember)
@@ -347,12 +370,14 @@ namespace CSharpCompiler
                 Console.WriteLine("\tReturnType:" + f.ReturnType);
                 //TypeInfo ti = model.GetTypeInfo(f.ReturnType);
 
+                
+
                 Metadata.DB_Member dB_Member = new Metadata.DB_Member();
                 dB_Member.name = f.Identifier.Text;
-                //dB_Member.is_static = ti.Type.IsStatic;
+                dB_Member.is_static = ContainModifier(f.Modifiers, "static");
                 dB_Member.declaring_type = type.full_name;
                 dB_Member.member_type = (int)Metadata.MemberTypes.Field;
-                dB_Member.modifier = 0;
+                dB_Member.modifier = GetModifier(f.Modifiers);
 
                 dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
                 for (int i = 0; i < f.ParameterList.Parameters.Count; i++)
@@ -368,22 +393,20 @@ namespace CSharpCompiler
                 if(retType!=null)
                     dB_Member.method_ret_type = retType.full_name;
 
-
-                //ExportBody(f.Body, mf);
-
-                //dB_Member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mf);
-                //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
                 AddMember(type.full_name, dB_Member);
+                MemberMap[f] = dB_Member;
                 Console.WriteLine();
             }
             else if(step == ECompilerStet.Compile)
             {
+                Metadata.DB_Member dB_Member = MemberMap[f];
+                dB_Member.method_body = ExportBody(f.Body);
             }
         }
 
-        static void ExportBody(BlockSyntax bs)
+        static Metadata.DB_BlockSyntax ExportBody(BlockSyntax bs)
         {
-            //mf.body = ExportStatement(bs) as Metadata.DB_BlockSyntax;
+            return ExportStatement(bs) as Metadata.DB_BlockSyntax;
         }
 
 

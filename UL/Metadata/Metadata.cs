@@ -129,6 +129,8 @@ namespace Metadata
         //     true if this instance can convert the specified object type; otherwise, false.
         public override bool CanConvert(Type objectType)
         {
+            if (objectType.IsArray)
+                return false;
             return typeof(TBase).IsAssignableFrom(objectType);
         }
         //
@@ -187,13 +189,11 @@ namespace Metadata
     }
 
     //语句
-    [JsonConverter(typeof(JsonConverterType<DB_StatementSyntax>))]
     public class DB_StatementSyntax
     {
 
     }
 
-    [JsonConverter(typeof(JsonConverterType<DB_BlockSyntax>))]
     public class DB_BlockSyntax: DB_StatementSyntax
     {
         public List<DB_StatementSyntax> List = new List<DB_StatementSyntax>();
@@ -321,6 +321,16 @@ namespace Metadata
     public class DB
     {
 
+        public static T ReadObject<T>(string json) where T:class
+        {
+            return JsonConvert.DeserializeObject<T>(json, new JsonConverterType<T>());
+        }
+        public static string WriteObject<T>(T v) where T : class
+        {
+            return JsonConvert.SerializeObject(v, new JsonConverterType<T>());
+        }
+
+
         public static int MakeModifier(bool isPublic, bool isPrivate, bool isProtected)
         {
             if (isPublic)
@@ -352,7 +362,7 @@ namespace Metadata
 
 
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
-                cmd.Parameters.AddWithValue("1", type.imports == null ? "" : Newtonsoft.Json.JsonConvert.SerializeObject(type.imports));
+                cmd.Parameters.AddWithValue("1", type.imports == null ? "" : WriteObject(type.imports));
                 cmd.Parameters.AddWithValue("2", type.ext);
                 cmd.Parameters.AddWithValue("3", type.is_value_type);
                 cmd.Parameters.AddWithValue("4", type.is_interface);
@@ -376,9 +386,9 @@ namespace Metadata
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
 
                 cmd.Parameters.AddWithValue("1", member.field_type_fullname);
-                cmd.Parameters.AddWithValue("2", Newtonsoft.Json.JsonConvert.SerializeObject( member.method_args));
+                cmd.Parameters.AddWithValue("2", WriteObject( member.method_args));
                 cmd.Parameters.AddWithValue("3", member.method_ret_type);
-                cmd.Parameters.AddWithValue("4", JsonConvert.SerializeObject(member.method_body));
+                cmd.Parameters.AddWithValue("4", WriteObject(member.method_body));
 
 
                 cmd.ExecuteNonQuery();
