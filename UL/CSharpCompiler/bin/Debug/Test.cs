@@ -4,6 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+namespace System
+{
+    public class Int32
+    {
+
+    }
+
+    public class String
+    {
+
+    }
+}
 namespace HelloWorld
 {
 
@@ -15,7 +27,7 @@ namespace HelloWorld
     {
         public static int a = 6;
 
-        static void Main(string[] args)
+        static void Main(string arg)
         {
             if(true)
             {

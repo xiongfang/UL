@@ -1,25 +1,27 @@
-/*
-SQLyog Ultimate v11.24 (64 bit)
-MySQL - 5.5.25-MariaDB : Database - ul
-*********************************************************************
-*/
+-- MySQL dump 10.13  Distrib 5.7.9, for Win64 (x86_64)
+--
+-- Host: localhost    Database: ul
+-- ------------------------------------------------------
+-- Server version	5.7.10-log
 
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
-
-/*!40101 SET SQL_MODE=''*/;
-
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-CREATE DATABASE /*!32312 IF NOT EXISTS*/`ul` /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_bin */;
 
-USE `ul`;
-
-/*Table structure for table `member` */
+--
+-- Table structure for table `member`
+--
 
 DROP TABLE IF EXISTS `member`;
-
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `member` (
   `declaring_type` varchar(100) NOT NULL,
   `name` varchar(256) NOT NULL,
@@ -28,17 +30,32 @@ CREATE TABLE `member` (
   `comments` varchar(4096) NOT NULL,
   `member_type` int(11) NOT NULL,
   `ext` varchar(4096) NOT NULL,
-  `child` varchar(4096) NOT NULL
+  `identifier` varchar(45) NOT NULL,
+  `field_type_fullname` varchar(100) DEFAULT NULL,
+  `method_args` varchar(4096) DEFAULT NULL,
+  `method_ret_type` varchar(100) DEFAULT NULL,
+  `method_body` varchar(4096) DEFAULT NULL,
+  PRIMARY KEY (`identifier`,`declaring_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='类成员';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-/*Data for the table `member` */
+--
+-- Dumping data for table `member`
+--
 
-insert  into `member`(`declaring_type`,`name`,`is_static`,`modifier`,`comments`,`member_type`,`ext`,`child`) values ('HelloWorld.Program','a','\0',0,'',4,'','{\"type_fullname\":\"System.Int32\"}'),('HelloWorld.Program','c','\0',0,'',4,'','{\"type_fullname\":\"HelloWorld.Int32\"}'),('HelloWorld.Program','Main','\0',0,'',4,'','{\"args\":[{\"type_fullname\":\"System.String[]\",\"name\":\"args\",\"is_ref\":false,\"is_out\":false,\"default_value\":\"\"}],\"ret_type\":\"System.Void\",\"body\":{\"List\":[{\"Condition\":{\"token\":\"true\"},\"Statement\":{\"List\":[{\"Exp\":{\"Exp\":{\"Exp\":{\"Name\":\"Console\"},\"name\":\"WriteLine\"},\"Arguments\":[{\"Expression\":{\"token\":\"\\\"Hello, World!\\\"\"}}]}}]},\"Else\":{\"List\":[{\"Exp\":{\"Exp\":{\"Exp\":{\"Name\":\"Console\"},\"name\":\"WriteLine\"},\"Arguments\":[{\"Expression\":{\"token\":\"\\\"Hello, World!1\\\"\"}}]}},{\"Exp\":{\"Exp\":{\"Exp\":{\"Name\":\"Console\"},\"name\":\"WriteLine\"},\"Arguments\":[{\"Expression\":{\"token\":\"\\\"Hello, World!2\\\"\"}}]}}]}}]}}'),('HelloWorld.Program','Print','\0',0,'',4,'','{\"args\":[{\"type_fullname\":\"HelloWorld.Int32\",\"name\":\"hello\",\"is_ref\":true,\"is_out\":false,\"default_value\":\"\"}],\"ret_type\":\"System.Void\",\"body\":{\"List\":[{\"Exp\":{\"Exp\":{\"Exp\":{\"Name\":\"Console\"},\"name\":\"WriteLine\"},\"Arguments\":[{\"Expression\":{\"token\":\"\\\"Print\\\"\"}}]}}]}}');
+LOCK TABLES `member` WRITE;
+/*!40000 ALTER TABLE `member` DISABLE KEYS */;
+INSERT INTO `member` VALUES ('HelloWorld.Program','a','\0',0,'',4,'','a','System.Int32','null','','null'),('HelloWorld.Program','Main','\0',0,'',4,'','Main','','[{\"type_fullname\":\"System.String\",\"name\":\"arg\",\"is_ref\":false,\"is_out\":false,\"default_value\":\"\"}]','','null'),('HelloWorld.Program','Print','\0',0,'',4,'','Print','','[{\"type_fullname\":\"HelloWorld.TestInt\",\"name\":\"hello\",\"is_ref\":true,\"is_out\":false,\"default_value\":\"\"}]','','null');
+/*!40000 ALTER TABLE `member` ENABLE KEYS */;
+UNLOCK TABLES;
 
-/*Table structure for table `type` */
+--
+-- Table structure for table `type`
+--
 
 DROP TABLE IF EXISTS `type`;
-
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `type` (
   `full_name` varchar(100) NOT NULL,
   `comments` varchar(4096) NOT NULL,
@@ -51,12 +68,25 @@ CREATE TABLE `type` (
   `is_value_type` bit(1) NOT NULL,
   PRIMARY KEY (`full_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='类型';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-/*Data for the table `type` */
+--
+-- Dumping data for table `type`
+--
 
-insert  into `type`(`full_name`,`comments`,`modifier`,`is_abstract`,`parent`,`is_interface`,`imports`,`ext`,`is_value_type`) values ('HelloWorld.Int32','',0,'\0','','\0','','','\0'),('HelloWorld.Program','',0,'\0','','\0','','','\0');
+LOCK TABLES `type` WRITE;
+/*!40000 ALTER TABLE `type` DISABLE KEYS */;
+INSERT INTO `type` VALUES ('HelloWorld.Program','',0,'\0','','\0','','','\0'),('HelloWorld.TestInt','',0,'\0','','\0','','','\0'),('System.Int32','',0,'\0','','\0','','','\0'),('System.String','',0,'\0','','\0','','','\0');
+/*!40000 ALTER TABLE `type` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2017-09-14 16:13:55

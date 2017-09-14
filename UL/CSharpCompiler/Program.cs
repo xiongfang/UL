@@ -17,10 +17,10 @@ namespace CSharpCompiler
         static OdbcConnection _con;
         static OdbcTransaction _trans;
 
-        static Dictionary<string, Dictionary<string, Metadata.DB_Type>> usingTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
+        static Dictionary<string, Dictionary<string, Metadata.DB_Type>> refTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
         static Dictionary<string, Dictionary<string, Metadata.DB_Type>> compilerTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
 
-        static Dictionary<string, List<Metadata.DB_Member>> dicMembers = new Dictionary<string, List<Metadata.DB_Member>>();
+        static Dictionary<string, Dictionary<string, Metadata.DB_Member>> dicMembers = new Dictionary<string, Dictionary<string, Metadata.DB_Member>>();
 
         enum ECompilerStet
         {
@@ -35,32 +35,40 @@ namespace CSharpCompiler
         static void AddCompilerType(Metadata.DB_Type type)
         {
             Dictionary<string, Metadata.DB_Type> rt = null;
-            if (!usingTypes.TryGetValue(type._namespace, out rt))
+            if (!compilerTypes.TryGetValue(type._namespace, out rt))
             {
                 rt = new Dictionary<string, Metadata.DB_Type>();
-                usingTypes[type._namespace] = rt;
+                compilerTypes[type._namespace] = rt;
             }
             rt.Add(type.name, type);
         }
         static void AddMember(string full_name,Metadata.DB_Member member)
         {
-            List<Metadata.DB_Member> members = null;
+            Dictionary<string, Metadata.DB_Member> members = null;
             if(!dicMembers.TryGetValue(full_name,out members))
             {
-                members = new List<Metadata.DB_Member>();
+                members = new Dictionary<string, Metadata.DB_Member>();
                 dicMembers.Add(full_name, members);
             }
-            members.Add(member);
+            members.Add(member.identifier, member);
         }
         static Dictionary<string,Metadata.DB_Type> FindNamespace(string ns)
         {
             Dictionary<string, Metadata.DB_Type> rt = null;
             if (compilerTypes.TryGetValue(ns, out rt))
                 return rt;
-            if (usingTypes.TryGetValue(ns, out rt))
+            if (refTypes.TryGetValue(ns, out rt))
                 return rt;
 
             return null;
+        }
+
+        static Dictionary<string, Metadata.DB_Member> FindMembers(string full_name)
+        {
+            Dictionary<string, Metadata.DB_Member> members = null;
+            if (!dicMembers.TryGetValue(full_name, out members))
+                return null;
+            return members;
         }
 
         static Metadata.DB_Type FindType(string nameOrFullname)
@@ -69,7 +77,7 @@ namespace CSharpCompiler
             if (nameOrFullname.Contains("."))
             {
                 Dictionary<string, Metadata.DB_Type> ns = FindNamespace(Metadata.DB_Type.GetNamespace(nameOrFullname));
-                if(ns.ContainsKey(Metadata.DB_Type.GetName(nameOrFullname)))
+                if(ns!=null && ns.ContainsKey(Metadata.DB_Type.GetName(nameOrFullname)))
                 {
                     return ns[Metadata.DB_Type.GetName(nameOrFullname)];
                 }
@@ -92,10 +100,24 @@ namespace CSharpCompiler
             return null;
         }
 
+        /*
+         *  第一步：从数据库加载引用的类
+         *  第二步：扫描所有类型
+         *  第三步：扫描所有成员
+         *  第四步：编译方法
+         *  第五步：存储数据库
+         * */
         static void Main(string[] args)
         {
-            string code = System.IO.File.ReadAllText(args[0]);
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+            List<SyntaxTree> treeList = new List<SyntaxTree>();
+            foreach (var file in args)
+            {
+                string code = System.IO.File.ReadAllText(file);
+                SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+
+
+                treeList.Add(tree);
+            }
 
             using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
             {
@@ -105,25 +127,63 @@ namespace CSharpCompiler
                 OdbcTransaction trans = con.BeginTransaction();
                 _trans = trans;
 
-                var root = (CompilationUnitSyntax)tree.GetRoot();
-                IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
+                foreach(var tree in treeList)
+                {
+                    var root = (CompilationUnitSyntax)tree.GetRoot();
+                    IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
+                    //导出所有类
+                    var classNodes = nodes.OfType<ClassDeclarationSyntax>();
+                    step = ECompilerStet.ScanType;
+                    foreach (var c in classNodes)
+                    {
+                        ExportClass(c);
+                    }
 
-                //导出所有类
-                var classNodes = nodes.OfType<ClassDeclarationSyntax>();
-                step = ECompilerStet.ScanType;
-                foreach (var c in classNodes)
-                {
-                    ExportClass(c);
+
                 }
-                step = ECompilerStet.ScanMember;
-                foreach (var c in classNodes)
+
+                foreach (var tree in treeList)
                 {
-                    ExportClass(c);
+                    var root = (CompilationUnitSyntax)tree.GetRoot();
+                    IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
+                    var classNodes = nodes.OfType<ClassDeclarationSyntax>();
+
+                    step = ECompilerStet.ScanMember;
+                    foreach (var c in classNodes)
+                    {
+                        ExportClass(c);
+                    }
                 }
-                step = ECompilerStet.Compile;
-                foreach (var c in classNodes)
+
+                foreach (var tree in treeList)
                 {
-                    ExportClass(c);
+                    var root = (CompilationUnitSyntax)tree.GetRoot();
+                    IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
+                    var classNodes = nodes.OfType<ClassDeclarationSyntax>();
+
+                    step = ECompilerStet.Compile;
+                    foreach (var c in classNodes)
+                    {
+                        ExportClass(c);
+                    }
+                }
+
+                //存储数据库
+                foreach (var v in compilerTypes)
+                {
+                    foreach (var c in v.Value)
+                    {
+                        Metadata.DB.SaveDBType(c.Value, _con, _trans);
+                        //存储成员
+                        Dictionary<string, Metadata.DB_Member> members = FindMembers(c.Value.full_name);
+                        if (members != null)
+                        {
+                            foreach (var m in members.Values)
+                            {
+                                Metadata.DB.SaveDBMember(m, _con, _trans);
+                            }
+                        }
+                    }
                 }
 
                 Console.WriteLine("Commit...");
@@ -131,62 +191,20 @@ namespace CSharpCompiler
             }
         }
 
-        //static void ScanType(string file)
-        //{
-        //    string code = System.IO.File.ReadAllText(file);
-        //    SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        //    var root = (CompilationUnitSyntax)tree.GetRoot();
-        //    IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
-
-        //    //导出所有类
-        //    var classNodes = nodes.OfType<ClassDeclarationSyntax>();
-        //    foreach (var c in classNodes)
-        //    {
-        //        ScanClass(c);
-        //    }
-
-        //}
-
-        //static void ScanClass(ClassDeclarationSyntax c)
-        //{
-        //    Metadata.DB_Type type = new Metadata.DB_Type();
-        //    bool isPublic = ContainModifier(c.Modifiers, "public");
-        //    bool isProtected = ContainModifier(c.Modifiers, "protected");
-        //    bool isPrivate = !isPublic && !isProtected;
-        //    type.is_abstract = ContainModifier(c.Modifiers, "abstract");
-        //    NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
-        //    if (namespaceDeclarationSyntax != null)
-        //    {
-        //        type.full_name = namespaceDeclarationSyntax.Name.ToString() + "." + c.Identifier.Text;
-        //    }
-        //    else
-        //    {
-        //        type.full_name = c.Identifier.Text;
-        //    }
-
-        //    Dictionary<string, Metadata.DB_Type> nsTypes = null;
-        //    if(!compilerTypes.TryGetValue(type._namespace,out nsTypes))
-        //    {
-        //        nsTypes = new Dictionary<string, Metadata.DB_Type>();
-        //        compilerTypes.Add(type._namespace, nsTypes);
-        //    }
-
-        //    nsTypes.Add(type.name, type);
-        //}
 
         static bool ContainModifier(SyntaxTokenList Modifiers,string token)
         {
             return Modifiers.Count > 0 && Modifiers.Count((a) => { return a.Text == token; }) > 0;
         }
 
-        static void LoadTypesIfNotLoaded(string ns)
-        {
-            if(FindNamespace(ns)==null)
-            {
-                Dictionary<string,Metadata.DB_Type> dictionary = Metadata.DB.Load(ns, _con);
-                usingTypes.Add(ns, dictionary);
-            }
-        }
+        //static void LoadTypesIfNotLoaded(string ns)
+        //{
+        //    if(FindNamespace(ns)==null)
+        //    {
+        //        Dictionary<string,Metadata.DB_Type> dictionary = Metadata.DB.Load(ns, _con);
+        //        refTypes.Add(ns, dictionary);
+        //    }
+        //}
 
         static void ExportClass(ClassDeclarationSyntax c)
         {
@@ -209,10 +227,10 @@ namespace CSharpCompiler
                 if (namespaceDeclarationSyntax != null)
                 {
                     type.full_name = namespaceDeclarationSyntax.Name.ToString() + "." + c.Identifier.Text;
-                    foreach (var ns in namespaceDeclarationSyntax.Usings)
-                    {
-                        LoadTypesIfNotLoaded(ns.Name.ToString());
-                    }
+                    //foreach (var ns in namespaceDeclarationSyntax.Usings)
+                    //{
+                    //    LoadTypesIfNotLoaded(ns.Name.ToString());
+                    //}
                 }
                 else
                 {
@@ -236,14 +254,14 @@ namespace CSharpCompiler
                 Metadata.DB_Type type = FindType(c.Identifier.Text);
 
                 //导出所有变量
-                var virableNodes = c.DescendantNodes().OfType<VariableDeclarationSyntax>();
+                var virableNodes = c.ChildNodes().OfType<FieldDeclarationSyntax>();
                 foreach (var v in virableNodes)
                 {
                     ExportVariable(v, type);
                 }
 
                 //导出所有方法
-                var funcNodes = c.DescendantNodes().OfType<MethodDeclarationSyntax>();
+                var funcNodes = c.ChildNodes().OfType<MethodDeclarationSyntax>();
                 foreach (var f in funcNodes)
                 {
                     ExportMethod(f, type);
@@ -258,6 +276,8 @@ namespace CSharpCompiler
             {
                 case "int":
                     return "System.Int32";
+                case "string":
+                    return "System.String";
                 default:
                     return "void";
             }
@@ -266,19 +286,31 @@ namespace CSharpCompiler
 
         static Metadata.DB_Type GetType(TypeSyntax typeSyntax)
         {
-            PredefinedTypeSyntax predefinedTypeSyntax = typeSyntax as PredefinedTypeSyntax;
-            if (predefinedTypeSyntax != null)
+            
+            if (typeSyntax is PredefinedTypeSyntax)
             {
+                PredefinedTypeSyntax predefinedTypeSyntax = typeSyntax as PredefinedTypeSyntax;
                 string typeName = GetKeywordTypeName(predefinedTypeSyntax.Keyword.Text);
                 return FindType(typeName);
+            }
+            else if(typeSyntax is ArrayTypeSyntax)
+            {
+                ArrayTypeSyntax ts = typeSyntax as ArrayTypeSyntax;
+                Metadata.DB_Type elementType = GetType(ts.ElementType);
+
+            }
+            else if(typeSyntax is IdentifierNameSyntax)
+            {
+                IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
+                return FindType(ts.Identifier.Text);
             }
 
             return null;
         }
 
-        static void ExportVariable(VariableDeclarationSyntax v, Metadata.DB_Type type)
+        static void ExportVariable(FieldDeclarationSyntax v, Metadata.DB_Type type)
         {
-            Metadata.DB_Type v_type = GetType(v.Type);
+            Metadata.DB_Type v_type = GetType(v.Declaration.Type);
 
             if (v_type == null)
             {
@@ -288,7 +320,7 @@ namespace CSharpCompiler
 
             if(step == ECompilerStet.ScanMember)
             {
-                foreach (var ve in v.Variables)
+                foreach (var ve in v.Declaration.Variables)
                 {
                     Metadata.DB_Member dB_Member = new Metadata.DB_Member();
                     dB_Member.name = ve.Identifier.Text;
@@ -296,11 +328,7 @@ namespace CSharpCompiler
                     dB_Member.declaring_type = type.full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Field;
                     dB_Member.modifier = 0;
-                    Metadata.MemberVaiable mv = new Metadata.MemberVaiable();
-
-                    mv.type_fullname = v_type.full_name;
-
-                    dB_Member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mv);
+                    dB_Member.field_type_fullname = v_type.full_name;
 
                     //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
                     AddMember(type.full_name, dB_Member);
@@ -326,33 +354,36 @@ namespace CSharpCompiler
                 dB_Member.member_type = (int)Metadata.MemberTypes.Field;
                 dB_Member.modifier = 0;
 
-                Metadata.MemberFunc mf = new Metadata.MemberFunc();
-                mf.args = new Metadata.MemberFunc.Args[f.ParameterList.Parameters.Count];
+                dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
                 for (int i = 0; i < f.ParameterList.Parameters.Count; i++)
                 {
-                    mf.args[i] = new Metadata.MemberFunc.Args();
-                    mf.args[i].name = f.ParameterList.Parameters[i].Identifier.Text;
-                    mf.args[i].type_fullname = GetType(f.ParameterList.Parameters[i].Type).full_name;
-                    mf.args[i].is_out = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "out");
-                    mf.args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
+                    dB_Member.method_args[i] = new Metadata.DB_Member.Argument();
+                    dB_Member.method_args[i].name = f.ParameterList.Parameters[i].Identifier.Text;
+                    dB_Member.method_args[i].type_fullname = GetType(f.ParameterList.Parameters[i].Type).full_name;
+                    dB_Member.method_args[i].is_out = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "out");
+                    dB_Member.method_args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
                 }
 
-                mf.ret_type = GetType(f.ReturnType).full_name;
+                Metadata.DB_Type retType = GetType(f.ReturnType);
+                if(retType!=null)
+                    dB_Member.method_ret_type = retType.full_name;
 
 
                 //ExportBody(f.Body, mf);
 
-                dB_Member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mf);
+                //dB_Member.child = Newtonsoft.Json.JsonConvert.SerializeObject(mf);
                 //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
                 AddMember(type.full_name, dB_Member);
                 Console.WriteLine();
             }
- 
+            else if(step == ECompilerStet.Compile)
+            {
+            }
         }
 
-        static void ExportBody(BlockSyntax bs, Metadata.MemberFunc mf)
+        static void ExportBody(BlockSyntax bs)
         {
-            mf.body = ExportStatement(bs) as Metadata.DB_BlockSyntax;
+            //mf.body = ExportStatement(bs) as Metadata.DB_BlockSyntax;
         }
 
 
