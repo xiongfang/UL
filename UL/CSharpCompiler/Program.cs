@@ -570,7 +570,7 @@ namespace CSharpCompiler
         {
             Metadata.VariableDeclaratorSyntax db_les = new Metadata.VariableDeclaratorSyntax();
             db_les.Identifier = es.Identifier.Text;
-            db_les.Initializer = ExportExp(es.Initializer.Value) as Metadata.DB_InitializerExpressionSyntax;
+            db_les.Initializer = ExportExp(es.Initializer.Value);
             return db_les;
         }
     }

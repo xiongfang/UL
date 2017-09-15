@@ -135,6 +135,13 @@ namespace Metadata
                 return false;
             return typeof(TBase).IsAssignableFrom(objectType);
         }
+        public override bool CanWrite
+        {
+            get
+            {
+                return false;   
+            }
+        }
         //
         // 摘要:
         //     Reads the JSON representation of the object.
@@ -164,8 +171,13 @@ namespace Metadata
 
         TBase Create(Type objectType, JObject jsonObject)
         {
-            var typeName = jsonObject["$type"].ToString();
-            return System.Activator.CreateInstance(Type.GetType(typeName)) as TBase; 
+            JToken jToken = null;
+            if(jsonObject.TryGetValue("$Type",out jToken))
+            {
+                string typeName = jToken.ToString();
+                return System.Activator.CreateInstance(Type.GetType(typeName)) as TBase;
+            }
+            return System.Activator.CreateInstance(objectType) as TBase;
         }
 
         //
@@ -183,32 +195,51 @@ namespace Metadata
         //     The calling serializer.
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            JObject jo = JObject.FromObject(value);
-            jo.Add("$type", value.GetType().FullName);
-            jo.WriteTo(writer, serializer.Converters.ToArray());
+            throw new NotImplementedException();
+            //serializer.Serialize(writer, value);
+            //JObject jo = JObject.FromObject(value);
+            //jo.Add("$type", value.GetType().FullName);
+            //jo.WriteTo(writer, serializer.Converters.ToArray());
+        }
+    }
+
+    [JsonConverter(typeof(JsonConverterType<DB_Syntax>))]
+    public class DB_Syntax
+    {
+        [JsonProperty("$Type")]
+        public string JsonType
+        {
+            get
+            {
+                return GetType().FullName;
+            }
         }
     }
 
     //语句
-    public class DB_StatementSyntax
+    [JsonConverter(typeof(JsonConverterType<DB_StatementSyntax>))]
+    public class DB_StatementSyntax:DB_Syntax
     {
+       
     }
-
+    [JsonConverter(typeof(JsonConverterType<DB_BlockSyntax>))]
     public class DB_BlockSyntax: DB_StatementSyntax
     {
         public List<DB_StatementSyntax> List = new List<DB_StatementSyntax>();
     }
-
+    [JsonConverter(typeof(JsonConverterType<DB_IfStatementSyntax>))]
     public class DB_IfStatementSyntax:DB_StatementSyntax
     {
         public DB_ExpressionSyntax Condition;
         public DB_StatementSyntax Statement;
         public DB_StatementSyntax Else;
     }
+    [JsonConverter(typeof(JsonConverterType<DB_ExpressionStatementSyntax>))]
     public class DB_ExpressionStatementSyntax : DB_StatementSyntax
     {
         public DB_ExpressionSyntax Exp;
     }
+    [JsonConverter(typeof(JsonConverterType<DB_LocalDeclarationStatementSyntax>))]
     public class DB_LocalDeclarationStatementSyntax : DB_StatementSyntax
     {
         public string Type;
@@ -216,51 +247,57 @@ namespace Metadata
 
     }
 
-    public class VariableDeclaratorSyntax
-    {
-        public string Identifier;
-        //public List<DB_ArgumentSyntax> ArgumentList = new List<DB_ArgumentSyntax>();
-        public DB_InitializerExpressionSyntax Initializer;
-    }
+    
 
 
     //表达式
-    public class DB_ExpressionSyntax
+    [JsonConverter(typeof(JsonConverterType<DB_ExpressionSyntax>))]
+    public class DB_ExpressionSyntax : DB_Syntax
     {
-
     }
 
+    [JsonConverter(typeof(JsonConverterType<VariableDeclaratorSyntax>))]
+    public class VariableDeclaratorSyntax : DB_Syntax
+    {
+        public string Identifier;
+        //public List<DB_ArgumentSyntax> ArgumentList = new List<DB_ArgumentSyntax>();
+        public DB_ExpressionSyntax Initializer;
+    }
+
+    [JsonConverter(typeof(JsonConverterType<DB_LiteralExpressionSyntax>))]
     public class DB_LiteralExpressionSyntax : DB_ExpressionSyntax
     {
         public string token;
     }
-
+    [JsonConverter(typeof(JsonConverterType<DB_MemberAccessExpressionSyntax>))]
     public class DB_MemberAccessExpressionSyntax : DB_ExpressionSyntax
     {
         public DB_ExpressionSyntax Exp;
         public string name;
     }
-
+    [JsonConverter(typeof(JsonConverterType<DB_ArgumentSyntax>))]
     public class DB_ArgumentSyntax:DB_ExpressionSyntax
     {
         public DB_ExpressionSyntax Expression;
     }
+    [JsonConverter(typeof(JsonConverterType<DB_InvocationExpressionSyntax>))]
     public class DB_InvocationExpressionSyntax : DB_ExpressionSyntax
     {
         public DB_ExpressionSyntax Exp;
         public List<DB_ArgumentSyntax> Arguments = new List<DB_ArgumentSyntax>();
 
     }
-
+    [JsonConverter(typeof(JsonConverterType<DB_IdentifierNameSyntax>))]
     public class DB_IdentifierNameSyntax : DB_ExpressionSyntax
     {
         public string Name;
     }
-
+    [JsonConverter(typeof(JsonConverterType<DB_InitializerExpressionSyntax>))]
     public class DB_InitializerExpressionSyntax : DB_ExpressionSyntax
     {
         public List<DB_ExpressionSyntax> Expressions = new List<DB_ExpressionSyntax>();
     }
+    [JsonConverter(typeof(JsonConverterType<DB_ObjectCreationExpressionSyntax>))]
     public class DB_ObjectCreationExpressionSyntax:DB_ExpressionSyntax
     {
         public string Type;
@@ -327,7 +364,7 @@ namespace Metadata
                 return null;
             JsonSerializerSettings jsetting = new JsonSerializerSettings();
             jsetting.NullValueHandling = NullValueHandling.Ignore;
-            jsetting.Converters.Add(new JsonConverterType<T>());
+            //jsetting.Converters.Add(new JsonConverterType<T>());
             return JsonConvert.DeserializeObject<T>(json, jsetting);
         }
         public static string WriteObject<T>(T v) where T : class
@@ -336,7 +373,7 @@ namespace Metadata
                 return "";
             JsonSerializerSettings jsetting = new JsonSerializerSettings();
             jsetting.NullValueHandling = NullValueHandling.Ignore;
-            jsetting.Converters.Add(new JsonConverterType<T>());
+            //jsetting.Converters.Add(new JsonConverterType<T>());
             return JsonConvert.SerializeObject(v, jsetting);
         }
 
@@ -406,7 +443,7 @@ namespace Metadata
 
         }
 
-        public static Dictionary<string,DB_Type> LoadTypes(string ns, OdbcConnection _con)
+        public static Dictionary<string,DB_Type> LoadNamespace(string ns, OdbcConnection _con)
         {
             Dictionary<string, DB_Type> results = new Dictionary<string, DB_Type>();
             string cmdText = string.Format("select * from type where full_name like '{0}%'", ns);
@@ -415,22 +452,43 @@ namespace Metadata
             var reader = cmd.ExecuteReader();
             while(reader.Read())
             {
-                DB_Type type = new DB_Type();
-                type.full_name = (string)reader["full_name"];
-                type.modifier = (int)reader["modifier"];
-                type.comments = (string)reader["comments"];
-                type.ext = (string)reader["ext"];
-                //type.imports = (string)reader["imports"];
-                type.is_abstract = (bool)reader["is_abstract"];
-                type.is_interface = (bool)reader["is_interface"];
-                type.is_value_type = (bool)reader["is_value_type"];
-                type._parent = (string)reader["parent"];
-                results.Add(type.name, type);
-
+                DB_Type type = ReadType(reader);
                 type.members = LoadMembers(type.full_name, _con);
             }
 
             return results;
+        }
+
+        public static DB_Type LoadType(string full_name, OdbcConnection _con)
+        {
+            string cmdText = string.Format("select * from type where full_name = '{0}'", full_name);
+            OdbcCommand cmd = new OdbcCommand(cmdText, _con);
+            //cmd.Parameters.AddWithValue("1", ns);
+            var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                DB_Type type = ReadType(reader);
+                type.members = LoadMembers(type.full_name, _con);
+                return type;
+            }
+
+            return null;
+        }
+
+        static DB_Type ReadType(OdbcDataReader reader)
+        {
+            DB_Type type = new DB_Type();
+            type.full_name = (string)reader["full_name"];
+            type.modifier = (int)reader["modifier"];
+            type.comments = (string)reader["comments"];
+            type.ext = (string)reader["ext"];
+            //type.imports = (string)reader["imports"];
+            type.is_abstract = (bool)reader["is_abstract"];
+            type.is_interface = (bool)reader["is_interface"];
+            type.is_value_type = (bool)reader["is_value_type"];
+            type._parent = (string)reader["parent"];
+
+            return type;
         }
 
         public static Dictionary<string,DB_Member> LoadMembers(string type, OdbcConnection _con)
