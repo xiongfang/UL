@@ -20,7 +20,7 @@ namespace CSharpCompiler
         static Dictionary<string, Dictionary<string, Metadata.DB_Type>> refTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
         static Dictionary<string, Dictionary<string, Metadata.DB_Type>> compilerTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
 
-        static Dictionary<string, Dictionary<string, Metadata.DB_Member>> dicMembers = new Dictionary<string, Dictionary<string, Metadata.DB_Member>>();
+        //static Dictionary<string, Dictionary<string, Metadata.DB_Member>> dicMembers = new Dictionary<string, Dictionary<string, Metadata.DB_Member>>();
 
         enum ECompilerStet
         {
@@ -44,13 +44,11 @@ namespace CSharpCompiler
         }
         static void AddMember(string full_name,Metadata.DB_Member member)
         {
-            Dictionary<string, Metadata.DB_Member> members = null;
-            if(!dicMembers.TryGetValue(full_name,out members))
+            Metadata.DB_Type type = FindType(full_name);
+            if(type!=null)
             {
-                members = new Dictionary<string, Metadata.DB_Member>();
-                dicMembers.Add(full_name, members);
+                type.members.Add(member.identifier,member);
             }
-            members.Add(member.identifier, member);
         }
         static Dictionary<string,Metadata.DB_Type> FindNamespace(string ns)
         {
@@ -61,14 +59,6 @@ namespace CSharpCompiler
                 return rt;
 
             return null;
-        }
-
-        static Dictionary<string, Metadata.DB_Member> FindMembers(string full_name)
-        {
-            Dictionary<string, Metadata.DB_Member> members = null;
-            if (!dicMembers.TryGetValue(full_name, out members))
-                return null;
-            return members;
         }
 
         static Metadata.DB_Type FindType(string nameOrFullname)
@@ -175,13 +165,9 @@ namespace CSharpCompiler
                     {
                         Metadata.DB.SaveDBType(c.Value, _con, _trans);
                         //存储成员
-                        Dictionary<string, Metadata.DB_Member> members = FindMembers(c.Value.full_name);
-                        if (members != null)
+                        foreach (var m in c.Value.members.Values)
                         {
-                            foreach (var m in members.Values)
-                            {
-                                Metadata.DB.SaveDBMember(m, _con, _trans);
-                            }
+                            Metadata.DB.SaveDBMember(m, _con, _trans);
                         }
                     }
                 }
@@ -376,7 +362,7 @@ namespace CSharpCompiler
                 dB_Member.name = f.Identifier.Text;
                 dB_Member.is_static = ContainModifier(f.Modifiers, "static");
                 dB_Member.declaring_type = type.full_name;
-                dB_Member.member_type = (int)Metadata.MemberTypes.Field;
+                dB_Member.member_type = (int)Metadata.MemberTypes.Method;
                 dB_Member.modifier = GetModifier(f.Modifiers);
 
                 dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];

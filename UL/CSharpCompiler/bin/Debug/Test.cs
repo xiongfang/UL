@@ -27,7 +27,7 @@ namespace HelloWorld
     {
         public static int a = 6;
 
-        static void Main(string arg)
+        static void Main(string arg,int arg2)
         {
             if(true)
             {

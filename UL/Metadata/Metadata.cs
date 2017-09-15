@@ -39,6 +39,8 @@ namespace Metadata
         public string _namespace;
         public string name;
 
+        public Dictionary<string, DB_Member> members = new Dictionary<string, DB_Member>();
+
         public static string GetNamespace(string full_name)
         {
             if (full_name.Contains("."))
@@ -154,7 +156,6 @@ namespace Metadata
         //     The object value.
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            
             var jsonObject = JObject.Load(reader);
             var target = Create(objectType, jsonObject);
             serializer.Populate(jsonObject.CreateReader(), target);
@@ -183,7 +184,7 @@ namespace Metadata
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             JObject jo = JObject.FromObject(value);
-            jo.Add("$type", value.GetType().Name);
+            jo.Add("$type", value.GetType().FullName);
             jo.WriteTo(writer, serializer.Converters.ToArray());
         }
     }
@@ -191,7 +192,6 @@ namespace Metadata
     //语句
     public class DB_StatementSyntax
     {
-
     }
 
     public class DB_BlockSyntax: DB_StatementSyntax
@@ -323,11 +323,21 @@ namespace Metadata
 
         public static T ReadObject<T>(string json) where T:class
         {
-            return JsonConvert.DeserializeObject<T>(json, new JsonConverterType<T>());
+            if (string.IsNullOrEmpty(json))
+                return null;
+            JsonSerializerSettings jsetting = new JsonSerializerSettings();
+            jsetting.NullValueHandling = NullValueHandling.Ignore;
+            jsetting.Converters.Add(new JsonConverterType<T>());
+            return JsonConvert.DeserializeObject<T>(json, jsetting);
         }
         public static string WriteObject<T>(T v) where T : class
         {
-            return JsonConvert.SerializeObject(v, new JsonConverterType<T>());
+            if (v == null)
+                return "";
+            JsonSerializerSettings jsetting = new JsonSerializerSettings();
+            jsetting.NullValueHandling = NullValueHandling.Ignore;
+            jsetting.Converters.Add(new JsonConverterType<T>());
+            return JsonConvert.SerializeObject(v, jsetting);
         }
 
 
@@ -396,12 +406,12 @@ namespace Metadata
 
         }
 
-        public static Dictionary<string,DB_Type> Load(string ns, OdbcConnection _con)
+        public static Dictionary<string,DB_Type> LoadTypes(string ns, OdbcConnection _con)
         {
             Dictionary<string, DB_Type> results = new Dictionary<string, DB_Type>();
-            string cmdText = string.Format("select * from type where full_name like ?%");
+            string cmdText = string.Format("select * from type where full_name like '{0}%'", ns);
             OdbcCommand cmd = new OdbcCommand(cmdText, _con);
-            cmd.Parameters.AddWithValue("1", ns);
+            //cmd.Parameters.AddWithValue("1", ns);
             var reader = cmd.ExecuteReader();
             while(reader.Read())
             {
@@ -416,6 +426,35 @@ namespace Metadata
                 type.is_value_type = (bool)reader["is_value_type"];
                 type._parent = (string)reader["parent"];
                 results.Add(type.name, type);
+
+                type.members = LoadMembers(type.full_name, _con);
+            }
+
+            return results;
+        }
+
+        public static Dictionary<string,DB_Member> LoadMembers(string type, OdbcConnection _con)
+        {
+            Dictionary<string, DB_Member> results = new Dictionary<string, DB_Member>();
+            string cmdText = string.Format("select * from member where declaring_type = ?");
+            OdbcCommand cmd = new OdbcCommand(cmdText, _con);
+            cmd.Parameters.AddWithValue("1", type);
+            var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                DB_Member member = new DB_Member();
+                member.declaring_type = type;
+                member.comments = (string)reader["comments"];
+                member.ext = (string)reader["ext"];
+                member.field_type_fullname = (string)reader["field_type_fullname"];
+                member.is_static = (bool)reader["is_static"];
+                member.modifier = (int)reader["modifier"];
+                member.name = (string)reader["name"];
+                member.member_type = (int)reader["member_type"];
+                member.method_args = ReadObject<DB_Member.Argument[]>((string)reader["method_args"]);
+                member.method_body = ReadObject<DB_BlockSyntax>((string)reader["method_body"]);
+                member.method_ret_type = (string)reader["method_ret_type"];
+                results.Add(member.identifier, member);
             }
 
             return results;
