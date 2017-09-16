@@ -21,7 +21,7 @@ namespace HelloWorld
 
     public class TestInt
     {
-
+        public int a = 6;
     }
     public class Program
     {
@@ -44,6 +44,7 @@ namespace HelloWorld
         void Print(ref TestInt hello)
         {
             TestInt c = new TestInt();
+            c.a = 7;
             Console.WriteLine("Print");
         }
     }

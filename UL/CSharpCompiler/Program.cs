@@ -469,16 +469,16 @@ namespace CSharpCompiler
 
 
 
-        static Metadata.DB_ExpressionSyntax ExportExp(ExpressionSyntax es)
+        static Metadata.Expression.Exp ExportExp(ExpressionSyntax es)
         {
             if(es is LiteralExpressionSyntax)
             {
                 return ExportExp(es as LiteralExpressionSyntax);
             }
-            else if(es is InitializerExpressionSyntax)
-            {
-                return ExportExp(es as InitializerExpressionSyntax);
-            }
+            //else if(es is InitializerExpressionSyntax)
+            //{
+            //    //return ExportExp(es as InitializerExpressionSyntax);
+            //}
             else if(es is ObjectCreationExpressionSyntax)
             {
                 return ExportExp(es as ObjectCreationExpressionSyntax);
@@ -491,75 +491,79 @@ namespace CSharpCompiler
             {
                 return ExportExp(es as MemberAccessExpressionSyntax);
             }
-            else if(es is IdentifierNameSyntax)
+            else if (es is IdentifierNameSyntax)
             {
                 return ExportExp(es as IdentifierNameSyntax);
             }
+            else if(es is AssignmentExpressionSyntax)
+            {
+                return ExportExp(es as AssignmentExpressionSyntax);
+            }
             else
             {
-                Console.Error.WriteLine("error:Unsopproted Expression" + es);
+                Console.Error.WriteLine(string.Format("error:不支持的表达式 {0} {1}" , es.GetType().Name,es.ToString()));
             }
             return null;
         }
-        static Metadata.DB_ExpressionSyntax ExportExp(IdentifierNameSyntax es)
+        static Metadata.Expression.Exp ExportExp(IdentifierNameSyntax es)
         {
-            Metadata.DB_IdentifierNameSyntax db_les = new Metadata.DB_IdentifierNameSyntax();
+            Metadata.Expression.FieldExp db_les = new Metadata.Expression.FieldExp();
             db_les.Name = es.Identifier.Text;
             return db_les;
         }
-        static Metadata.DB_ExpressionSyntax ExportExp(LiteralExpressionSyntax es)
+        static Metadata.Expression.Exp ExportExp(LiteralExpressionSyntax es)
         {
-            Metadata.DB_LiteralExpressionSyntax db_les = new Metadata.DB_LiteralExpressionSyntax();
-            db_les.token = es.Token.Text;
+            Metadata.Expression.ConstExp db_les = new Metadata.Expression.ConstExp();
+            db_les.value = es.Token.Text;
             return db_les;
         }
-        static Metadata.DB_ExpressionSyntax ExportExp(MemberAccessExpressionSyntax es)
+        static Metadata.Expression.Exp ExportExp(MemberAccessExpressionSyntax es)
         {
-            Metadata.DB_MemberAccessExpressionSyntax db_les = new Metadata.DB_MemberAccessExpressionSyntax();
-            db_les.Exp = ExportExp(es.Expression);
-            db_les.name = es.Name.Identifier.Text;
+            Metadata.Expression.FieldExp db_les = new Metadata.Expression.FieldExp();
+            db_les.Caller = ExportExp(es.Expression);
+            db_les.Name = es.Name.Identifier.Text;
             return db_les;
         }
-        static Metadata.DB_ExpressionSyntax ExportExp(InvocationExpressionSyntax es)
+        static Metadata.Expression.Exp ExportExp(InvocationExpressionSyntax es)
         {
-            Metadata.DB_InvocationExpressionSyntax db_les = new Metadata.DB_InvocationExpressionSyntax();
-            db_les.Exp = ExportExp(es.Expression);
+            Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
+            db_les.Caller = ExportExp(es.Expression);
             foreach(var a in es.ArgumentList.Arguments)
             {
-                db_les.Arguments.Add(ExportExp(a) as Metadata.DB_ArgumentSyntax);
+                db_les.Args.Add(ExportExp(a.Expression));
             }
             return db_les;
         }
-        static Metadata.DB_ExpressionSyntax ExportExp(ArgumentSyntax es)
-        {
-            Metadata.DB_ArgumentSyntax db_les = new Metadata.DB_ArgumentSyntax();
-            db_les.Expression = ExportExp(es.Expression);
-            return db_les;
-        }
-        static Metadata.DB_ExpressionSyntax ExportExp(InitializerExpressionSyntax es)
-        {
-            Metadata.DB_InitializerExpressionSyntax db_les = new Metadata.DB_InitializerExpressionSyntax();
-            if(es.Expressions!=null)
-            {
-                foreach(var e in es.Expressions)
-                {
-                    db_les.Expressions.Add(ExportExp(e));
-                }
-            }
-            return db_les;
-        }
+        //static Metadata.Expression.Exp ExportExp(ArgumentSyntax es)
+        //{
+        //    Metadata.Expression.E db_les = new Metadata.DB_ArgumentSyntax();
+        //    db_les.Expression = ExportExp(es.Expression);
+        //    return db_les;
+        //}
+        //static Metadata.Expression.Exp ExportExp(InitializerExpressionSyntax es)
+        //{
+        //    Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
+        //    if(es.Expressions!=null)
+        //    {
+        //        foreach(var e in es.Expressions)
+        //        {
+        //            db_les.Expressions.Add(ExportExp(e));
+        //        }
+        //    }
+        //    return db_les;
+        //}
 
-        static Metadata.DB_ExpressionSyntax ExportExp(ObjectCreationExpressionSyntax es)
+        static Metadata.Expression.Exp ExportExp(ObjectCreationExpressionSyntax es)
         {
-            Metadata.DB_ObjectCreationExpressionSyntax db_les = new Metadata.DB_ObjectCreationExpressionSyntax();
-            if(es.Initializer!=null)
-                db_les.Initializer = ExportExp(es.Initializer) as Metadata.DB_InitializerExpressionSyntax;
+            Metadata.Expression.ObjectCreateExp db_les = new Metadata.Expression.ObjectCreateExp();
+            //if(es.Initializer!=null)
+            //    db_les.Initializer = ExportExp(es.Initializer) as Metadata.DB_InitializerExpressionSyntax;
 
             if(es.ArgumentList!=null)
             {
                 foreach (var a in es.ArgumentList.Arguments)
                 {
-                    db_les.Arguments.Add(ExportExp(a) as Metadata.DB_ArgumentSyntax);
+                    db_les.Args.Add(ExportExp(a.Expression));
                 }
             }
 
@@ -571,6 +575,17 @@ namespace CSharpCompiler
             Metadata.VariableDeclaratorSyntax db_les = new Metadata.VariableDeclaratorSyntax();
             db_les.Identifier = es.Identifier.Text;
             db_les.Initializer = ExportExp(es.Initializer.Value);
+            return db_les;
+        }
+
+        static Metadata.Expression.Exp ExportExp(AssignmentExpressionSyntax es)
+        {
+            Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
+            Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
+            op_Equals.Name = "op_Equals";
+            op_Equals.Caller = ExportExp(es.Left);
+            db_les.Caller = op_Equals;
+            db_les.Args.Add(ExportExp(es.Right));
             return db_les;
         }
     }

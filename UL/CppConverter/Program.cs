@@ -9,6 +9,25 @@ namespace CppConverter
 {
     class Program
     {
+        //static public Metadata.DB_Type GetExpType(Metadata.DB_ExpressionSyntax exp)
+        //{
+        //    if (exp is Metadata.DB_MemberAccessExpressionSyntax)
+        //    {
+        //        Metadata.DB_Type type = GetExpType(((Metadata.DB_MemberAccessExpressionSyntax)exp).Exp);
+        //        Metadata.DB_Member member = type.members[((Metadata.DB_MemberAccessExpressionSyntax)exp).name];
+        //        return types[member.typeName];
+        //    }
+        //    else if(exp is Metadata.DB_InvocationExpressionSyntax)
+        //    {
+        //        Metadata.DB_InvocationExpressionSyntax ies = exp as Metadata.DB_InvocationExpressionSyntax;
+        //        return GetExpType(ies.Exp);
+        //    }
+        //    else if(exp is Metadata.DB_InitializerExpressionSyntax)
+        //    {
+        //        Metadata.DB_InitializerExpressionSyntax ies = exp as Metadata.DB_InitializerExpressionSyntax;
+                
+        //    }
+        //}
         static public HashSet<string> GetTypeDependences(Metadata.DB_Type type)
         {
             HashSet<string> result = new HashSet<string>();
@@ -62,6 +81,7 @@ namespace CppConverter
         static StringBuilder sb = new StringBuilder();
         static int depth;
 
+        static Dictionary<string, Metadata.DB_Type> types;
         static void Main(string[] args)
         {
             using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
@@ -69,7 +89,7 @@ namespace CppConverter
                 con.Open();
                 _con = con;
                 //Metadata.DB_Type type = Metadata.DB.LoadType("HelloWorld.Program", _con);
-                Dictionary<string, Metadata.DB_Type> types = new Dictionary<string, Metadata.DB_Type>();
+                types = new Dictionary<string, Metadata.DB_Type>();
                 LoadTypeDependences("HelloWorld.Program", types);
 
 
@@ -240,36 +260,36 @@ namespace CppConverter
             sb.AppendLine(";");
         }
 
-        static string ExpressionToString(Metadata.DB_ExpressionSyntax es)
+        static string ExpressionToString(Metadata.Expression.Exp es)
         {
-            if(es is Metadata.DB_InitializerExpressionSyntax)
+            if(es is Metadata.Expression.ConstExp)
             {
-                return ExpressionToString((Metadata.DB_InitializerExpressionSyntax)es);
+                return ExpressionToString((Metadata.Expression.ConstExp)es);
             }
-            else if(es is Metadata.DB_InvocationExpressionSyntax)
+            else if(es is Metadata.Expression.FieldExp)
             {
-                return ExpressionToString((Metadata.DB_InvocationExpressionSyntax)es);
+                return ExpressionToString((Metadata.Expression.FieldExp)es);
             }
-            else if(es is Metadata.DB_LiteralExpressionSyntax)
+            else if(es is Metadata.Expression.MethodExp)
             {
-                return ExpressionToString((Metadata.DB_LiteralExpressionSyntax)es);
+                return ExpressionToString((Metadata.Expression.MethodExp)es);
             }
-            else if(es is Metadata.DB_MemberAccessExpressionSyntax)
+            //else if(es is Metadata.DB_MemberAccessExpressionSyntax)
+            //{
+            //    return ExpressionToString((Metadata.DB_MemberAccessExpressionSyntax)es);
+            //}
+            else if (es is Metadata.Expression.ObjectCreateExp)
             {
-                return ExpressionToString((Metadata.DB_MemberAccessExpressionSyntax)es);
+                return ExpressionToString((Metadata.Expression.ObjectCreateExp)es);
             }
-            else if(es is Metadata.DB_ObjectCreationExpressionSyntax)
-            {
-                return ExpressionToString((Metadata.DB_ObjectCreationExpressionSyntax)es);
-            }
-            else if(es is Metadata.DB_ArgumentSyntax)
-            {
-                return ExpressionToString((Metadata.DB_ArgumentSyntax)es);
-            }
-            else if(es is Metadata.DB_IdentifierNameSyntax)
-            {
-                return ExpressionToString((Metadata.DB_IdentifierNameSyntax)es);
-            }
+            //else if(es is Metadata.DB_ArgumentSyntax)
+            //{
+            //    return ExpressionToString((Metadata.DB_ArgumentSyntax)es);
+            //}
+            //else if(es is Metadata.DB_IdentifierNameSyntax)
+            //{
+            //    return ExpressionToString((Metadata.DB_IdentifierNameSyntax)es);
+            //}
             else
             {
                 Console.Error.WriteLine("不支持的表达式 " + es.GetType().Name);
@@ -277,40 +297,39 @@ namespace CppConverter
             return "";
         }
 
-        static string ExpressionToString(Metadata.DB_InitializerExpressionSyntax es)
+        //static string ExpressionToString(Metadata.DB_InitializerExpressionSyntax es)
+        //{
+        //    StringBuilder ExpSB = new StringBuilder();
+        //    if(es.Expressions.Count>0)
+        //    {
+        //        ExpSB.Append("(");
+        //    }
+
+        //    for(int i=0;i<es.Expressions.Count;i++)
+        //    {
+        //        ExpSB.Append(ExpressionToString(es.Expressions[i]));
+        //        if (i < es.Expressions.Count - 2)
+        //            ExpSB.Append(",");
+        //    }
+
+        //    if (es.Expressions.Count > 0)
+        //    {
+        //        ExpSB.Append(")");
+        //    }
+
+        //    return ExpSB.ToString();
+        //}
+        static string ExpressionToString(Metadata.Expression.MethodExp es)
         {
             StringBuilder ExpSB = new StringBuilder();
-            if(es.Expressions.Count>0)
-            {
-                ExpSB.Append("(");
-            }
-
-            for(int i=0;i<es.Expressions.Count;i++)
-            {
-                ExpSB.Append(ExpressionToString(es.Expressions[i]));
-                if (i < es.Expressions.Count - 2)
-                    ExpSB.Append(",");
-            }
-
-            if (es.Expressions.Count > 0)
-            {
-                ExpSB.Append(")");
-            }
-
-            return ExpSB.ToString();
-        }
-        static string ExpressionToString(Metadata.DB_InvocationExpressionSyntax es)
-        {
-            StringBuilder ExpSB = new StringBuilder();
-
-            ExpSB.Append(ExpressionToString(es.Exp));
+            ExpSB.Append(ExpressionToString(es.Caller));
             ExpSB.Append("(");
-            if(es.Arguments!=null)
+            if (es.Args != null)
             {
-                for(int i=0;i<es.Arguments.Count;i++)
+                for (int i = 0; i < es.Args.Count; i++)
                 {
-                    ExpSB.Append(ExpressionToString(es.Arguments[i]));
-                    if (i < es.Arguments.Count - 2)
+                    ExpSB.Append(ExpressionToString(es.Args[i]));
+                    if (i < es.Args.Count - 2)
                         ExpSB.Append(",");
                 }
             }
@@ -318,47 +337,51 @@ namespace CppConverter
 
             return ExpSB.ToString();
         }
-        static string ExpressionToString(Metadata.DB_LiteralExpressionSyntax es)
+        static string ExpressionToString(Metadata.Expression.ConstExp es)
         {
-            return es.token;
+            return es.value;
         }
-        static string ExpressionToString(Metadata.DB_MemberAccessExpressionSyntax es)
+        static string ExpressionToString(Metadata.Expression.FieldExp es)
         {
-            return ExpressionToString(es.Exp) + "->" + es.name;
-        }
-        static string ExpressionToString(Metadata.DB_ObjectCreationExpressionSyntax es)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append("new ");
-            stringBuilder.Append(es.Type);
-
-            if(es.Arguments!=null)
+            if(es.Caller == null)   //本地变量或者类变量，或者全局类
             {
-                stringBuilder.Append("(");
-                for (int i = 0; i < es.Arguments.Count; i++)
+                return es.Name;
+            }
+            else
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.Append(ExpressionToString(es.Caller));
+                stringBuilder.Append(".");
+                stringBuilder.Append(es.Name);
+                return stringBuilder.ToString();
+            }
+        }
+        static string ExpressionToString(Metadata.Expression.ObjectCreateExp es)
+        {
+            StringBuilder ExpSB = new StringBuilder();
+            ExpSB.Append("new ");
+            ExpSB.Append(es.Type);
+            ExpSB.Append("(");
+            if (es.Args != null)
+            {
+                for (int i = 0; i < es.Args.Count; i++)
                 {
-                    stringBuilder.Append(ExpressionToString(es.Arguments[i]));
-                    if (i < es.Arguments.Count - 2)
-                        stringBuilder.Append(",");
+                    ExpSB.Append(ExpressionToString(es.Args[i]));
+                    if (i < es.Args.Count - 2)
+                        ExpSB.Append(",");
                 }
-                stringBuilder.Append(")");
             }
-
-            if (es.Initializer != null)
-            {
-                stringBuilder.Append(ExpressionToString(es.Initializer));
-            }
-
-            return stringBuilder.ToString();
+            ExpSB.Append(")");
+            return ExpSB.ToString();
         }
-        static string ExpressionToString(Metadata.DB_ArgumentSyntax es)
-        {
-            return ExpressionToString(es.Expression);
-        }
-        static string ExpressionToString(Metadata.DB_IdentifierNameSyntax es)
-        {
-            return es.Name;
-        }
+        //static string ExpressionToString(Metadata.DB_ArgumentSyntax es)
+        //{
+        //    return ExpressionToString(es.Expression);
+        //}
+        //static string ExpressionToString(Metadata.DB_IdentifierNameSyntax es)
+        //{
+        //    return es.Name;
+        //}
 
         static string ExpressionToString(Metadata.VariableDeclaratorSyntax es)
         {

@@ -114,6 +114,19 @@ namespace Metadata
                 }
             }
         }
+    
+        public string typeName
+        {
+            get
+            {
+                if (member_type == (int)MemberTypes.Field)
+                    return field_type_fullname;
+                else if (member_type == (int)MemberTypes.Method)
+                    return method_ret_type;
+
+                return "void";
+            }
+        }
     }
 
 
@@ -230,14 +243,14 @@ namespace Metadata
     [JsonConverter(typeof(JsonConverterType<DB_IfStatementSyntax>))]
     public class DB_IfStatementSyntax:DB_StatementSyntax
     {
-        public DB_ExpressionSyntax Condition;
+        public Expression.Exp Condition;
         public DB_StatementSyntax Statement;
         public DB_StatementSyntax Else;
     }
     [JsonConverter(typeof(JsonConverterType<DB_ExpressionStatementSyntax>))]
     public class DB_ExpressionStatementSyntax : DB_StatementSyntax
     {
-        public DB_ExpressionSyntax Exp;
+        public Expression.Exp Exp;
     }
     [JsonConverter(typeof(JsonConverterType<DB_LocalDeclarationStatementSyntax>))]
     public class DB_LocalDeclarationStatementSyntax : DB_StatementSyntax
@@ -247,63 +260,123 @@ namespace Metadata
 
     }
 
-    
-
-
-    //表达式
-    [JsonConverter(typeof(JsonConverterType<DB_ExpressionSyntax>))]
-    public class DB_ExpressionSyntax : DB_Syntax
-    {
-    }
-
     [JsonConverter(typeof(JsonConverterType<VariableDeclaratorSyntax>))]
     public class VariableDeclaratorSyntax : DB_Syntax
     {
         public string Identifier;
-        //public List<DB_ArgumentSyntax> ArgumentList = new List<DB_ArgumentSyntax>();
-        public DB_ExpressionSyntax Initializer;
+        public Expression.Exp Initializer;
     }
 
-    [JsonConverter(typeof(JsonConverterType<DB_LiteralExpressionSyntax>))]
-    public class DB_LiteralExpressionSyntax : DB_ExpressionSyntax
+    namespace Expression
     {
-        public string token;
-    }
-    [JsonConverter(typeof(JsonConverterType<DB_MemberAccessExpressionSyntax>))]
-    public class DB_MemberAccessExpressionSyntax : DB_ExpressionSyntax
-    {
-        public DB_ExpressionSyntax Exp;
-        public string name;
-    }
-    [JsonConverter(typeof(JsonConverterType<DB_ArgumentSyntax>))]
-    public class DB_ArgumentSyntax:DB_ExpressionSyntax
-    {
-        public DB_ExpressionSyntax Expression;
-    }
-    [JsonConverter(typeof(JsonConverterType<DB_InvocationExpressionSyntax>))]
-    public class DB_InvocationExpressionSyntax : DB_ExpressionSyntax
-    {
-        public DB_ExpressionSyntax Exp;
-        public List<DB_ArgumentSyntax> Arguments = new List<DB_ArgumentSyntax>();
+        [JsonConverter(typeof(JsonConverterType<Exp>))]
+        public class Exp : DB_Syntax
+        {
 
+        }
+        [JsonConverter(typeof(JsonConverterType<MethodExp>))]
+        public class MethodExp : Exp
+        {
+            //调用函数的对象，或者类，如果为null，表示创建Name类型的对象
+            public Exp Caller;
+            //调用的函数名
+            //public string Name;
+
+            //调用的参数
+            public List<Exp> Args = new List<Exp>();
+        }
+        [JsonConverter(typeof(JsonConverterType<FieldExp>))]
+        public class FieldExp : Exp
+        {
+            //调用函数的对象，或者类，如果为null，表示访问本地变量，成员变量，全局类
+            public Exp Caller;
+            //调用的函数名
+            public string Name;
+        }
+
+        //常量表达式(分为字符常量或者数值常量)
+        [JsonConverter(typeof(JsonConverterType<ConstExp>))]
+        public class ConstExp : Exp
+        {
+            public string value;
+        }
+
+
+        //变量访问表达式（可能是本地变量，成员变量，类）
+        //public class VariableExp : Exp
+        //{
+        //    public string Name;
+        //}
+
+        //对象创建表达式
+        [JsonConverter(typeof(JsonConverterType<ObjectCreateExp>))]
+        public class ObjectCreateExp : Exp
+        {
+            //类型名称
+            public string Type;
+            //调用的参数
+            public List<Exp> Args = new List<Exp>();
+        }
     }
-    [JsonConverter(typeof(JsonConverterType<DB_IdentifierNameSyntax>))]
-    public class DB_IdentifierNameSyntax : DB_ExpressionSyntax
-    {
-        public string Name;
-    }
-    [JsonConverter(typeof(JsonConverterType<DB_InitializerExpressionSyntax>))]
-    public class DB_InitializerExpressionSyntax : DB_ExpressionSyntax
-    {
-        public List<DB_ExpressionSyntax> Expressions = new List<DB_ExpressionSyntax>();
-    }
-    [JsonConverter(typeof(JsonConverterType<DB_ObjectCreationExpressionSyntax>))]
-    public class DB_ObjectCreationExpressionSyntax:DB_ExpressionSyntax
-    {
-        public string Type;
-        public List<DB_ArgumentSyntax> Arguments = new List<DB_ArgumentSyntax>();
-        public DB_InitializerExpressionSyntax Initializer;
-    }
+
+
+
+
+    ////表达式
+    //[JsonConverter(typeof(JsonConverterType<DB_ExpressionSyntax>))]
+    //public class DB_ExpressionSyntax : DB_Syntax
+    //{
+    //}
+
+
+    //[JsonConverter(typeof(JsonConverterType<VariableDeclaratorSyntax>))]
+    //public class VariableDeclaratorSyntax : DB_Syntax
+    //{
+    //    public string Identifier;
+    //    //public List<DB_ArgumentSyntax> ArgumentList = new List<DB_ArgumentSyntax>();
+    //    public DB_ExpressionSyntax Initializer;
+    //}
+
+    //[JsonConverter(typeof(JsonConverterType<DB_LiteralExpressionSyntax>))]
+    //public class DB_LiteralExpressionSyntax : DB_ExpressionSyntax
+    //{
+    //    public string token;
+    //}
+    //[JsonConverter(typeof(JsonConverterType<DB_MemberAccessExpressionSyntax>))]
+    //public class DB_MemberAccessExpressionSyntax : DB_ExpressionSyntax
+    //{
+    //    public DB_ExpressionSyntax Exp;
+    //    public string name;
+    //}
+    //[JsonConverter(typeof(JsonConverterType<DB_ArgumentSyntax>))]
+    //public class DB_ArgumentSyntax:DB_ExpressionSyntax
+    //{
+    //    public DB_ExpressionSyntax Expression;
+    //}
+    //[JsonConverter(typeof(JsonConverterType<DB_InvocationExpressionSyntax>))]
+    //public class DB_InvocationExpressionSyntax : DB_ExpressionSyntax
+    //{
+    //    public DB_ExpressionSyntax Exp;
+    //    public List<DB_ArgumentSyntax> Arguments = new List<DB_ArgumentSyntax>();
+
+    //}
+    //[JsonConverter(typeof(JsonConverterType<DB_IdentifierNameSyntax>))]
+    //public class DB_IdentifierNameSyntax : DB_ExpressionSyntax
+    //{
+    //    public string Name;
+    //}
+    //[JsonConverter(typeof(JsonConverterType<DB_InitializerExpressionSyntax>))]
+    //public class DB_InitializerExpressionSyntax : DB_ExpressionSyntax
+    //{
+    //    public List<DB_ExpressionSyntax> Expressions = new List<DB_ExpressionSyntax>();
+    //}
+    //[JsonConverter(typeof(JsonConverterType<DB_ObjectCreationExpressionSyntax>))]
+    //public class DB_ObjectCreationExpressionSyntax:DB_ExpressionSyntax
+    //{
+    //    public string Type;
+    //    public List<DB_ArgumentSyntax> Arguments = new List<DB_ArgumentSyntax>();
+    //    public DB_InitializerExpressionSyntax Initializer;
+    //}
 
     //
     // 摘要:
