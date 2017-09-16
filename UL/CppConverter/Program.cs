@@ -224,6 +224,18 @@ namespace CppConverter
             {
                 ConvertStatement((Metadata.DB_WhileStatementSyntax)ss);
             }
+            else if(ss is Metadata.DB_SwitchStatementSyntax)
+            {
+                ConvertStatement((Metadata.DB_SwitchStatementSyntax)ss);
+            }
+            else if(ss is Metadata.DB_BreakStatementSyntax)
+            {
+                AppendLine("break;");
+            }
+            else if(ss is Metadata.DB_ReturnStatementSyntax)
+            {
+                AppendLine("return "+ExpressionToString(((Metadata.DB_ReturnStatementSyntax)ss).Expression) +";");
+            }
             else
             {
                 Console.Error.WriteLine("不支持的语句 " + ss.GetType().ToString());
@@ -307,6 +319,34 @@ namespace CppConverter
             sb.Append(ExpressionToString(bs.Condition));
             sb.AppendLine(")");
             ConvertStatement(bs.Statement);
+        }
+
+        static void ConvertStatement(Metadata.DB_SwitchStatementSyntax bs)
+        {
+            Append("switch");
+            sb.Append("(");
+            sb.Append(ExpressionToString(bs.Expression));
+            sb.AppendLine(")");
+            AppendLine("{");
+            depth++;
+            for (int i=0;i<bs.Sections.Count;i++)
+            {
+                ConvertSwitchSection(bs.Sections[i]);
+            }
+            depth--;
+            AppendLine("}");
+        }
+        static void ConvertSwitchSection(Metadata.DB_SwitchStatementSyntax.SwitchSectionSyntax bs)
+        {
+            for(int i=0;i<bs.Labels.Count;i++)
+            {
+                AppendLine("case " + ExpressionToString(bs.Labels[i]) + ":");
+            }
+
+            for(int i=0;i<bs.Statements.Count;i++)
+            {
+                ConvertStatement(bs.Statements[i]);
+            }
         }
 
 

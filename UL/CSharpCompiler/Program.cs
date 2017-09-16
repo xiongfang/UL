@@ -427,6 +427,18 @@ namespace CSharpCompiler
             {
                 return ExportStatement(node as WhileStatementSyntax);
             }
+            else if(node is SwitchStatementSyntax)
+            {
+                return ExportStatement(node as SwitchStatementSyntax);
+            }
+            else if(node is BreakStatementSyntax)
+            {
+                return ExportStatement(node as BreakStatementSyntax);
+            }
+            else if(node is ReturnStatementSyntax)
+            {
+                return ExportStatement(node as ReturnStatementSyntax);
+            }
             else
             {
                 Console.Error.WriteLine("error:Unsopproted StatementSyntax" + node);
@@ -507,6 +519,52 @@ namespace CSharpCompiler
 
             return db_ss;
         }
+        static Metadata.DB_StatementSyntax ExportStatement(SwitchStatementSyntax ss)
+        {
+            Metadata.DB_SwitchStatementSyntax db_ss = new Metadata.DB_SwitchStatementSyntax();
+            db_ss.Expression = ExportExp(ss.Expression);
+            foreach(var s in ss.Sections)
+            {
+                db_ss.Sections.Add(ExportSwitchSection(s));
+            }
+
+            return db_ss;
+        }
+        
+        static Metadata.DB_SwitchStatementSyntax.SwitchSectionSyntax ExportSwitchSection(SwitchSectionSyntax sss)
+        {
+            Metadata.DB_SwitchStatementSyntax.SwitchSectionSyntax db_sss = new Metadata.DB_SwitchStatementSyntax.SwitchSectionSyntax();
+            foreach(var l in sss.Labels)
+            {
+                if(l is CaseSwitchLabelSyntax)
+                {
+                    CaseSwitchLabelSyntax csls = l as CaseSwitchLabelSyntax;
+                    db_sss.Labels.Add(ExportExp(csls.Value));
+                }
+            }
+            
+            foreach(var s in sss.Statements)
+            {
+                Metadata.DB_StatementSyntax ss = ExportStatement(s);
+                if(ss!=null)
+                    db_sss.Statements.Add(ss);
+            }
+
+            return db_sss;
+        }
+        static Metadata.DB_StatementSyntax ExportStatement(BreakStatementSyntax ss)
+        {
+            Metadata.DB_BreakStatementSyntax db_ss = new Metadata.DB_BreakStatementSyntax();
+            return db_ss;
+        }
+        static Metadata.DB_StatementSyntax ExportStatement(ReturnStatementSyntax ss)
+        {
+            Metadata.DB_ReturnStatementSyntax db_ss = new Metadata.DB_ReturnStatementSyntax();
+            db_ss.Expression = ExportExp(ss.Expression);
+            return db_ss;
+        }
+
+
 
         static Metadata.Expression.Exp ExportExp(ExpressionSyntax es)
         {

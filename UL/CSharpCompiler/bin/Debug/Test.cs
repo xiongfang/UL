@@ -40,7 +40,12 @@ namespace HelloWorld
 
             }
         }
-
+        enum TestE
+        {
+            A,
+            B,
+            C
+        }
         void Print(ref TestInt hello)
         {
             TestInt c = new TestInt();
@@ -61,7 +66,23 @@ namespace HelloWorld
             {
                 Console.WriteLine("while");
             }
-                   
+            switch (5)
+            {
+                case 1:
+                    break;
+                case 2:
+                case 3:
+                    break;
+            }
+
+            switch ("5")
+            {
+                case  "haha":
+                    break;
+                case TestE.B:
+                case TestE.C:
+                    break;
+            }
         }
     }
 }

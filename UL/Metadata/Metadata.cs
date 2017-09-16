@@ -293,6 +293,30 @@ namespace Metadata
         public Expression.Exp Condition;
         public DB_StatementSyntax Statement;
     }
+    [JsonConverter(typeof(JsonConverterType<DB_SwitchStatementSyntax>))]
+    public class DB_SwitchStatementSyntax : DB_StatementSyntax
+    {
+        public Expression.Exp Expression;
+        public List<SwitchSectionSyntax> Sections = new List<SwitchSectionSyntax>();
+
+        public class SwitchSectionSyntax
+        {
+            public List<Expression.Exp> Labels = new List<Expression.Exp>();
+            public List<DB_StatementSyntax> Statements = new List<DB_StatementSyntax>();
+        }
+    }
+
+    [JsonConverter(typeof(JsonConverterType<DB_BreakStatementSyntax>))]
+    public class DB_BreakStatementSyntax : DB_StatementSyntax
+    {
+
+    }
+
+    [JsonConverter(typeof(JsonConverterType<DB_ReturnStatementSyntax>))]
+    public class DB_ReturnStatementSyntax : DB_StatementSyntax
+    {
+        public Expression.Exp Expression;
+    }
 
     namespace Expression
     {
