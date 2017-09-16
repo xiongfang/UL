@@ -46,6 +46,22 @@ namespace HelloWorld
             TestInt c = new TestInt();
             c.a = 7;
             Console.WriteLine("Print");
+
+            for(int i=0,c=6;i<3;i++)
+            {
+
+            }
+
+            do
+            {
+                Console.WriteLine("DO");
+            } while (true);
+
+            while(true)
+            {
+                Console.WriteLine("while");
+            }
+                   
         }
     }
 }

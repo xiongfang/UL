@@ -407,13 +407,25 @@ namespace CSharpCompiler
             {
                 return ExportStatement(node as ExpressionStatementSyntax);
             }
-            else if(node is BlockSyntax)
+            else if (node is BlockSyntax)
             {
                 return ExportStatement(node as BlockSyntax);
             }
-            else if(node is LocalDeclarationStatementSyntax)
+            else if (node is LocalDeclarationStatementSyntax)
             {
                 return ExportStatement(node as LocalDeclarationStatementSyntax);
+            }
+            else if (node is ForStatementSyntax)
+            {
+                return ExportStatement(node as ForStatementSyntax);
+            }
+            else if(node is DoStatementSyntax)
+            {
+                return ExportStatement(node as DoStatementSyntax);
+            }
+            else if(node is WhileStatementSyntax)
+            {
+                return ExportStatement(node as WhileStatementSyntax);
             }
             else
             {
@@ -466,8 +478,35 @@ namespace CSharpCompiler
             }
             return db_ss;
         }
+        static Metadata.DB_StatementSyntax ExportStatement(ForStatementSyntax ss)
+        {
+            Metadata.DB_ForStatementSyntax db_ss = new Metadata.DB_ForStatementSyntax();
+            db_ss.Condition = ExportExp(ss.Condition);
+            db_ss.Declaration = ExportExp(ss.Declaration);
+            foreach(var inc in ss.Incrementors)
+            {
+                db_ss.Incrementors.Add(ExportExp(inc));
+            }
+            db_ss.Statement = ExportStatement(ss.Statement);
 
+            return db_ss;
+        }
+        static Metadata.DB_StatementSyntax ExportStatement(DoStatementSyntax ss)
+        {
+            Metadata.DB_DoStatementSyntax db_ss = new Metadata.DB_DoStatementSyntax();
+            db_ss.Condition = ExportExp(ss.Condition);
+            db_ss.Statement = ExportStatement(ss.Statement);
 
+            return db_ss;
+        }
+        static Metadata.DB_StatementSyntax ExportStatement(WhileStatementSyntax ss)
+        {
+            Metadata.DB_WhileStatementSyntax db_ss = new Metadata.DB_WhileStatementSyntax();
+            db_ss.Condition = ExportExp(ss.Condition);
+            db_ss.Statement = ExportStatement(ss.Statement);
+
+            return db_ss;
+        }
 
         static Metadata.Expression.Exp ExportExp(ExpressionSyntax es)
         {
@@ -498,6 +537,14 @@ namespace CSharpCompiler
             else if(es is AssignmentExpressionSyntax)
             {
                 return ExportExp(es as AssignmentExpressionSyntax);
+            }
+            else if (es is BinaryExpressionSyntax)
+            {
+                return ExportExp(es as BinaryExpressionSyntax);
+            }
+            else if(es is PostfixUnaryExpressionSyntax)
+            {
+                return ExportExp(es as PostfixUnaryExpressionSyntax);
             }
             else
             {
@@ -577,6 +624,16 @@ namespace CSharpCompiler
             db_les.Initializer = ExportExp(es.Initializer.Value);
             return db_les;
         }
+        static Metadata.VariableDeclarationSyntax ExportExp(VariableDeclarationSyntax es)
+        {
+            Metadata.VariableDeclarationSyntax db_les = new Metadata.VariableDeclarationSyntax();
+            db_les.Type = GetType(es.Type).full_name;
+            foreach(var v in es.Variables)
+            {
+                db_les.Variables.Add(ExportExp(v));
+            }
+            return db_les;
+        }
 
         static Metadata.Expression.Exp ExportExp(AssignmentExpressionSyntax es)
         {
@@ -588,5 +645,49 @@ namespace CSharpCompiler
             db_les.Args.Add(ExportExp(es.Right));
             return db_les;
         }
+        static Metadata.Expression.Exp ExportExp(BinaryExpressionSyntax es)
+        {
+            Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
+            Metadata.Expression.FieldExp op_Token = new Metadata.Expression.FieldExp();
+            if(es.OperatorToken.Text == "<")
+            {
+                op_Token.Name = "op_Small";
+            }
+            op_Token.Caller = ExportExp(es.Left);
+            db_les.Caller = op_Token;
+            db_les.Args.Add(ExportExp(es.Right));
+            return db_les;
+        }
+        static Metadata.Expression.Exp ExportExp(PostfixUnaryExpressionSyntax es)
+        {
+            Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
+
+            Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
+            op_Equals.Name = "op_Equals";
+            op_Equals.Caller = ExportExp(es.Operand);
+
+            Metadata.Expression.FieldExp op_Token = new Metadata.Expression.FieldExp();
+            if (es.OperatorToken.Text == "++")
+            {
+                op_Token.Name = "op_AddAdd";
+            }
+            else if(es.OperatorToken.Text == "--")
+            {
+                op_Token.Name = "op_SubSub";
+            }
+            op_Token.Caller = ExportExp(es.Operand);
+
+
+            Metadata.Expression.MethodExp db_Add = new Metadata.Expression.MethodExp();
+            db_Add.Caller = op_Token;
+            db_Add.Args.Add(new Metadata.Expression.ConstExp() { value = "1" });
+
+
+            db_les.Caller = op_Equals;
+            db_les.Args.Add(db_Add);
+            return db_les;
+        }
+
+        
     }
 }

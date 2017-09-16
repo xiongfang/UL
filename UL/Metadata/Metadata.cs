@@ -259,12 +259,39 @@ namespace Metadata
         public List<VariableDeclaratorSyntax> Variables = new List<VariableDeclaratorSyntax>();
 
     }
-
+    [JsonConverter(typeof(JsonConverterType<VariableDeclarationSyntax>))]
+    public sealed class VariableDeclarationSyntax : DB_Syntax
+    {
+        public string Type;
+        public List<VariableDeclaratorSyntax> Variables = new List<VariableDeclaratorSyntax>();
+    }
     [JsonConverter(typeof(JsonConverterType<VariableDeclaratorSyntax>))]
     public class VariableDeclaratorSyntax : DB_Syntax
     {
         public string Identifier;
         public Expression.Exp Initializer;
+    }
+
+    [JsonConverter(typeof(JsonConverterType<DB_ForStatementSyntax>))]
+    public class DB_ForStatementSyntax : DB_StatementSyntax
+    {
+        public VariableDeclarationSyntax Declaration;
+        public Expression.Exp Condition;
+        public List<Expression.Exp> Incrementors = new List<Expression.Exp>();
+        public DB_StatementSyntax Statement;
+    }
+
+    [JsonConverter(typeof(JsonConverterType<DB_DoStatementSyntax>))]
+    public class DB_DoStatementSyntax : DB_StatementSyntax
+    {
+        public Expression.Exp Condition;
+        public DB_StatementSyntax Statement;
+    }
+    [JsonConverter(typeof(JsonConverterType<DB_WhileStatementSyntax>))]
+    public class DB_WhileStatementSyntax : DB_StatementSyntax
+    {
+        public Expression.Exp Condition;
+        public DB_StatementSyntax Statement;
     }
 
     namespace Expression

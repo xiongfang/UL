@@ -212,6 +212,18 @@ namespace CppConverter
             {
                 ConvertStatement((Metadata.DB_LocalDeclarationStatementSyntax)ss);
             }
+            else if(ss is Metadata.DB_ForStatementSyntax)
+            {
+                ConvertStatement((Metadata.DB_ForStatementSyntax)ss);
+            }
+            else if(ss is Metadata.DB_DoStatementSyntax)
+            {
+                ConvertStatement((Metadata.DB_DoStatementSyntax)ss);
+            }
+            else if (ss is Metadata.DB_WhileStatementSyntax)
+            {
+                ConvertStatement((Metadata.DB_WhileStatementSyntax)ss);
+            }
             else
             {
                 Console.Error.WriteLine("不支持的语句 " + ss.GetType().ToString());
@@ -259,6 +271,44 @@ namespace CppConverter
             }
             sb.AppendLine(";");
         }
+        static void ConvertStatement(Metadata.DB_ForStatementSyntax bs)
+        {
+            Append("for(");
+            sb.Append(ExpressionToString(bs.Declaration));
+            sb.Append(";");
+            sb.Append(ExpressionToString(bs.Condition));
+            sb.Append(";");
+            
+            for (int i = 0; i < bs.Incrementors.Count; i++)
+            {
+                sb.Append(ExpressionToString(bs.Incrementors[i]));
+                if (i < bs.Incrementors.Count - 2)
+                {
+                    sb.Append(",");
+                }
+            }
+            sb.AppendLine(")");
+            ConvertStatement(bs.Statement);
+        }
+
+        static void ConvertStatement(Metadata.DB_DoStatementSyntax bs)
+        {
+            AppendLine("do");
+            ConvertStatement(bs.Statement);
+            Append("while");
+            sb.Append("(");
+            sb.Append(ExpressionToString(bs.Condition));
+            sb.AppendLine(");");
+        }
+        static void ConvertStatement(Metadata.DB_WhileStatementSyntax bs)
+        {
+            Append("while");
+            sb.Append("(");
+            sb.Append(ExpressionToString(bs.Condition));
+            sb.AppendLine(")");
+            ConvertStatement(bs.Statement);
+        }
+
 
         static string ExpressionToString(Metadata.Expression.Exp es)
         {
@@ -393,6 +443,20 @@ namespace CppConverter
                 stringBuilder.Append(ExpressionToString(es.Initializer));
             }
 
+            return stringBuilder.ToString();
+        }
+
+        static string ExpressionToString(Metadata.VariableDeclarationSyntax es)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append(es.Type);
+            stringBuilder.Append(" ");
+            for (int i=0;i<es.Variables.Count;i++)
+            {
+                stringBuilder.Append(ExpressionToString(es.Variables[i]));
+                if (i < es.Variables.Count - 1)
+                    stringBuilder.Append(",");
+            }
             return stringBuilder.ToString();
         }
     }
