@@ -285,6 +285,14 @@ namespace CSharpCompiler
                     return "System.Int32";
                 case "string":
                     return "System.String";
+                case "short":
+                    return "System.Int16";
+                case "byte":
+                    return "System.Int8";
+                case "float":
+                    return "System.Single";
+                case "double":
+                    return "System.Double";
                 default:
                     return "void";
             }
@@ -721,13 +729,13 @@ namespace CSharpCompiler
             Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
 
             Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
-            op_Equals.Name = "op_Equals";
+            op_Equals.Name = "op_Assign";
             op_Equals.Caller = ExportExp(es.Operand);
 
             Metadata.Expression.FieldExp op_Token = new Metadata.Expression.FieldExp();
             if (es.OperatorToken.Text == "++")
             {
-                op_Token.Name = "op_AddAdd";
+                op_Token.Name = "op_PlusPlus";
             }
             else if(es.OperatorToken.Text == "--")
             {
