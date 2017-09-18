@@ -15,7 +15,7 @@ namespace Metadata
         {
             get
             {
-                return _namespace + "." + name;
+                return _namespace + "." + name+ genericDefinitionString;
             }
             set
             {
@@ -27,15 +27,19 @@ namespace Metadata
         public string comments = "";
         public int modifier;
         public bool is_abstract;
-        public string _parent = "";
-
-        public int[] imports;
+        public string base_type = "";
         public string ext = "";
         public bool is_value_type;
         public bool is_interface;
-        //public bool is_array;
-        //public string element_type;
-
+        public bool is_class;
+        public List<string> interfaces = new List<string>();
+        public bool is_generic_type_definition;
+        public class GenericParameterDefinition
+        {
+            public string type_name;    //类型占位符名称
+            public List<string> constraint = new List<string>();    //类型约束
+        }
+        public List<GenericParameterDefinition> generic_parameter_definitions = new List<GenericParameterDefinition>();
         public string _namespace;
         public string name;
 
@@ -53,6 +57,28 @@ namespace Metadata
             if (full_name.Contains("."))
                 return full_name.Substring(full_name.LastIndexOf(".") + 1);
             return full_name;
+        }
+
+        string genericDefinitionString
+        {
+            get
+            {
+                if(is_generic_type_definition)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("<");
+                    for (int i = 0; i < generic_parameter_definitions.Count; i++)
+                    {
+                        sb.Append(generic_parameter_definitions[i].type_name);
+                        if (i < generic_parameter_definitions.Count - 1)
+                            sb.Append(",");
+                    }
+                    sb.Append(">");
+                    return sb.ToString();
+                }
+
+                return "";
+            }
         }
     }
 
@@ -528,15 +554,19 @@ namespace Metadata
             }
 
             {
-                string cmdText = string.Format("insert into type(full_name,comments,modifier,is_abstract,parent,imports,ext,is_value_type,is_interface) values(\"{1}\",\"{2}\",{3},{4},\"{5}\",?,?,?,?);",
-                    "",type.full_name, type.comments, type.modifier, type.is_abstract, type._parent);
+                string cmdText = string.Format("insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions) values(\"{1}\",\"{2}\",{3},{4},\"{5}\",?,?,?,?,?,?,?);",
+                    "",type.full_name, type.comments, type.modifier, type.is_abstract, type.base_type);
 
 
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
-                cmd.Parameters.AddWithValue("1", type.imports == null ? "" : WriteObject(type.imports));
-                cmd.Parameters.AddWithValue("2", type.ext);
-                cmd.Parameters.AddWithValue("3", type.is_value_type);
-                cmd.Parameters.AddWithValue("4", type.is_interface);
+                //cmd.Parameters.AddWithValue("1", type.imports == null ? "" : WriteObject(type.imports));
+                cmd.Parameters.AddWithValue("1", type.ext);
+                cmd.Parameters.AddWithValue("2", type.is_value_type);
+                cmd.Parameters.AddWithValue("3", type.is_interface);
+                cmd.Parameters.AddWithValue("4", type.is_class);
+                cmd.Parameters.AddWithValue("5", WriteObject( type.interfaces));
+                cmd.Parameters.AddWithValue("6", type.is_generic_type_definition);
+                cmd.Parameters.AddWithValue("7", WriteObject(type.generic_parameter_definitions));
                 cmd.ExecuteNonQuery();
             }
         }
@@ -610,7 +640,7 @@ namespace Metadata
             type.is_abstract = (bool)reader["is_abstract"];
             type.is_interface = (bool)reader["is_interface"];
             type.is_value_type = (bool)reader["is_value_type"];
-            type._parent = (string)reader["parent"];
+            type.base_type = (string)reader["parent"];
 
             return type;
         }

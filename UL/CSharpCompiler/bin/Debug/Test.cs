@@ -18,6 +18,10 @@ namespace System
 }
 namespace HelloWorld
 {
+    public class TestGeneric<T1,T2>
+    {
+
+    }
 
     public class TestInt
     {

@@ -233,6 +233,54 @@ namespace CSharpCompiler
                 {
                     type.full_name = c.Identifier.Text;
                 }
+
+                //父类
+                if(c.BaseList!=null)
+                {
+                    foreach(var b in c.BaseList.Types)
+                    {
+                        Metadata.DB_Type dB_Type = GetType(b.Type);
+                        if(dB_Type.is_interface)
+                        {
+                            type.interfaces.Add(dB_Type.full_name);
+                        }
+                        else
+                        {
+                            type.base_type = dB_Type.full_name;
+                        }
+                    }
+                }
+                
+                //泛型
+                if(c.TypeParameterList!=null)
+                {
+                    type.is_generic_type_definition = true;
+                    foreach(var p in c.TypeParameterList.Parameters)
+                    {
+                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = new Metadata.DB_Type.GenericParameterDefinition();
+                        genericParameterDefinition.type_name = p.Identifier.Text;
+                        type.generic_parameter_definitions.Add(genericParameterDefinition);
+                    }
+
+                    if (c.ConstraintClauses!=null)
+                    {
+                        foreach(var Constraint in c.ConstraintClauses)
+                        {
+
+                            Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                            foreach(var tpc in Constraint.Constraints)
+                            {
+                                genericParameterDefinition.constraint.Add(tpc.ToString());
+                            }
+                            
+                        }
+                    }
+                }
+                else
+                {
+                    type.is_class = true;
+                }
+
                 //Metadata.DB.SaveDBType(type, _con, _trans);
                 AddCompilerType(type);
             }
@@ -297,7 +345,10 @@ namespace CSharpCompiler
                     return "void";
             }
         }
+        //static string GetGenericTypeName(string GenericType)
+        //{
 
+        //}
 
         static Metadata.DB_Type GetType(TypeSyntax typeSyntax)
         {
@@ -318,6 +369,10 @@ namespace CSharpCompiler
             {
                 IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
                 return FindType(ts.Identifier.Text);
+            }
+            else if(typeSyntax is GenericNameSyntax)
+            {
+
             }
 
             return null;
