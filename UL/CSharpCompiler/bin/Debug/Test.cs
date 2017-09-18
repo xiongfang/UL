@@ -20,7 +20,7 @@ namespace HelloWorld
 {
     public class TestGeneric<T1,T2>
     {
-
+        public T1 a;
     }
 
     public class TestInt
@@ -30,6 +30,8 @@ namespace HelloWorld
     public class Program
     {
         public static int a = 6;
+
+        public TestGeneric<int, string> v;
 
         static void Main(string arg,int arg2)
         {
@@ -87,6 +89,8 @@ namespace HelloWorld
                 case TestE.C:
                     break;
             }
+
+            TestGeneric<int, string> temp = new TestGeneric<int, string>();
         }
     }
 }

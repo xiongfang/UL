@@ -28,11 +28,12 @@ namespace CppConverter
                 
         //    }
         //}
+
         static public HashSet<string> GetTypeDependences(Metadata.DB_Type type)
         {
             HashSet<string> result = new HashSet<string>();
-            if (!string.IsNullOrEmpty(type._parent))
-                result.Add(type._parent);
+            if (!string.IsNullOrEmpty(type.base_type))
+                result.Add(type.base_type);
             foreach (var m in type.members.Values)
             {
                 if (m.member_type == (int)Metadata.MemberTypes.Field)
@@ -62,7 +63,6 @@ namespace CppConverter
             return result;
         }
 
-
         static void LoadTypeDependences(string full_name, Dictionary<string, Metadata.DB_Type> loaded)
         {
             Metadata.DB_Type type = Metadata.DB.LoadType(full_name, _con);
@@ -70,9 +70,10 @@ namespace CppConverter
             HashSet<string> dep = GetTypeDependences(type);
             foreach(var t in dep)
             {
-                if(!loaded.ContainsKey(t))
+                string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
+                if (!loaded.ContainsKey(database_type))
                 {
-                    LoadTypeDependences(t, loaded);
+                    LoadTypeDependences(database_type, loaded);
                 }
             }
         }

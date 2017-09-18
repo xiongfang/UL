@@ -15,7 +15,7 @@ namespace Metadata
         {
             get
             {
-                return _namespace + "." + name+ genericDefinitionString;
+                return _namespace + "." + name+ genericDefinitionString+ genericString;
             }
             set
             {
@@ -23,7 +23,8 @@ namespace Metadata
                 _namespace = GetNamespace(value);
             }
         }
-
+        public string _namespace;
+        public string name;
         public string comments = "";
         public int modifier;
         public bool is_abstract;
@@ -40,23 +41,121 @@ namespace Metadata
             public List<string> constraint = new List<string>();    //类型约束
         }
         public List<GenericParameterDefinition> generic_parameter_definitions = new List<GenericParameterDefinition>();
-        public string _namespace;
-        public string name;
+
+        //动态类型
+        public bool is_generic_type;
+        public List<string> generic_parameters = new List<string>();
 
         public Dictionary<string, DB_Member> members = new Dictionary<string, DB_Member>();
 
         public static string GetNamespace(string full_name)
         {
-            if (full_name.Contains("."))
-                return full_name.Substring(0, full_name.LastIndexOf("."));
+            int generic_def_mark = full_name.IndexOf("[");
+            int generic_mark = full_name.IndexOf("<");
+            
+            if (generic_def_mark >= 0)
+                full_name = full_name.Substring(0, generic_def_mark);
+            else if(generic_mark>=0)
+                full_name = full_name.Substring(0, generic_mark);
+
+            int name_space_mark = full_name.LastIndexOf(".");
+            if (name_space_mark>=0)
+                return full_name.Substring(0, name_space_mark);
             return "";
         }
 
         public static string GetName(string full_name)
         {
-            if (full_name.Contains("."))
-                return full_name.Substring(full_name.LastIndexOf(".") + 1);
+            int generic_def_mark = full_name.IndexOf("[");
+            int generic_mark = full_name.IndexOf("<");
+
+            if (generic_def_mark >= 0)
+                full_name = full_name.Substring(0, generic_def_mark);
+            else if (generic_mark >= 0)
+                full_name = full_name.Substring(0, generic_mark);
+
+            int name_space_mark = full_name.LastIndexOf(".");
+            if (name_space_mark >= 0)
+                return full_name.Substring(name_space_mark + 1);
             return full_name;
+        }
+        public static int ParseGenericParameterCount(string full_name)
+        {
+            int generic_def_mark = full_name.IndexOf("[");
+            int generic_mark = full_name.IndexOf("<");
+
+            if(generic_def_mark>=0)
+            {
+                return int.Parse(full_name.Substring(generic_def_mark + 1, full_name.IndexOf(']', generic_def_mark)));
+            }
+
+            if(generic_mark>0)
+            {
+                return ParseGenericParameters(full_name).Count;
+            }
+
+            return 0;
+        }
+        public static string GetGenericDefinitionName(string generic_type_name)
+        {
+            int generic_def_mark = generic_type_name.IndexOf("[");
+            int generic_mark = generic_type_name.IndexOf("<");
+            if (generic_def_mark >= 0)
+                return generic_type_name;
+            if (generic_mark < 0)
+                return generic_type_name;
+
+            List<string> paramters = ParseGenericParameters(generic_type_name);
+            if(paramters.Count>0)
+            {
+                return generic_type_name.Substring(0, generic_mark) + "[" + paramters.Count + "]";
+            }
+            return generic_type_name;
+        }
+
+        public static List<string> ParseGenericParameters(string full_name)
+        {
+            List<string> results = new List<string>();
+            int generic_mark = full_name.IndexOf("<");
+            if (generic_mark < 0)
+                return results;
+
+            string generic_string = full_name.Substring(generic_mark+1,full_name.Length- generic_mark-2);
+
+            int depth = 0;
+            StringBuilder sb = new StringBuilder();
+            for(int i=0;i<generic_string.Length;i++)
+            {
+                if(generic_string[i] == ',')
+                {
+                    if(depth==0)
+                    {
+                        results.Add(sb.ToString());
+                        sb.Clear();
+                    }
+                    else
+                    {
+                        sb.Append(generic_string[i]);
+                    }
+                }
+                else if(generic_string[i] == '<')
+                {
+                    depth++;
+                    sb.Append(generic_string[i]);
+                }
+                else if(generic_string[i] == '>')
+                {
+                    depth--;
+                    sb.Append(generic_string[i]);
+                }
+                else
+                {
+                    sb.Append(generic_string[i]);
+                }
+            }
+            if(sb.Length>0)
+                results.Add(sb.ToString());
+            return results;
         }
 
         string genericDefinitionString
@@ -65,20 +164,42 @@ namespace Metadata
             {
                 if(is_generic_type_definition)
                 {
+                    
+                    return "[" + generic_parameter_definitions.Count+"]";
+                }
+
+                return "";
+            }
+        }
+        string genericString
+        {
+            get
+            {
+                if(is_generic_type)
+                {
                     StringBuilder sb = new StringBuilder();
                     sb.Append("<");
-                    for (int i = 0; i < generic_parameter_definitions.Count; i++)
+                    for (int i = 0; i < generic_parameters.Count; i++)
                     {
-                        sb.Append(generic_parameter_definitions[i].type_name);
-                        if (i < generic_parameter_definitions.Count - 1)
+                        sb.Append(generic_parameters[i]);
+                        if (i < generic_parameters.Count - 1)
                             sb.Append(",");
                     }
                     sb.Append(">");
                     return sb.ToString();
                 }
-
                 return "";
             }
+        }
+
+        public static DB_Type MakeGenericType(DB_Type genericTypeDef, List<string> genericParameters)
+        {
+            DB_Type dB_Type = DB.ReadObject<DB_Type>(DB.WriteObject(genericTypeDef));
+            dB_Type.is_generic_type_definition = false;
+            dB_Type.is_generic_type = true;
+            //dB_Type.generic_parameter_definitions.Clear();
+            dB_Type.generic_parameters.AddRange(genericParameters);
+            return dB_Type;
         }
     }
 
@@ -640,8 +761,11 @@ namespace Metadata
             type.is_abstract = (bool)reader["is_abstract"];
             type.is_interface = (bool)reader["is_interface"];
             type.is_value_type = (bool)reader["is_value_type"];
-            type.base_type = (string)reader["parent"];
-
+            type.base_type = (string)reader["base_type"];
+            type.is_class = (bool)reader["is_class"];
+            type.interfaces = ReadObject<List<string>>((string)reader["interfaces"]);
+            type.is_generic_type_definition = (bool)reader["is_generic_type_definition"];
+            type.generic_parameter_definitions = ReadObject<List<DB_Type.GenericParameterDefinition>>((string)reader["generic_parameter_definitions"]);
             return type;
         }
 

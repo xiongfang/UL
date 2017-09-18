@@ -30,8 +30,8 @@ namespace CSharpCompiler
         }
         static ECompilerStet step;
         static List<string> usingNamespace;
-        //static SemanticModel model;
-
+        static Metadata.DB_Type currentType;
+        
         static void AddCompilerType(Metadata.DB_Type type)
         {
             Dictionary<string, Metadata.DB_Type> rt = null;
@@ -372,9 +372,20 @@ namespace CSharpCompiler
             }
             else if(typeSyntax is GenericNameSyntax)
             {
-
+                GenericNameSyntax ts = typeSyntax as GenericNameSyntax;
+                string Name = ts.Identifier.Text;
+                Metadata.DB_Type dB_GenericTypeDef = FindType(Name+"["+ts.TypeArgumentList.Arguments.Count+"]");
+                List<string> parameters = new List<string>();
+                foreach(var p in ts.TypeArgumentList.Arguments)
+                {
+                    parameters.Add(GetType(p).full_name);
+                }
+                return Metadata.DB_Type.MakeGenericType(dB_GenericTypeDef, parameters);
             }
-
+            else
+            {
+                Console.Error.WriteLine("不支持的类型语法 " + typeSyntax.GetType().FullName);
+            }
             return null;
         }
 
