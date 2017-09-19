@@ -66,6 +66,8 @@ namespace CppConverter
         static void LoadTypeDependences(string full_name, Dictionary<string, Metadata.DB_Type> loaded)
         {
             Metadata.DB_Type type = Metadata.DB.LoadType(full_name, _con);
+            if (type == null)
+                return;
             loaded.Add(type.full_name, type);
             HashSet<string> dep = GetTypeDependences(type);
             foreach(var t in dep)
@@ -83,6 +85,45 @@ namespace CppConverter
         static int depth;
 
         static Dictionary<string, Metadata.DB_Type> types;
+
+        static Metadata.DB_Type GetType(string full_name)
+        {
+            if(types.ContainsKey(full_name))
+            {
+                return types[full_name];
+            }
+
+            string genegicName = Metadata.DB_Type.GetGenericDefinitionName(full_name);
+            if (types.ContainsKey(genegicName))
+            {
+                return Metadata.DB_Type.MakeGenericType( types[genegicName], Metadata.DB_Type.ParseGenericParameters(full_name));
+            }
+
+
+            string ns = Metadata.DB_Type.GetNamespace(full_name);
+            string name = Metadata.DB_Type.GetName(full_name);
+            int pos = 0;
+            if (int.TryParse(name,out pos) && types.ContainsKey(ns))
+            {
+                Metadata.DB_Type declareType = types[ns];
+                if(declareType.is_generic_type_definition)
+                {
+                    Metadata.DB_Type.GenericParameterDefinition typeDef = declareType.generic_parameter_definitions[pos];
+                    return Metadata.DB_Type.MakeGenericParameterType(declareType, typeDef);
+                }
+            }
+
+            return null;
+        }
+
+
+        static string GetCppTypeName(Metadata.DB_Type type)
+        {
+            if (type.is_generic_paramter)
+                return type.name;
+            return type.full_name;
+        }
+
         static void Main(string[] args)
         {
             using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
@@ -169,7 +210,7 @@ namespace CppConverter
             if(member.member_type == (int)Metadata.MemberTypes.Field)
             {
                 AppendLine(GetModifierString(member.modifier) + ":");
-                AppendLine(string.Format("{0} {1};", member.field_type_fullname, member.name));
+                AppendLine(string.Format("{0} {1};", GetCppTypeName(GetType(member.field_type_fullname)), member.name));
             }
             else if(member.member_type == (int)Metadata.MemberTypes.Method)
             {

@@ -386,6 +386,11 @@ namespace CSharpCompiler
                         }
                     }
                 }
+                else
+                {
+                    if(type.full_name!="System.Object")
+                        type.base_type = "System.Object";
+                }
                 
                 //泛型
                 if(c.TypeParameterList!=null)

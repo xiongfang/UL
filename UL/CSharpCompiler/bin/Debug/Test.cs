@@ -16,6 +16,11 @@ namespace System
 
     }
 
+    public class Object
+    {
+
+    }
+
     public class Array<T>
     {
 
