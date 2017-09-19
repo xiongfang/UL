@@ -15,6 +15,11 @@ namespace System
     {
 
     }
+
+    public class Array<T>
+    {
+
+    }
 }
 namespace HelloWorld
 {
@@ -57,6 +62,8 @@ namespace HelloWorld
             TestInt c = new TestInt();
             c.a = 7;
             Console.WriteLine("Print");
+
+            int[] v = new int[6];
 
             for(int i=0,c=6;i<3;i++)
             {
