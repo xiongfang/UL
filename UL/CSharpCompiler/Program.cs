@@ -846,6 +846,11 @@ namespace CSharpCompiler
             //db_les.Args.Add(ExportExp(es.Expression));
 
             db_les.Type = GetType(es.Type).full_name;
+            foreach(var p in es.Type.RankSpecifiers)
+            {
+                foreach(var s in p.Sizes)
+                    db_les.Args.Add(ExportExp(s));
+            }
             return db_les;
         }
         

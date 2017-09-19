@@ -26,6 +26,11 @@ namespace HelloWorld
     public class TestGeneric<T1,T2>
     {
         public T1 a;
+        //public T1 TestGenericFunction()
+        //{
+            //T1 a = new T1();
+            //return a;
+        //}
     }
 
     public class TestInt
