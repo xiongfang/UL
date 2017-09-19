@@ -23,7 +23,7 @@ namespace System
 }
 namespace HelloWorld
 {
-    public class TestGeneric<T1,T2>
+    public class TestGeneric<T1,T2> where T1:TestInt
     {
         public T1 a;
         //public T1 TestGenericFunction()

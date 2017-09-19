@@ -28,7 +28,7 @@ namespace Metadata
         public string comments = "";
         public int modifier;
         public bool is_abstract;
-        public string base_type = "";
+        public string base_type = "System.Object";
         public string ext = "";
         public bool is_value_type;
         public bool is_interface;
@@ -45,6 +45,9 @@ namespace Metadata
         //动态类型
         public bool is_generic_type;
         public List<string> generic_parameters = new List<string>();
+
+        public bool is_generic_paramter;
+        public int generic_parameter_position;
 
         public Dictionary<string, DB_Member> members = new Dictionary<string, DB_Member>();
 
@@ -199,6 +202,16 @@ namespace Metadata
             dB_Type.is_generic_type = true;
             //dB_Type.generic_parameter_definitions.Clear();
             dB_Type.generic_parameters.AddRange(genericParameters);
+            return dB_Type;
+        }
+
+        public static DB_Type MakeGenericParameterType(DB_Type declare_type, GenericParameterDefinition def)
+        {
+            DB_Type dB_Type = DB.ReadObject<DB_Type>(DB.WriteObject(declare_type));
+            dB_Type.is_generic_paramter = true;
+            dB_Type.is_generic_type_definition = false;
+            dB_Type._namespace = dB_Type._namespace + "." + dB_Type.name;
+            dB_Type.name = def.type_name;
             return dB_Type;
         }
     }

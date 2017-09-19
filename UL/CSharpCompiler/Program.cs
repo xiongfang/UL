@@ -14,10 +14,16 @@ namespace CSharpCompiler
 
     class Model
     {
+        //引用的外部类型
         public static Dictionary<string, Dictionary<string, Metadata.DB_Type>> refTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
+        //编译中的类型
         public static Dictionary<string, Dictionary<string, Metadata.DB_Type>> compilerTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
-        public static List<string> usingNamespace;
-        public static Metadata.DB_Type currentType;
+        //当前类的命名空间
+        public static List<string> usingNamespace = new List<string>();
+        //当前处理的类型
+        static Metadata.DB_Type currentType;
+        //当前函数的本地变量和参数
+        static Stack<Dictionary<string, Metadata.DB_Type>> stackLocalVariables = new Stack<Dictionary<string, Metadata.DB_Type>>();
 
         public static void AddCompilerType(Metadata.DB_Type type)
         {
@@ -47,6 +53,19 @@ namespace CSharpCompiler
 
             return null;
         }
+        public static Metadata.DB_Type GetType(string full_name)
+        {
+            Dictionary<string, Metadata.DB_Type> ns = FindNamespace(Metadata.DB_Type.GetNamespace(full_name));
+            if (ns != null && ns.ContainsKey(Metadata.DB_Type.GetName(full_name)))
+            {
+                return ns[Metadata.DB_Type.GetName(full_name)];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
 
         public static Metadata.DB_Type FindType(string nameOrFullname)
         {
@@ -64,6 +83,31 @@ namespace CSharpCompiler
                 }
             }
 
+            //查找本地变量
+            foreach(var v in stackLocalVariables)
+            {
+                if (v.ContainsKey(name))
+                    return v[name];
+            }
+
+            //查找成员变量
+            if(currentType!=null)
+            {
+                if (currentType.members.ContainsKey(name))
+                    return GetType(currentType.members[name].typeName);
+                //查找泛型
+                if (currentType.is_generic_type_definition)
+                {
+                    foreach (var gd in currentType.generic_parameter_definitions)
+                    {
+                        if (gd.type_name == name)
+                        {
+                            return Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
+                        }
+                    }
+                }
+            }
+
             //当前命名空间查找
             foreach (var nsName in usingNamespace)
             {
@@ -77,7 +121,29 @@ namespace CSharpCompiler
             return null;
         }
 
-        
+        public static void EnterType(Metadata.DB_Type type)
+        {
+            currentType = type;
+        }
+        public static void LeaveType()
+        {
+            currentType = null;
+        }
+
+        public static void EnterBlock()
+        {
+            stackLocalVariables.Push(new Dictionary<string, Metadata.DB_Type>());
+        }
+
+        public static void LeaveBlock()
+        {
+            stackLocalVariables.Pop();
+        }
+
+        public static void AddLocal(string name,Metadata.DB_Type type)
+        {
+            stackLocalVariables.Peek().Add(name, type);
+        }
     }
 
     class Program
@@ -331,20 +397,6 @@ namespace CSharpCompiler
                         genericParameterDefinition.type_name = p.Identifier.Text;
                         type.generic_parameter_definitions.Add(genericParameterDefinition);
                     }
-
-                    if (c.ConstraintClauses!=null)
-                    {
-                        foreach(var Constraint in c.ConstraintClauses)
-                        {
-
-                            Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
-                            foreach(var tpc in Constraint.Constraints)
-                            {
-                                genericParameterDefinition.constraint.Add(tpc.ToString());
-                            }
-                            
-                        }
-                    }
                 }
                 else
                 {
@@ -367,6 +419,23 @@ namespace CSharpCompiler
                     }
                 }
                 Metadata.DB_Type type = Model.FindType(c.Identifier.Text);
+                Model.EnterType(type);
+
+                //泛型参数
+                if (c.ConstraintClauses != null)
+                {
+                    foreach (var Constraint in c.ConstraintClauses)
+                    {
+
+                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                        foreach (var tpc in Constraint.Constraints)
+                        {
+                            genericParameterDefinition.constraint.Add(Model.FindType(tpc.ToString()).full_name);
+                        }
+
+                    }
+                }
+
 
                 //导出所有变量
                 var virableNodes = c.ChildNodes().OfType<FieldDeclarationSyntax>();
@@ -381,6 +450,7 @@ namespace CSharpCompiler
                 {
                     ExportMethod(f, type);
                 }
+                Model.LeaveType();
                 Console.WriteLine();
             }
             else if(step == ECompilerStet.Compile)
