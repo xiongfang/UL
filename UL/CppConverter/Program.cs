@@ -99,16 +99,13 @@ namespace CppConverter
                 return Metadata.DB_Type.MakeGenericType( types[genegicName], Metadata.DB_Type.ParseGenericParameters(full_name));
             }
 
-
-            string ns = Metadata.DB_Type.GetNamespace(full_name);
-            string name = Metadata.DB_Type.GetName(full_name);
-            int pos = 0;
-            if (int.TryParse(name,out pos) && types.ContainsKey(ns))
+            string name, declare_type;
+            if(Metadata.DB_Type.GetDeclareTypeName(full_name,out declare_type,out name))
             {
-                Metadata.DB_Type declareType = types[ns];
+                Metadata.DB_Type declareType = types[declare_type];
                 if(declareType.is_generic_type_definition)
                 {
-                    Metadata.DB_Type.GenericParameterDefinition typeDef = declareType.generic_parameter_definitions[pos];
+                    Metadata.DB_Type.GenericParameterDefinition typeDef = declareType.generic_parameter_definitions.Find((a) => { return a.type_name == name; });
                     return Metadata.DB_Type.MakeGenericParameterType(declareType, typeDef);
                 }
             }
@@ -169,6 +166,17 @@ namespace CppConverter
             sb.AppendLine(string.Format("namespace {0}{{",type._namespace));
             {
                 depth++;
+                if(type.is_generic_type_definition)
+                {
+                    Append("template<");
+                    for(int i=0;i<type.generic_parameter_definitions.Count;i++)
+                    {
+                        sb.Append(type.generic_parameter_definitions[i].type_name);
+                        if (i < type.generic_parameter_definitions.Count - 1)
+                            sb.Append(",");
+                    }
+                    sb.AppendLine(">");
+                }
                 AppendLine(string.Format("class {0}{{", type.name));
                 {
                     depth++;

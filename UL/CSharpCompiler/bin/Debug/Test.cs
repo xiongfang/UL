@@ -47,6 +47,7 @@ namespace HelloWorld
         public static int a = 6;
 
         public TestGeneric<int, string> v;
+        public int[] s;
 
         static void Main(string arg,int arg2)
         {

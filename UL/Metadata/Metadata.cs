@@ -15,13 +15,17 @@ namespace Metadata
         {
             get
             {
+                if(is_generic_paramter)
+                {
+                    return declare_type + ":" + name;
+                }
                 return _namespace + "." + name+ genericDefinitionString+ genericString;
             }
-            set
-            {
-                name = GetName(value);
-                _namespace = GetNamespace(value);
-            }
+            //set
+            //{
+            //    name = GetName(value);
+            //    _namespace = GetNamespace(value);
+            //}
         }
         public string _namespace;
         public string name;
@@ -48,6 +52,7 @@ namespace Metadata
 
         public bool is_generic_paramter;
         public int generic_parameter_position;
+        public string declare_type;
 
         public Dictionary<string, DB_Member> members = new Dictionary<string, DB_Member>();
 
@@ -114,6 +119,21 @@ namespace Metadata
                 return generic_type_name.Substring(0, generic_mark) + "[" + paramters.Count + "]";
             }
             return generic_type_name;
+        }
+
+        public static bool GetDeclareTypeName(string full_name,out string declare_type,out string name)
+        {
+            int declare_type_ref_mark = full_name.IndexOf(":");
+            if (declare_type_ref_mark < 0)
+            {
+                declare_type = "";
+                name = "";
+                return false;
+            }
+                
+            declare_type = full_name.Substring(0, declare_type_ref_mark);
+            name = full_name.Substring(declare_type_ref_mark + 1);
+            return true;
         }
 
         public static List<string> ParseGenericParameters(string full_name)
@@ -210,8 +230,11 @@ namespace Metadata
             DB_Type dB_Type = DB.ReadObject<DB_Type>(DB.WriteObject(declare_type));
             dB_Type.is_generic_paramter = true;
             dB_Type.is_generic_type_definition = false;
-            dB_Type._namespace = dB_Type._namespace + "." + dB_Type.name;
+            dB_Type.generic_parameter_position = declare_type.generic_parameter_definitions.FindIndex((a) => { return a.type_name == def.type_name; });
+            //dB_Type._namespace = dB_Type._namespace + "." + dB_Type.name;
             dB_Type.name = def.type_name;
+            dB_Type.declare_type = declare_type.full_name;
+
             return dB_Type;
         }
     }
@@ -688,7 +711,7 @@ namespace Metadata
             }
 
             {
-                string cmdText = string.Format("insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions) values(\"{1}\",\"{2}\",{3},{4},\"{5}\",?,?,?,?,?,?,?);",
+                string cmdText = string.Format("insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions,name,namespace) values(\"{1}\",\"{2}\",{3},{4},\"{5}\",?,?,?,?,?,?,?,?,?);",
                     "",type.full_name, type.comments, type.modifier, type.is_abstract, type.base_type);
 
 
@@ -701,6 +724,8 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("5", WriteObject( type.interfaces));
                 cmd.Parameters.AddWithValue("6", type.is_generic_type_definition);
                 cmd.Parameters.AddWithValue("7", WriteObject(type.generic_parameter_definitions));
+                cmd.Parameters.AddWithValue("8", type.name);
+                cmd.Parameters.AddWithValue("9", type._namespace);
                 cmd.ExecuteNonQuery();
             }
         }
@@ -766,7 +791,9 @@ namespace Metadata
         static DB_Type ReadType(OdbcDataReader reader)
         {
             DB_Type type = new DB_Type();
-            type.full_name = (string)reader["full_name"];
+            //type.full_name = (string)reader["full_name"];
+            type.name = (string)reader["name"];
+            type._namespace = (string)reader["namespace"];
             type.modifier = (int)reader["modifier"];
             type.comments = (string)reader["comments"];
             type.ext = (string)reader["ext"];

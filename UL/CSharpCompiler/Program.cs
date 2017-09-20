@@ -355,11 +355,12 @@ namespace CSharpCompiler
                 type.modifier = GetModifier(c.Modifiers);
                 type.is_interface = false;
                 type.is_value_type = false;
-
+                type.name = c.Identifier.Text;
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
-                    type.full_name = namespaceDeclarationSyntax.Name.ToString() + "." + c.Identifier.Text;
+                    type._namespace = namespaceDeclarationSyntax.Name.ToString();
+                    //type.full_name = namespaceDeclarationSyntax.Name.ToString() + "." + c.Identifier.Text;
                     //foreach (var ns in namespaceDeclarationSyntax.Usings)
                     //{
                     //    LoadTypesIfNotLoaded(ns.Name.ToString());
@@ -367,7 +368,7 @@ namespace CSharpCompiler
                 }
                 else
                 {
-                    type.full_name = c.Identifier.Text;
+                    //type.full_name = c.Identifier.Text;
                 }
 
                 //父类
@@ -388,8 +389,8 @@ namespace CSharpCompiler
                 }
                 else
                 {
-                    if(type.full_name!="System.Object")
-                        type.base_type = "System.Object";
+                    if(type.full_name!="System:Object")
+                        type.base_type = "System:Object";
                 }
                 
                 //泛型
