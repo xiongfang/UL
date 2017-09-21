@@ -24,12 +24,54 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Array.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Int32.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Program.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="String.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestGeneric.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestInt.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CppApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Array.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Int32.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Program.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="String.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestGeneric.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

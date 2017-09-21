@@ -83,7 +83,7 @@ namespace CppConverter
         static OdbcConnection _con;
         static StringBuilder sb = new StringBuilder();
         static int depth;
-
+        static string outputDir;
         static Dictionary<string, Metadata.DB_Type> types;
 
         static Metadata.DB_Type GetType(string full_name)
@@ -118,18 +118,39 @@ namespace CppConverter
         {
             if (type.is_generic_paramter)
                 return type.name;
+            if (type.is_class)
+                return type._namespace + "::" + type.name;
+            if (type.is_generic_type)
+            {
+                
+                StringBuilder sb = new StringBuilder();
+                sb.Append(type._namespace);
+                sb.Append("::");
+                sb.Append(type.name);
+                sb.Append("<");
+                for (int i = 0; i < type.generic_parameters.Count; i++)
+                {
+                    sb.Append(GetCppTypeName(GetType(type.generic_parameters[i])));
+                    if (i < type.generic_parameters.Count - 1)
+                        sb.Append(",");
+                }
+                sb.Append(">");
+                return sb.ToString();
+            }
             return type.full_name;
         }
 
         static void Main(string[] args)
         {
+            string TypeName = args[0];
+            outputDir = args[1];
             using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
             {
                 con.Open();
                 _con = con;
                 //Metadata.DB_Type type = Metadata.DB.LoadType("HelloWorld.Program", _con);
                 types = new Dictionary<string, Metadata.DB_Type>();
-                LoadTypeDependences("HelloWorld.Program", types);
+                LoadTypeDependences(TypeName, types);
 
 
                 foreach (var t in types.Values)
@@ -137,7 +158,7 @@ namespace CppConverter
                     ConvertType(t);
                 }
 
-                System.IO.File.WriteAllText("Test.h", sb.ToString());
+                
             }
         }
 
@@ -163,39 +184,69 @@ namespace CppConverter
 
         static void ConvertType(Metadata.DB_Type type)
         {
-            sb.AppendLine(string.Format("namespace {0}{{",type._namespace));
+            //头文件
             {
-                depth++;
-                if(type.is_generic_type_definition)
+                sb.Clear();
+                sb.AppendLine("#pragma once");
+                //包含头文件
+                HashSet<string> depTypes = GetTypeDependences(type);
+                foreach(var t in depTypes)
                 {
-                    Append("template<");
-                    for(int i=0;i<type.generic_parameter_definitions.Count;i++)
-                    {
-                        sb.Append(type.generic_parameter_definitions[i].type_name);
-                        if (i < type.generic_parameter_definitions.Count - 1)
-                            sb.Append(",");
-                    }
-                    sb.AppendLine(">");
+                    Metadata.DB_Type depType = GetType(t);
+                    if (!depType.is_generic_paramter && t !=type.full_name)
+                        sb.AppendLine("#include \"" + depType.name + ".h\"");
                 }
-                AppendLine(string.Format("class {0}{{", type.name));
+                sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
                 {
                     depth++;
-
-                    foreach(var m in type.members.Values)
+                    if (type.is_generic_type_definition)
                     {
-                        ConvertMember(m);
+                        Append("template<");
+                        for (int i = 0; i < type.generic_parameter_definitions.Count; i++)
+                        {
+                            sb.Append("class "+ type.generic_parameter_definitions[i].type_name);
+                            if (i < type.generic_parameter_definitions.Count - 1)
+                                sb.Append(",");
+                        }
+                        sb.AppendLine(">");
+                    }
+                    AppendLine(string.Format("class {0}{{", type.name));
+                    {
+                        depth++;
+
+                        foreach (var m in type.members.Values)
+                        {
+                            ConvertMemberHeader(m);
+                        }
+
+
+                        depth--;
                     }
 
-
+                    AppendLine("};");
                     depth--;
                 }
 
-                AppendLine("};");
-                depth--;
-            }
-            
-            sb.AppendLine("}");
+                sb.AppendLine("}");
 
+                System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".h"), sb.ToString());
+            }
+
+            //cpp文件
+            {
+                sb.Clear();
+                sb.AppendLine("#include \"stdafx.h\"");
+                sb.AppendLine("#include \"" + type.name + ".h\"");
+                //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
+
+                foreach (var m in type.members.Values)
+                {
+                    ConvertMemberCpp(m);
+                }
+
+                //sb.AppendLine("}");
+                System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString());
+            }
         }
 
         static string GetModifierString(int modifier)
@@ -213,12 +264,16 @@ namespace CppConverter
             return "";
         }
 
-        static void ConvertMember(Metadata.DB_Member member)
+        static void ConvertMemberHeader(Metadata.DB_Member member)
         {
             if(member.member_type == (int)Metadata.MemberTypes.Field)
             {
                 AppendLine(GetModifierString(member.modifier) + ":");
-                AppendLine(string.Format("{0} {1};", GetCppTypeName(GetType(member.field_type_fullname)), member.name));
+                if (member.is_static)
+                    Append("static ");
+                else
+                    Append("");
+                AppendLine(string.Format("{0} {1};",GetCppTypeName(GetType(member.field_type_fullname)), member.name));
             }
             else if(member.member_type == (int)Metadata.MemberTypes.Method)
             {
@@ -233,12 +288,40 @@ namespace CppConverter
                 {
                     for (int i = 0; i < member.method_args.Length; i++)
                     {
-                        sb.Append(string.Format("{0} {1} {2}", member.method_args[i].type_fullname,member.method_args[i].is_ref?"&":"", member.method_args[i].name));
+                        sb.Append(string.Format("{0} {1} {2}",GetCppTypeName(GetType( member.method_args[i].type_fullname)),member.method_args[i].is_ref?"&":"", member.method_args[i].name));
                         if (i < member.method_args.Length-1)
                             sb.Append(",");
                     }
                 }
                 sb.AppendLine(");");
+
+                //ConvertStatement(member.method_body);
+            }
+        }
+
+        static void ConvertMemberCpp(Metadata.DB_Member member)
+        {
+            if (member.member_type == (int)Metadata.MemberTypes.Field)
+            {
+                if(member.is_static)
+                {
+                    AppendLine(GetCppTypeName(GetType(member.field_type_fullname))+ " "+ GetCppTypeName(GetType(member.declaring_type)) + "::" + member.name+";");
+                }
+            }
+            else if (member.member_type == (int)Metadata.MemberTypes.Method)
+            {
+                sb.Append(string.Format("{0} {1}::{2}", string.IsNullOrEmpty(member.method_ret_type) ? "void" : member.method_ret_type, GetCppTypeName(GetType(member.declaring_type)), member.name));
+                sb.Append("(");
+                if (member.method_args != null)
+                {
+                    for (int i = 0; i < member.method_args.Length; i++)
+                    {
+                        sb.Append(string.Format("{0} {1} {2}", GetCppTypeName(GetType(member.method_args[i].type_fullname)), member.method_args[i].is_ref ? "&" : "", member.method_args[i].name));
+                        if (i < member.method_args.Length - 1)
+                            sb.Append(",");
+                    }
+                }
+                sb.AppendLine(")");
 
                 ConvertStatement(member.method_body);
             }
