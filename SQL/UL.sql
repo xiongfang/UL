@@ -69,7 +69,8 @@ CREATE TABLE `type` (
   `is_generic_type_definition` bit(1) NOT NULL,
   `generic_parameter_definitions` varchar(1024) NOT NULL,
   `name` varchar(256) NOT NULL,
-  `namespace` varchar(256) NOT NULL
+  `namespace` varchar(256) NOT NULL,
+  `usingNamespace` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='类型';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -79,7 +80,7 @@ CREATE TABLE `type` (
 
 LOCK TABLES `type` WRITE;
 /*!40000 ALTER TABLE `type` DISABLE KEYS */;
-INSERT INTO `type` VALUES ('System.Int32','',0,'\0','System:Object','\0','','\0','','[]','\0','[]','Int32','System'),('System.String','',0,'\0','System:Object','\0','','\0','','[]','\0','[]','String','System'),('System.Object','',0,'\0','System:Object','\0','','\0','','[]','\0','[]','Object','System'),('System.Array[1]','',0,'\0','System:Object','\0','','\0','\0','[]','','[{\"type_name\":\"T\",\"constraint\":[]}]','Array','System'),('HelloWorld.TestGeneric[2]','',0,'\0','System:Object','\0','','\0','\0','[]','','[{\"type_name\":\"T1\",\"constraint\":[\"HelloWorld.TestInt\"]},{\"type_name\":\"T2\",\"constraint\":[]}]','TestGeneric','HelloWorld'),('HelloWorld.TestInt','',0,'\0','System:Object','\0','','\0','','[]','\0','[]','TestInt','HelloWorld'),('HelloWorld.Program','',0,'\0','System:Object','\0','','\0','','[]','\0','[]','Program','HelloWorld');
+INSERT INTO `type` VALUES ('System.Int32','',0,'\0','System.Object','\0','','\0','','[]','\0','[]','Int32','System','[\"System\"]'),('System.String','',0,'\0','System.Object','\0','','\0','','[]','\0','[]','String','System','[\"System\"]'),('System.Object','',0,'\0','System.Object','\0','','\0','','[]','\0','[]','Object','System','[\"System\"]'),('System.Array[1]','',0,'\0','System.Object','\0','','\0','\0','[]','','[{\"type_name\":\"T\",\"constraint\":[]}]','Array','System','[\"System\"]'),('HelloWorld.TestGeneric[2]','',0,'\0','System.Object','\0','','\0','\0','[]','','[{\"type_name\":\"T1\",\"constraint\":[\"HelloWorld.TestInt\"]},{\"type_name\":\"T2\",\"constraint\":[]}]','TestGeneric','HelloWorld','[\"HelloWorld\"]'),('HelloWorld.TestInt','',0,'\0','System.Object','\0','','\0','','[]','\0','[]','TestInt','HelloWorld','[\"HelloWorld\"]'),('HelloWorld.Program','',0,'\0','System.Object','\0','','\0','','[]','\0','[]','Program','HelloWorld','[\"HelloWorld\"]');
 /*!40000 ALTER TABLE `type` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -92,4 +93,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-09-20 15:03:58
+-- Dump completed on 2017-09-21 18:18:45

@@ -33,6 +33,7 @@ namespace Metadata
         public int modifier;
         public bool is_abstract;
         public string base_type = "System.Object";
+        public List<string> usingNamespace = new List<string>();
         public string ext = "";
         public bool is_value_type;
         public bool is_interface;
@@ -711,7 +712,7 @@ namespace Metadata
             }
 
             {
-                string cmdText = string.Format("insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions,name,namespace) values(\"{1}\",\"{2}\",{3},{4},\"{5}\",?,?,?,?,?,?,?,?,?);",
+                string cmdText = string.Format("insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions,name,namespace,usingNamespace) values(\"{1}\",\"{2}\",{3},{4},\"{5}\",?,?,?,?,?,?,?,?,?,?);",
                     "",type.full_name, type.comments, type.modifier, type.is_abstract, type.base_type);
 
 
@@ -726,6 +727,7 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("7", WriteObject(type.generic_parameter_definitions));
                 cmd.Parameters.AddWithValue("8", type.name);
                 cmd.Parameters.AddWithValue("9", type._namespace);
+                cmd.Parameters.AddWithValue("10", WriteObject(type.usingNamespace));
                 cmd.ExecuteNonQuery();
             }
         }
@@ -806,6 +808,7 @@ namespace Metadata
             type.interfaces = ReadObject<List<string>>((string)reader["interfaces"]);
             type.is_generic_type_definition = (bool)reader["is_generic_type_definition"];
             type.generic_parameter_definitions = ReadObject<List<DB_Type.GenericParameterDefinition>>((string)reader["generic_parameter_definitions"]);
+            type.usingNamespace = ReadObject<List<string>>((string)reader["usingNamespace"]);
             return type;
         }
 

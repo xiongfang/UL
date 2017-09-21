@@ -19,7 +19,7 @@ namespace CSharpCompiler
         //编译中的类型
         public static Dictionary<string, Dictionary<string, Metadata.DB_Type>> compilerTypes = new Dictionary<string, Dictionary<string, Metadata.DB_Type>>();
         //当前类的命名空间
-        public static List<string> usingNamespace = new List<string>();
+        //public static List<string> usingNamespace = new List<string>();
         //当前处理的类型
         static Metadata.DB_Type currentType;
         //当前函数的本地变量和参数
@@ -117,18 +117,27 @@ namespace CSharpCompiler
                         }
                     }
                 }
-            }
 
-            //当前命名空间查找
-            foreach (var nsName in usingNamespace)
-            {
-                Dictionary<string, Metadata.DB_Type> ns = FindNamespace(nsName);
-                if (ns.ContainsKey(name))
+                //当前命名空间
                 {
-                    return ns[name];
+                    Dictionary<string, Metadata.DB_Type> ns = FindNamespace(currentType._namespace);
+                    if (ns.ContainsKey(name))
+                    {
+                        return ns[name];
+                    }
+                }
+
+                //当前命名空间查找
+                foreach (var nsName in currentType.usingNamespace)
+                {
+                    Dictionary<string, Metadata.DB_Type> ns = FindNamespace(nsName);
+                    if (ns.ContainsKey(name))
+                    {
+                        return ns[name];
+                    }
                 }
             }
-
+            
             return null;
         }
 
@@ -394,19 +403,17 @@ namespace CSharpCompiler
                 type.is_interface = false;
                 type.is_value_type = false;
                 type.name = c.Identifier.Text;
+
+                type.usingNamespace = new List<string>();
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
+                    type.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
+                    foreach (var ns in namespaceDeclarationSyntax.Usings)
+                    {
+                        type.usingNamespace.Add(ns.Name.ToString());
+                    }
                     type._namespace = namespaceDeclarationSyntax.Name.ToString();
-                    //type.full_name = namespaceDeclarationSyntax.Name.ToString() + "." + c.Identifier.Text;
-                    //foreach (var ns in namespaceDeclarationSyntax.Usings)
-                    //{
-                    //    LoadTypesIfNotLoaded(ns.Name.ToString());
-                    //}
-                }
-                else
-                {
-                    //type.full_name = c.Identifier.Text;
                 }
 
                 //父类
@@ -452,17 +459,14 @@ namespace CSharpCompiler
             }
             else if(step == ECompilerStet.ScanMember)
             {
-                Model.usingNamespace = new List<string>();
+                string typeName = c.Identifier.Text;
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
-                    Model.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
-                    foreach(var ns in namespaceDeclarationSyntax.Usings)
-                    {
-                        Model.usingNamespace.Add(ns.Name.ToString());
-                    }
+                    typeName = namespaceDeclarationSyntax.Name.ToString()+"."+ typeName;
                 }
-                Metadata.DB_Type type = Model.FindType(c.Identifier.Text);
+                
+                Metadata.DB_Type type = Model.FindType(typeName);
                 Model.EnterType(type);
 
                 //泛型参数
@@ -499,13 +503,24 @@ namespace CSharpCompiler
             }
             else if(step == ECompilerStet.Compile)
             {
-                Metadata.DB_Type type = Model.FindType(c.Identifier.Text);
+                string typeName = c.Identifier.Text;
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    typeName = namespaceDeclarationSyntax.Name.ToString() + "." + typeName;
+                }
+
+                Metadata.DB_Type type = Model.FindType(typeName);
+                Model.EnterType(type);
+
                 //导出所有方法
                 var funcNodes = c.ChildNodes().OfType<MethodDeclarationSyntax>();
                 foreach (var f in funcNodes)
                 {
                     ExportMethod(f, type);
                 }
+
+                Model.LeaveType();
             }
         }
 
