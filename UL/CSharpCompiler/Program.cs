@@ -25,6 +25,17 @@ namespace CSharpCompiler
         //当前函数的本地变量和参数
         static Stack<Dictionary<string, Metadata.DB_Type>> stackLocalVariables = new Stack<Dictionary<string, Metadata.DB_Type>>();
 
+        public static void AddRefType(Metadata.DB_Type type)
+        {
+            Dictionary<string, Metadata.DB_Type> rt = null;
+            if (!refTypes.TryGetValue(type._namespace, out rt))
+            {
+                rt = new Dictionary<string, Metadata.DB_Type>();
+                refTypes[type._namespace] = rt;
+            }
+            rt.Add(type.name, type);
+        }
+
         public static void AddCompilerType(Metadata.DB_Type type)
         {
             Dictionary<string, Metadata.DB_Type> rt = null;
@@ -226,6 +237,14 @@ namespace CSharpCompiler
             }
         }
 
+        class ULProject
+        {
+            public string name;
+            public string[] files;
+            public string[] ref_namespace;
+            public string[] ref_type;
+        }
+
         /*
          *  第一步：从数据库加载引用的类
          *  第二步：扫描所有类型
@@ -235,20 +254,39 @@ namespace CSharpCompiler
          * */
         static void Main(string[] args)
         {
-            List<SyntaxTree> treeList = new List<SyntaxTree>();
-            foreach (var file in args)
-            {
-                string code = System.IO.File.ReadAllText(file);
-                SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+            string project = System.IO.File.ReadAllText(args[0]);
+            ULProject pj = Metadata.DB.ReadObject<ULProject>(project);
 
-
-                treeList.Add(tree);
-            }
+            string pj_dir = System.IO.Path.GetFullPath(args[0]);
+            pj_dir = pj_dir.Substring(0, pj_dir.Length- System.IO.Path.GetFileName(pj_dir).Length-1);
 
             using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
             {
                 con.Open();
                 _con = con;
+
+
+                //加载引用
+                foreach (var ref_ns in pj.ref_namespace)
+                {
+                    Model.refTypes[ref_ns] = Metadata.DB.LoadNamespace(ref_ns, _con);
+                }
+
+                foreach (var ref_ns in pj.ref_type)
+                {
+                    Model.AddRefType(Metadata.DB.LoadType(ref_ns, _con));
+                }
+
+                //分析文件
+                List<SyntaxTree> treeList = new List<SyntaxTree>();
+                foreach (var file in pj.files)
+                {
+                    string file_full_path = System.IO.Path.Combine(pj_dir, file);
+                    string code = System.IO.File.ReadAllText(file_full_path);
+                    SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+                    treeList.Add(tree);
+                }
+
 
                 OdbcTransaction trans = con.BeginTransaction();
                 _trans = trans;
@@ -389,8 +427,8 @@ namespace CSharpCompiler
                 }
                 else
                 {
-                    if(type.full_name!="System:Object")
-                        type.base_type = "System:Object";
+                    if(type.full_name!="System.Object")
+                        type.base_type = "System.Object";
                 }
                 
                 //泛型

@@ -1,0 +1,14 @@
+{
+	"name":"pj",
+	"files":
+	[
+		"Sources/Test.cs"
+	],
+	"ref_namespace":
+	[
+		"System"
+	],
+	"ref_type":
+	[
+	]
+}
