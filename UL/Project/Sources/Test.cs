@@ -1,9 +1,4 @@
 
-
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace System
 {
     public class Int32
@@ -25,9 +20,20 @@ namespace System
     {
 
     }
+
+    public class Console
+    {
+        public void WriteLine(string v)
+        {
+
+        }
+    }
 }
 namespace HelloWorld
 {
+
+    using System;
+
     public class TestGeneric<T1,T2> where T1:TestInt
     {
         public T1 a;

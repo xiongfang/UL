@@ -16,30 +16,43 @@ namespace CppConverter
         //当前函数的本地变量和参数
         static Stack<Dictionary<string, Metadata.DB_Type>> stackLocalVariables = new Stack<Dictionary<string, Metadata.DB_Type>>();
 
+        //查找指定的命名空间的所有类型
+        public static Dictionary<string, Metadata.DB_Type> FindNamespace(string ns)
+        {
+            Dictionary<string, Metadata.DB_Type> rt = new Dictionary<string, Metadata.DB_Type>();
+
+
+            foreach (var v in types.Select(a => { if (a.Value._namespace == ns) return a.Value; return null; }))
+            {
+                if (v != null)
+                    rt.Add(v.unique_name, v);
+            }
+            return rt;
+        }
+
         public static Metadata.DB_Type GetType(string full_name)
         {
             if (types.ContainsKey(full_name))
-            {
                 return types[full_name];
-            }
 
-            string genegicName = Metadata.DB_Type.GetGenericDefinitionName(full_name);
-            if (types.ContainsKey(genegicName))
-            {
-                return Metadata.DB_Type.MakeGenericType(types[genegicName], Metadata.DB_Type.ParseGenericParameters(full_name));
-            }
+            return null;
+        }
 
-            string name, declare_type;
-            if (Metadata.DB_Type.GetDeclareTypeName(full_name, out declare_type, out name))
+        public static Metadata.DB_Type GetType(Metadata.DB_TypeRef typeRef)
+        {
+            if (types.ContainsKey(typeRef.identifer))
             {
-                Metadata.DB_Type declareType = types[declare_type];
-                if (declareType.is_generic_type_definition)
+                if (typeRef.parameters.Count > 0)
+                    return Metadata.DB_Type.MakeGenericType(types[typeRef.identifer], typeRef.parameters);
+                if(!string.IsNullOrEmpty(typeRef.template_parameter_name))
                 {
-                    Metadata.DB_Type.GenericParameterDefinition typeDef = declareType.generic_parameter_definitions.Find((a) => { return a.type_name == name; });
+                    Metadata.DB_Type declareType = types[typeRef.identifer];
+                    Metadata.DB_Type.GenericParameterDefinition typeDef = declareType.generic_parameter_definitions.Find((a) => { return a.type_name == typeRef.template_parameter_name; });
                     return Metadata.DB_Type.MakeGenericParameterType(declareType, typeDef);
                 }
+                return types[typeRef.identifer];
             }
-
+            
             return null;
         }
 
@@ -71,10 +84,9 @@ namespace CppConverter
                 //当前命名空间查找
                 foreach (var nsName in currentType.usingNamespace)
                 {
-                    string full_name = nsName + "." + name;
-                    Metadata.DB_Type type = GetType(full_name);
-                    if (type != null)
-                        return type;
+                    Dictionary<string, Metadata.DB_Type> nsTypes = FindNamespace(nsName);
+                    if (nsTypes != null && nsTypes.ContainsKey(name))
+                        return nsTypes[name];
                 }
             }
 
@@ -109,70 +121,70 @@ namespace CppConverter
     class Program
     {
         
-        static string GetExpType(Metadata.Expression.Exp exp)
+        static Metadata.DB_Type GetExpType(Metadata.Expression.Exp exp)
         {
-            if(exp is Metadata.Expression.ConstExp)
+            if (exp is Metadata.Expression.ConstExp)
             {
                 Metadata.Expression.ConstExp e = exp as Metadata.Expression.ConstExp;
                 long long_v;
-                if(long.TryParse(e.value,out long_v))
+                if (long.TryParse(e.value, out long_v))
                 {
-                    return "System.Int64";
+                    return Model.GetType("System.Int64");
                 }
 
                 int int_v;
-                if(int.TryParse(e.value,out int_v))
+                if (int.TryParse(e.value, out int_v))
                 {
-                    return "System.Int32";
+                    return Model.GetType("System.Int32");
                 }
 
 
-                return "System.String";
+                return Model.GetType("System.String");
             }
 
-            if(exp is Metadata.Expression.FieldExp)
+            if (exp is Metadata.Expression.FieldExp)
             {
                 Metadata.Expression.FieldExp e = exp as Metadata.Expression.FieldExp;
                 if (e.Caller != null)
                 {
-                    Metadata.DB_Type caller_type =   Model.GetType(GetExpType(e.Caller));
-                    return caller_type.members[e.Name].typeName;
+                    Metadata.DB_Type caller_type = GetExpType(e.Caller);
+                    return Model.GetType(caller_type.members[e.Name].typeName);
                 }
-                return Model.FindVariable(e.Name).full_name;
+                return Model.FindVariable(e.Name);
             }
 
-            if(exp is Metadata.Expression.MethodExp)
+            if (exp is Metadata.Expression.MethodExp)
             {
                 return GetExpType(((Metadata.Expression.MethodExp)(exp)).Caller);
             }
 
-            if(exp is Metadata.Expression.ObjectCreateExp)
+            if (exp is Metadata.Expression.ObjectCreateExp)
             {
                 Metadata.Expression.ObjectCreateExp e = exp as Metadata.Expression.ObjectCreateExp;
-                return e.Type;
+                return Model.GetType(e.Type);
             }
 
-            return "";
+            return null;
         }
 
-        static public HashSet<string> GetTypeDependences(Metadata.DB_Type type)
+        static public HashSet<Metadata.DB_TypeRef> GetTypeDependences(Metadata.DB_Type type)
         {
-            HashSet<string> result = new HashSet<string>();
-            if (!string.IsNullOrEmpty(type.base_type))
+            HashSet<Metadata.DB_TypeRef> result = new HashSet<Metadata.DB_TypeRef>();
+            if (!type.base_type.IsVoid)
                 result.Add(type.base_type);
             foreach (var m in type.members.Values)
             {
                 if (m.member_type == (int)Metadata.MemberTypes.Field)
                 {
-                    result.Add(m.field_type_fullname);
+                    result.Add(m.field_type);
                 }
                 else if (m.member_type == (int)Metadata.MemberTypes.Method)
                 {
-                    if (!string.IsNullOrEmpty(m.method_ret_type))
+                    if (!m.method_ret_type.IsVoid)
                         result.Add(m.method_ret_type);
                     foreach (var a in m.method_args)
                     {
-                        result.Add(a.type_fullname);
+                        result.Add(a.type);
                     }
                 }
             }
@@ -180,14 +192,17 @@ namespace CppConverter
             return result;
         }
 
-        static public HashSet<string> GetMethodBodyDependences(Metadata.DB_BlockSyntax methodBody)
-        {
-            HashSet<string> result = new HashSet<string>();
+        //static public HashSet<Metadata.DB_TypeRef> GetMethodBodyDependences(Metadata.DB_BlockSyntax methodBody)
+        //{
+        //    HashSet<Metadata.DB_TypeRef> result = new HashSet<Metadata.DB_TypeRef>();
 
+        //    foreach(var s in methodBody.List)
+        //    {
+                
+        //    }
 
-
-            return result;
-        }
+        //    return result;
+        //}
 
         static void LoadTypeDependences(string full_name, Dictionary<string, Metadata.DB_Type> loaded)
         {
@@ -195,13 +210,13 @@ namespace CppConverter
             if (type == null)
                 return;
             loaded.Add(type.full_name, type);
-            HashSet<string> dep = GetTypeDependences(type);
+            HashSet<Metadata.DB_TypeRef> dep = GetTypeDependences(type);
             foreach(var t in dep)
             {
-                string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
-                if (!loaded.ContainsKey(database_type))
+                //string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
+                if (!loaded.ContainsKey(t.identifer))
                 {
-                    LoadTypeDependences(database_type, loaded);
+                    LoadTypeDependences(t.identifer, loaded);
                 }
             }
         }
@@ -284,16 +299,19 @@ namespace CppConverter
 
         static void ConvertType(Metadata.DB_Type type)
         {
+            Model.EnterType(type);
             //头文件
             {
+                
+
                 sb.Clear();
                 sb.AppendLine("#pragma once");
                 //包含头文件
-                HashSet<string> depTypes = GetTypeDependences(type);
+                HashSet<Metadata.DB_TypeRef> depTypes = GetTypeDependences(type);
                 foreach(var t in depTypes)
                 {
                     Metadata.DB_Type depType = Model.GetType(t);
-                    if (!depType.is_generic_paramter && t !=type.full_name)
+                    if (!depType.is_generic_paramter && t.identifer !=type.full_name)
                         sb.AppendLine("#include \"" + depType.name + ".h\"");
                 }
                 sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
@@ -347,6 +365,8 @@ namespace CppConverter
                 //sb.AppendLine("}");
                 System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString());
             }
+
+            Model.LeaveType();
         }
 
         static string GetModifierString(int modifier)
@@ -373,7 +393,7 @@ namespace CppConverter
                     Append("static ");
                 else
                     Append("");
-                AppendLine(string.Format("{0} {1};",GetCppTypeName(Model.GetType(member.field_type_fullname)), member.name));
+                AppendLine(string.Format("{0} {1};",GetCppTypeName(Model.GetType(member.field_type)), member.name));
             }
             else if(member.member_type == (int)Metadata.MemberTypes.Method)
             {
@@ -382,13 +402,13 @@ namespace CppConverter
                     Append("static ");
                 else
                     Append("");
-                sb.Append(string.Format("{1} {2}","",  string.IsNullOrEmpty(member.method_ret_type)?"void": member.method_ret_type, member.name));
+                sb.Append(string.Format("{1} {2}","", member.method_ret_type.IsVoid? "void": GetCppTypeName(Model.GetType(member.method_ret_type)), member.name));
                 sb.Append("(");
                 if(member.method_args!=null)
                 {
                     for (int i = 0; i < member.method_args.Length; i++)
                     {
-                        sb.Append(string.Format("{0} {1} {2}",GetCppTypeName(Model.GetType( member.method_args[i].type_fullname)),member.method_args[i].is_ref?"&":"", member.method_args[i].name));
+                        sb.Append(string.Format("{0} {1} {2}",GetCppTypeName(Model.GetType( member.method_args[i].type)),member.method_args[i].is_ref?"&":"", member.method_args[i].name));
                         if (i < member.method_args.Length-1)
                             sb.Append(",");
                     }
@@ -405,18 +425,18 @@ namespace CppConverter
             {
                 if(member.is_static)
                 {
-                    AppendLine(GetCppTypeName(Model.GetType(member.field_type_fullname))+ " "+ GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name+";");
+                    AppendLine(GetCppTypeName(Model.GetType(member.field_type))+ " "+ GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name+";");
                 }
             }
             else if (member.member_type == (int)Metadata.MemberTypes.Method)
             {
-                sb.Append(string.Format("{0} {1}::{2}", string.IsNullOrEmpty(member.method_ret_type) ? "void" : member.method_ret_type, GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
+                sb.Append(string.Format("{0} {1}::{2}", member.method_ret_type.IsVoid ? "void" : GetCppTypeName(Model.GetType(member.method_ret_type)), GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
                 sb.Append("(");
                 if (member.method_args != null)
                 {
                     for (int i = 0; i < member.method_args.Length; i++)
                     {
-                        sb.Append(string.Format("{0} {1} {2}", GetCppTypeName(Model.GetType(member.method_args[i].type_fullname)), member.method_args[i].is_ref ? "&" : "", member.method_args[i].name));
+                        sb.Append(string.Format("{0} {1} {2}", GetCppTypeName(Model.GetType(member.method_args[i].type)), member.method_args[i].is_ref ? "&" : "", member.method_args[i].name));
                         if (i < member.method_args.Length - 1)
                             sb.Append(",");
                     }
@@ -479,11 +499,13 @@ namespace CppConverter
         {
             AppendLine("{");
             depth++;
+            Model.EnterBlock();
             foreach(var s in bs.List)
             {
                 ConvertStatement(s);
             }
             depth--;
+            Model.LeaveBlock();
             AppendLine("}");
         }
 
@@ -505,7 +527,7 @@ namespace CppConverter
 
         static void ConvertStatement(Metadata.DB_LocalDeclarationStatementSyntax bs)
         {
-            Append(bs.Type + " ");
+            Append(GetCppTypeName(Model.GetType(bs.Type)) + " ");
             for(int i=0;i<bs.Variables.Count;i++)
             {
                 sb.Append(ExpressionToString(bs.Variables[i]));
@@ -513,6 +535,7 @@ namespace CppConverter
                 {
                     sb.Append(",");
                 }
+                Model.AddLocal(bs.Variables[i].Identifier, Model.GetType(bs.Type));
             }
             sb.AppendLine(";");
         }
@@ -675,7 +698,7 @@ namespace CppConverter
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.Append(ExpressionToString(es.Caller));
 
-                Metadata.DB_Type caller_type = Model.GetType(GetExpType(es.Caller));
+                Metadata.DB_Type caller_type = GetExpType(es.Caller);
                 if(caller_type!=null)
                 {
                     if(caller_type.is_class)
@@ -689,6 +712,7 @@ namespace CppConverter
                 }
                 else
                 {
+                    Console.Error.WriteLine("无法获取表达式类型 " + Metadata.DB.WriteObject(es));
                     stringBuilder.Append("::");
                 }
                 stringBuilder.Append(es.Name);
@@ -699,7 +723,7 @@ namespace CppConverter
         {
             StringBuilder ExpSB = new StringBuilder();
             ExpSB.Append("new ");
-            ExpSB.Append(es.Type);
+            ExpSB.Append(GetCppTypeName(Model.GetType(es.Type)));
             ExpSB.Append("(");
             if (es.Args != null)
             {
@@ -738,7 +762,7 @@ namespace CppConverter
         static string ExpressionToString(Metadata.VariableDeclarationSyntax es)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(es.Type);
+            stringBuilder.Append(GetCppTypeName( Model.GetType(es.Type)));
             stringBuilder.Append(" ");
             for (int i=0;i<es.Variables.Count;i++)
             {

@@ -9,36 +9,158 @@ using System.Threading.Tasks;
 
 namespace Metadata
 {
+    public class DB_TypeRef
+    {
+        //数据库全名
+        public string identifer;
+        //类型参数
+        public List<DB_TypeRef> parameters;
+        //模板类型名
+        public string template_parameter_name;
+
+        public override string ToString()
+        {
+            return DB.WriteObject(this);
+        }
+
+        public static DB_TypeRef Void
+        {
+            get
+            {
+                return new DB_TypeRef() { identifer = "void" };
+            }
+        }
+
+        public bool IsVoid
+        {
+            get
+            {
+                return identifer == "void";
+            }
+        }
+
+        public DB_TypeRef()
+        {
+            identifer = "void";
+            parameters = new List<DB_TypeRef>();
+            template_parameter_name = "";
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is DB_TypeRef)
+            {
+                DB_TypeRef v = obj as DB_TypeRef;
+                if (v.identifer != identifer)
+                {
+                    return false;
+                }
+                if (v.parameters.Count != parameters.Count)
+                    return false;
+                for (int i = 0; i < v.parameters.Count; i++)
+                {
+                    if (parameters[i] != v.parameters[i])
+                        return false;
+                }
+                if (template_parameter_name != v.template_parameter_name)
+                    return false;
+
+                return true;
+            }
+
+            return base.Equals(obj);
+        }
+
+        public static bool operator ==(DB_TypeRef a, DB_TypeRef b)
+        {
+            if (!System.Object.ReferenceEquals(a, null))
+                return a.Equals(b);
+            if (!System.Object.ReferenceEquals(b, null))
+                return b.Equals(a);
+            return System.Object.ReferenceEquals(a, b);
+        }
+
+        public static bool operator!=(DB_TypeRef a, DB_TypeRef b)
+        {
+            return !(a == b);
+        }
+
+        public override int GetHashCode()
+        {
+            int code = identifer.GetHashCode();
+            foreach(var p in parameters)
+            {
+                code ^= p.GetHashCode();
+            }
+            code ^= template_parameter_name.GetHashCode();
+
+            return code;
+        }
+    }
+
     public class DB_Type
     {
+        //依据全名查找类的委托
+        public delegate DB_Type delFindType(string full_name);
+        public static delFindType Find;
+
+
+        //存储的数据库的全局唯一名
         public string full_name
         {
             get
             {
-                if(is_generic_paramter)
-                {
-                    return declare_type + ":" + name;
-                }
-                return _namespace + "." + name+ genericDefinitionString+ genericString;
+                if (is_generic_type || is_generic_paramter)
+                    throw new Exception("不能访问数据库类型");
+                StringBuilder sb = new StringBuilder();
+                sb.Append(_namespace + "." + unique_name);
+                return sb.ToString();
             }
-            //set
-            //{
-            //    name = GetName(value);
-            //    _namespace = GetNamespace(value);
-            //}
+        }
+        //命名空间下的唯一名
+        public string unique_name
+        {
+            get
+            {
+                return name + genericDefinitionString;
+            }
+        }
+        //返回此类的引用
+        public DB_TypeRef GetRefType()
+        {
+            Metadata.DB_TypeRef refData = new Metadata.DB_TypeRef();
+            if (is_generic_paramter || is_generic_type)
+                refData.identifer = declare_type;
+            else
+                refData.identifer = full_name;
+
+            
+            if (is_generic_paramter)
+            {
+                refData.template_parameter_name = name;
+            }
+            else if(is_generic_type)
+            {
+                foreach (var d in generic_parameters)
+                {
+                    refData.parameters.Add(d);
+                }
+            }
+
+            return refData;
         }
         public string _namespace;
         public string name;
         public string comments = "";
         public int modifier;
         public bool is_abstract;
-        public string base_type = "System.Object";
+        public DB_TypeRef base_type = DB_TypeRef.Void;
         public List<string> usingNamespace = new List<string>();
         public string ext = "";
         public bool is_value_type;
         public bool is_interface;
         public bool is_class;
-        public List<string> interfaces = new List<string>();
+        public List<DB_TypeRef> interfaces = new List<DB_TypeRef>();
         public bool is_generic_type_definition;
         public class GenericParameterDefinition
         {
@@ -48,139 +170,141 @@ namespace Metadata
         public List<GenericParameterDefinition> generic_parameter_definitions = new List<GenericParameterDefinition>();
 
         //动态类型
+        public string declare_type; //动态类型引用的类型
+
         public bool is_generic_type;
-        public List<string> generic_parameters = new List<string>();
+        public List<DB_TypeRef> generic_parameters = new List<DB_TypeRef>();
 
         public bool is_generic_paramter;
         public int generic_parameter_position;
-        public string declare_type;
+        
 
         public Dictionary<string, DB_Member> members = new Dictionary<string, DB_Member>();
 
-        public static string GetNamespace(string full_name)
-        {
-            int generic_def_mark = full_name.IndexOf("[");
-            int generic_mark = full_name.IndexOf("<");
+        //public static string GetNamespace(string full_name)
+        //{
+        //    int generic_def_mark = full_name.IndexOf("[");
+        //    int generic_mark = full_name.IndexOf("<");
             
-            if (generic_def_mark >= 0)
-                full_name = full_name.Substring(0, generic_def_mark);
-            else if(generic_mark>=0)
-                full_name = full_name.Substring(0, generic_mark);
+        //    if (generic_def_mark >= 0)
+        //        full_name = full_name.Substring(0, generic_def_mark);
+        //    else if(generic_mark>=0)
+        //        full_name = full_name.Substring(0, generic_mark);
 
-            int name_space_mark = full_name.LastIndexOf(".");
-            if (name_space_mark>=0)
-                return full_name.Substring(0, name_space_mark);
-            return "";
-        }
+        //    int name_space_mark = full_name.LastIndexOf(".");
+        //    if (name_space_mark>=0)
+        //        return full_name.Substring(0, name_space_mark);
+        //    return "";
+        //}
 
-        public static string GetName(string full_name)
-        {
-            int generic_def_mark = full_name.IndexOf("[");
-            int generic_mark = full_name.IndexOf("<");
+        //public static string GetName(string full_name)
+        //{
+        //    int generic_def_mark = full_name.IndexOf("[");
+        //    int generic_mark = full_name.IndexOf("<");
 
-            if (generic_def_mark >= 0)
-                full_name = full_name.Substring(0, generic_def_mark);
-            else if (generic_mark >= 0)
-                full_name = full_name.Substring(0, generic_mark);
+        //    if (generic_def_mark >= 0)
+        //        full_name = full_name.Substring(0, generic_def_mark);
+        //    else if (generic_mark >= 0)
+        //        full_name = full_name.Substring(0, generic_mark);
 
-            int name_space_mark = full_name.LastIndexOf(".");
-            if (name_space_mark >= 0)
-                return full_name.Substring(name_space_mark + 1);
-            return full_name;
-        }
-        public static int ParseGenericParameterCount(string full_name)
-        {
-            int generic_def_mark = full_name.IndexOf("[");
-            int generic_mark = full_name.IndexOf("<");
+        //    int name_space_mark = full_name.LastIndexOf(".");
+        //    if (name_space_mark >= 0)
+        //        return full_name.Substring(name_space_mark + 1);
+        //    return full_name;
+        //}
+        //public static int ParseGenericParameterCount(string full_name)
+        //{
+        //    int generic_def_mark = full_name.IndexOf("[");
+        //    int generic_mark = full_name.IndexOf("<");
 
-            if(generic_def_mark>=0)
-            {
-                return int.Parse(full_name.Substring(generic_def_mark + 1, full_name.IndexOf(']', generic_def_mark)));
-            }
+        //    if(generic_def_mark>=0)
+        //    {
+        //        return int.Parse(full_name.Substring(generic_def_mark + 1, full_name.IndexOf(']', generic_def_mark)));
+        //    }
 
-            if(generic_mark>0)
-            {
-                return ParseGenericParameters(full_name).Count;
-            }
+        //    if(generic_mark>0)
+        //    {
+        //        return ParseGenericParameters(full_name).Count;
+        //    }
 
-            return 0;
-        }
-        public static string GetGenericDefinitionName(string generic_type_name)
-        {
-            int generic_def_mark = generic_type_name.IndexOf("[");
-            int generic_mark = generic_type_name.IndexOf("<");
-            if (generic_def_mark >= 0)
-                return generic_type_name;
-            if (generic_mark < 0)
-                return generic_type_name;
+        //    return 0;
+        //}
+        //public static string GetGenericDefinitionName(string generic_type_name)
+        //{
+        //    int generic_def_mark = generic_type_name.IndexOf("[");
+        //    int generic_mark = generic_type_name.IndexOf("<");
+        //    if (generic_def_mark >= 0)
+        //        return generic_type_name;
+        //    if (generic_mark < 0)
+        //        return generic_type_name;
 
-            List<string> paramters = ParseGenericParameters(generic_type_name);
-            if(paramters.Count>0)
-            {
-                return generic_type_name.Substring(0, generic_mark) + "[" + paramters.Count + "]";
-            }
-            return generic_type_name;
-        }
+        //    List<string> paramters = ParseGenericParameters(generic_type_name);
+        //    if(paramters.Count>0)
+        //    {
+        //        return generic_type_name.Substring(0, generic_mark) + "[" + paramters.Count + "]";
+        //    }
+        //    return generic_type_name;
+        //}
 
-        public static bool GetDeclareTypeName(string full_name,out string declare_type,out string name)
-        {
-            int declare_type_ref_mark = full_name.IndexOf(":");
-            if (declare_type_ref_mark < 0)
-            {
-                declare_type = "";
-                name = "";
-                return false;
-            }
+        //public static bool GetDeclareTypeName(string full_name,out string declare_type,out string name)
+        //{
+        //    int declare_type_ref_mark = full_name.IndexOf(":");
+        //    if (declare_type_ref_mark < 0)
+        //    {
+        //        declare_type = "";
+        //        name = "";
+        //        return false;
+        //    }
                 
-            declare_type = full_name.Substring(0, declare_type_ref_mark);
-            name = full_name.Substring(declare_type_ref_mark + 1);
-            return true;
-        }
+        //    declare_type = full_name.Substring(0, declare_type_ref_mark);
+        //    name = full_name.Substring(declare_type_ref_mark + 1);
+        //    return true;
+        //}
 
-        public static List<string> ParseGenericParameters(string full_name)
-        {
-            List<string> results = new List<string>();
-            int generic_mark = full_name.IndexOf("<");
-            if (generic_mark < 0)
-                return results;
+        //public static List<string> ParseGenericParameters(string full_name)
+        //{
+        //    List<string> results = new List<string>();
+        //    int generic_mark = full_name.IndexOf("<");
+        //    if (generic_mark < 0)
+        //        return results;
 
-            string generic_string = full_name.Substring(generic_mark+1,full_name.Length- generic_mark-2);
+        //    string generic_string = full_name.Substring(generic_mark+1,full_name.Length- generic_mark-2);
 
-            int depth = 0;
-            StringBuilder sb = new StringBuilder();
-            for(int i=0;i<generic_string.Length;i++)
-            {
-                if(generic_string[i] == ',')
-                {
-                    if(depth==0)
-                    {
-                        results.Add(sb.ToString());
-                        sb.Clear();
-                    }
-                    else
-                    {
-                        sb.Append(generic_string[i]);
-                    }
-                }
-                else if(generic_string[i] == '<')
-                {
-                    depth++;
-                    sb.Append(generic_string[i]);
-                }
-                else if(generic_string[i] == '>')
-                {
-                    depth--;
-                    sb.Append(generic_string[i]);
-                }
-                else
-                {
-                    sb.Append(generic_string[i]);
-                }
-            }
-            if(sb.Length>0)
-                results.Add(sb.ToString());
-            return results;
-        }
+        //    int depth = 0;
+        //    StringBuilder sb = new StringBuilder();
+        //    for(int i=0;i<generic_string.Length;i++)
+        //    {
+        //        if(generic_string[i] == ',')
+        //        {
+        //            if(depth==0)
+        //            {
+        //                results.Add(sb.ToString());
+        //                sb.Clear();
+        //            }
+        //            else
+        //            {
+        //                sb.Append(generic_string[i]);
+        //            }
+        //        }
+        //        else if(generic_string[i] == '<')
+        //        {
+        //            depth++;
+        //            sb.Append(generic_string[i]);
+        //        }
+        //        else if(generic_string[i] == '>')
+        //        {
+        //            depth--;
+        //            sb.Append(generic_string[i]);
+        //        }
+        //        else
+        //        {
+        //            sb.Append(generic_string[i]);
+        //        }
+        //    }
+        //    if(sb.Length>0)
+        //        results.Add(sb.ToString());
+        //    return results;
+        //}
 
         string genericDefinitionString
         {
@@ -216,11 +340,12 @@ namespace Metadata
             }
         }
 
-        public static DB_Type MakeGenericType(DB_Type genericTypeDef, List<string> genericParameters)
+        public static DB_Type MakeGenericType(DB_Type genericTypeDef, List<DB_TypeRef> genericParameters)
         {
             DB_Type dB_Type = DB.ReadObject<DB_Type>(DB.WriteObject(genericTypeDef));
             dB_Type.is_generic_type_definition = false;
             dB_Type.is_generic_type = true;
+            dB_Type.declare_type = genericTypeDef.full_name;
             //dB_Type.generic_parameter_definitions.Clear();
             dB_Type.generic_parameters.AddRange(genericParameters);
             return dB_Type;
@@ -251,13 +376,13 @@ namespace Metadata
         public int member_type;
         public string ext = "";
         //*****************变量***********************/
-        public string field_type_fullname= "";
+        public DB_TypeRef field_type  = DB_TypeRef.Void;
         //********************************************/
 
         //*****************方法***********************/
         public class Argument
         {
-            public string type_fullname;
+            public Metadata.DB_TypeRef type;
             public string name;
             public bool is_ref;
             public bool is_out;
@@ -265,7 +390,7 @@ namespace Metadata
         }
         public Argument[] method_args;
 
-        public string method_ret_type = "";
+        public DB_TypeRef method_ret_type = DB_TypeRef.Void;
 
         public DB_BlockSyntax method_body;
         //********************************************/
@@ -285,7 +410,7 @@ namespace Metadata
                     sb.Append("(");
                     for (int i = 0; i < method_args.Length; i++)
                     {
-                        sb.Append(method_args[i].type_fullname);
+                        sb.Append(method_args[i].type.identifer);
                         if (i < method_args.Length - 1)
                             sb.Append(",");
                     }
@@ -299,16 +424,16 @@ namespace Metadata
             }
         }
     
-        public string typeName
+        public DB_TypeRef typeName
         {
             get
             {
                 if (member_type == (int)MemberTypes.Field)
-                    return field_type_fullname;
+                    return field_type;
                 else if (member_type == (int)MemberTypes.Method)
                     return method_ret_type;
 
-                return "void";
+                return DB_TypeRef.Void;
             }
         }
     }
@@ -411,18 +536,28 @@ namespace Metadata
                 return GetType().FullName;
             }
         }
+
+        public virtual void GetTypeRefList(HashSet<DB_TypeRef> hash) { }
     }
 
     //语句
     [JsonConverter(typeof(JsonConverterType<DB_StatementSyntax>))]
     public class DB_StatementSyntax:DB_Syntax
     {
-       
+        
     }
     [JsonConverter(typeof(JsonConverterType<DB_BlockSyntax>))]
     public class DB_BlockSyntax: DB_StatementSyntax
     {
         public List<DB_StatementSyntax> List = new List<DB_StatementSyntax>();
+
+        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
+        {
+            foreach(var l in List)
+            {
+                l.GetTypeRefList(hash);
+            }
+        }
     }
     [JsonConverter(typeof(JsonConverterType<DB_IfStatementSyntax>))]
     public class DB_IfStatementSyntax:DB_StatementSyntax
@@ -430,30 +565,65 @@ namespace Metadata
         public Expression.Exp Condition;
         public DB_StatementSyntax Statement;
         public DB_StatementSyntax Else;
+
+        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
+        {
+            Condition.GetTypeRefList(hash);
+            if (Statement != null)
+                Statement.GetTypeRefList(hash);
+            if (Else != null)
+                Else.GetTypeRefList(hash);
+        }
     }
     [JsonConverter(typeof(JsonConverterType<DB_ExpressionStatementSyntax>))]
     public class DB_ExpressionStatementSyntax : DB_StatementSyntax
     {
         public Expression.Exp Exp;
+        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
+        {
+            Exp.GetTypeRefList(hash);
+        }
     }
     [JsonConverter(typeof(JsonConverterType<DB_LocalDeclarationStatementSyntax>))]
     public class DB_LocalDeclarationStatementSyntax : DB_StatementSyntax
     {
-        public string Type;
+        public DB_TypeRef Type;
         public List<VariableDeclaratorSyntax> Variables = new List<VariableDeclaratorSyntax>();
+        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
+        {
+            hash.Add(Type);
+            foreach(var v in Variables)
+            {
+                v.GetTypeRefList(hash);
+            }
+        }
 
     }
     [JsonConverter(typeof(JsonConverterType<VariableDeclarationSyntax>))]
     public sealed class VariableDeclarationSyntax : DB_Syntax
     {
-        public string Type;
+        public DB_TypeRef Type;
         public List<VariableDeclaratorSyntax> Variables = new List<VariableDeclaratorSyntax>();
+
+        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
+        {
+            hash.Add(Type);
+            foreach(var v in Variables)
+            {
+                v.GetTypeRefList(hash);
+            }
+        }
     }
     [JsonConverter(typeof(JsonConverterType<VariableDeclaratorSyntax>))]
     public class VariableDeclaratorSyntax : DB_Syntax
     {
         public string Identifier;
         public Expression.Exp Initializer;
+        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
+        {
+            if (Initializer != null)
+                Initializer.GetTypeRefList(hash);
+        }
     }
 
     [JsonConverter(typeof(JsonConverterType<DB_ForStatementSyntax>))]
@@ -463,6 +633,10 @@ namespace Metadata
         public Expression.Exp Condition;
         public List<Expression.Exp> Incrementors = new List<Expression.Exp>();
         public DB_StatementSyntax Statement;
+        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
+        {
+
+        }
     }
 
     [JsonConverter(typeof(JsonConverterType<DB_DoStatementSyntax>))]
@@ -507,7 +681,6 @@ namespace Metadata
         [JsonConverter(typeof(JsonConverterType<Exp>))]
         public class Exp : DB_Syntax
         {
-
         }
         [JsonConverter(typeof(JsonConverterType<MethodExp>))]
         public class MethodExp : Exp
@@ -548,7 +721,7 @@ namespace Metadata
         public class ObjectCreateExp : Exp
         {
             //类型名称
-            public string Type;
+            public DB_TypeRef Type;
             //调用的参数
             public List<Exp> Args = new List<Exp>();
         }
@@ -666,16 +839,16 @@ namespace Metadata
     public class DB
     {
 
-        public static T ReadObject<T>(string json) where T:class
+        public static T ReadObject<T>(string json)
         {
             if (string.IsNullOrEmpty(json))
-                return null;
+                return default(T);
             JsonSerializerSettings jsetting = new JsonSerializerSettings();
             jsetting.NullValueHandling = NullValueHandling.Ignore;
             //jsetting.Converters.Add(new JsonConverterType<T>());
             return JsonConvert.DeserializeObject<T>(json, jsetting);
         }
-        public static string WriteObject<T>(T v) where T : class
+        public static string WriteObject<T>(T v)
         {
             if (v == null)
                 return "";
@@ -712,22 +885,25 @@ namespace Metadata
             }
 
             {
-                string cmdText = string.Format("insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions,name,namespace,usingNamespace) values(\"{1}\",\"{2}\",{3},{4},\"{5}\",?,?,?,?,?,?,?,?,?,?);",
-                    "",type.full_name, type.comments, type.modifier, type.is_abstract, type.base_type);
+                string cmdText = "insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions,name,namespace,usingNamespace) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
 
 
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
-                //cmd.Parameters.AddWithValue("1", type.imports == null ? "" : WriteObject(type.imports));
-                cmd.Parameters.AddWithValue("1", type.ext);
-                cmd.Parameters.AddWithValue("2", type.is_value_type);
-                cmd.Parameters.AddWithValue("3", type.is_interface);
-                cmd.Parameters.AddWithValue("4", type.is_class);
-                cmd.Parameters.AddWithValue("5", WriteObject( type.interfaces));
-                cmd.Parameters.AddWithValue("6", type.is_generic_type_definition);
-                cmd.Parameters.AddWithValue("7", WriteObject(type.generic_parameter_definitions));
-                cmd.Parameters.AddWithValue("8", type.name);
-                cmd.Parameters.AddWithValue("9", type._namespace);
-                cmd.Parameters.AddWithValue("10", WriteObject(type.usingNamespace));
+                cmd.Parameters.AddWithValue("1", type.full_name);
+                cmd.Parameters.AddWithValue("2", type.comments);
+                cmd.Parameters.AddWithValue("3", type.modifier);
+                cmd.Parameters.AddWithValue("4", type.is_abstract);
+                cmd.Parameters.AddWithValue("5", type.base_type.ToString());
+                cmd.Parameters.AddWithValue("6", type.ext);
+                cmd.Parameters.AddWithValue("7", type.is_value_type);
+                cmd.Parameters.AddWithValue("8", type.is_interface);
+                cmd.Parameters.AddWithValue("9", type.is_class);
+                cmd.Parameters.AddWithValue("10", WriteObject( type.interfaces));
+                cmd.Parameters.AddWithValue("11", type.is_generic_type_definition);
+                cmd.Parameters.AddWithValue("12", WriteObject(type.generic_parameter_definitions));
+                cmd.Parameters.AddWithValue("13", type.name);
+                cmd.Parameters.AddWithValue("14", type._namespace);
+                cmd.Parameters.AddWithValue("15", WriteObject(type.usingNamespace));
                 cmd.ExecuteNonQuery();
             }
         }
@@ -742,14 +918,14 @@ namespace Metadata
             //}
 
             {
-                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type_fullname,method_args,method_ret_type,method_body) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?);",
+                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?);",
                 member.declaring_type, member.identifier, member.name, member.comments, member.modifier, member.is_static, member.member_type, member.ext);
 
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
 
-                cmd.Parameters.AddWithValue("1", member.field_type_fullname);
+                cmd.Parameters.AddWithValue("1", member.field_type.ToString());
                 cmd.Parameters.AddWithValue("2", WriteObject( member.method_args));
-                cmd.Parameters.AddWithValue("3", member.method_ret_type);
+                cmd.Parameters.AddWithValue("3", member.method_ret_type.ToString());
                 cmd.Parameters.AddWithValue("4", WriteObject(member.method_body));
 
 
@@ -769,6 +945,7 @@ namespace Metadata
             {
                 DB_Type type = ReadType(reader);
                 type.members = LoadMembers(type.full_name, _con);
+                results.Add(type.unique_name, type);
             }
 
             return results;
@@ -803,9 +980,9 @@ namespace Metadata
             type.is_abstract = (bool)reader["is_abstract"];
             type.is_interface = (bool)reader["is_interface"];
             type.is_value_type = (bool)reader["is_value_type"];
-            type.base_type = (string)reader["base_type"];
+            type.base_type = DB.ReadObject<DB_TypeRef>((string)reader["base_type"]);
             type.is_class = (bool)reader["is_class"];
-            type.interfaces = ReadObject<List<string>>((string)reader["interfaces"]);
+            type.interfaces = ReadObject<List<DB_TypeRef>>((string)reader["interfaces"]);
             type.is_generic_type_definition = (bool)reader["is_generic_type_definition"];
             type.generic_parameter_definitions = ReadObject<List<DB_Type.GenericParameterDefinition>>((string)reader["generic_parameter_definitions"]);
             type.usingNamespace = ReadObject<List<string>>((string)reader["usingNamespace"]);
@@ -825,14 +1002,14 @@ namespace Metadata
                 member.declaring_type = type;
                 member.comments = (string)reader["comments"];
                 member.ext = (string)reader["ext"];
-                member.field_type_fullname = (string)reader["field_type_fullname"];
+                member.field_type = DB.ReadObject<DB_TypeRef>((string)reader["field_type"]);
                 member.is_static = (bool)reader["is_static"];
                 member.modifier = (int)reader["modifier"];
                 member.name = (string)reader["name"];
                 member.member_type = (int)reader["member_type"];
                 member.method_args = ReadObject<DB_Member.Argument[]>((string)reader["method_args"]);
                 member.method_body = ReadObject<DB_BlockSyntax>((string)reader["method_body"]);
-                member.method_ret_type = (string)reader["method_ret_type"];
+                member.method_ret_type = DB.ReadObject<DB_TypeRef>((string)reader["method_ret_type"]);
                 results.Add(member.identifier, member);
             }
 
