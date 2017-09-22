@@ -945,7 +945,7 @@ namespace CSharpCompiler
         }
         static Metadata.Expression.Exp ExportExp(IdentifierNameSyntax es)
         {
-            Metadata.Expression.FieldExp db_les = new Metadata.Expression.FieldExp();
+            Metadata.Expression.IndifierExp db_les = new Metadata.Expression.IndifierExp();
             db_les.Name = es.Identifier.Text;
             return db_les;
         }

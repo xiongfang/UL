@@ -13,3 +13,14 @@
 
 
 // TODO: 在此处引用程序需要的其他头文件
+template<typename T>
+class Ref
+{
+	T* v;
+public:
+	Ref(T* ptr) { this->v = ptr; }
+	T* operator->()
+	{
+		return v;
+	}
+};

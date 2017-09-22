@@ -3,7 +3,18 @@ namespace System
 {
     public class Int32
     {
-
+        public Int32 op_Equals(Int32 b)
+        {
+            return 1;
+        }
+        public Int32 op_Small(Int32 b)
+        {
+            return 1;
+        }
+        public Int32 op_Assign(Int32 b)
+        {
+            return 1;
+        }
     }
 
     public class String
@@ -23,7 +34,7 @@ namespace System
 
     public class Console
     {
-        public void WriteLine(string v)
+        public static void WriteLine(string v)
         {
 
         }
@@ -105,14 +116,14 @@ namespace HelloWorld
                     break;
             }
 
-            switch ("5")
-            {
-                case  "haha":
-                    break;
-                case TestE.B:
-                case TestE.C:
-                    break;
-            }
+            //switch ("5")
+            //{
+            //    case  "haha":
+            //        break;
+            //    case TestE.B:
+            //    case TestE.C:
+            //        break;
+            //}
 
             TestGeneric<int, string> temp = new TestGeneric<int, string>();
         }

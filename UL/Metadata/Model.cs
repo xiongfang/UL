@@ -11,6 +11,7 @@ namespace Metadata
         DB_Type FindType(DB_TypeRef refType);
         Dictionary<string, Metadata.DB_Type> FindNamespace(string ns);
     }
+
     public class Model
     {
         public static IModelTypeFinder Finder;

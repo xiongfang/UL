@@ -45,6 +45,9 @@
     <ClInclude Include="TestInt.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Console.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -72,6 +75,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TestInt.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Console.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

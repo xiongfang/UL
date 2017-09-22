@@ -702,6 +702,12 @@ namespace Metadata
             public string Name;
         }
 
+        [JsonConverter(typeof(JsonConverterType<IndifierExp>))]
+        public class IndifierExp:Exp
+        {
+            public string Name;
+        }
+
         //常量表达式(分为字符常量或者数值常量)
         [JsonConverter(typeof(JsonConverterType<ConstExp>))]
         public class ConstExp : Exp
