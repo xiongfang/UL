@@ -7,7 +7,21 @@ using System.Threading.Tasks;
 
 namespace CppConverter
 {
+    class Finder:Metadata.IModelTypeFinder
+    {
+        //查找一个数据库类型
+        public Metadata.DB_Type FindType(string full_name)
+        {
+            return Model.GetType(full_name);
+        }
+        //查找一个类型，如果是动态类型，构造一个
+        public Metadata.DB_Type FindType(Metadata.DB_TypeRef refType)
+        {
+            return Model.GetType(refType);
+        }
+    }
 
+    
     class Model
     {
         public static Dictionary<string, Metadata.DB_Type> types;
@@ -194,42 +208,75 @@ namespace CppConverter
             return null;
         }
 
-        static public HashSet<Metadata.DB_TypeRef> GetTypeDependences(Metadata.DB_Type type)
+        class DataBaseFinder
+        : Metadata.IModelTypeFinder
         {
-            HashSet<Metadata.DB_TypeRef> result = new HashSet<Metadata.DB_TypeRef>();
-            if (!type.base_type.IsVoid)
-                result.Add(type.base_type);
-            foreach (var m in type.members.Values)
+            //查找一个数据库类型
+            public Metadata.DB_Type FindType(string full_name)
             {
-                if (m.member_type == (int)Metadata.MemberTypes.Field)
+                Metadata.DB_Type type = Model.GetType(full_name);
+                if (type == null)
                 {
-                    result.Add(m.field_type);
+                    type = Metadata.DB.LoadType(full_name, _con);
+                    Model.types.Add(full_name, type);
                 }
-                else if (m.member_type == (int)Metadata.MemberTypes.Method || m.member_type == (int)Metadata.MemberTypes.Constructor)
-                {
-                    if (!m.method_ret_type.IsVoid)
-                        result.Add(m.method_ret_type);
-                    foreach (var a in m.method_args)
-                    {
-                        result.Add(a.type);
-                    }
-                }
-            }
 
-            return result;
+                return type;
+            }
+            //查找一个类型，如果是动态类型，构造一个
+            public Metadata.DB_Type FindType(Metadata.DB_TypeRef refType)
+            {
+                Metadata.DB_Type type = Model.GetType(refType);
+                if (type == null)
+                {
+                    type = Metadata.DB.LoadType(refType.identifer, _con);
+                    Model.types.Add(refType.identifer, type);
+                    return Model.GetType(refType); ;
+                }
+
+                return type;
+            }
         }
 
-        //static public HashSet<Metadata.DB_TypeRef> GetMethodBodyDependences(Metadata.DB_BlockSyntax methodBody)
-        //{
-        //    HashSet<Metadata.DB_TypeRef> result = new HashSet<Metadata.DB_TypeRef>();
+        static public HashSet<Metadata.DB_TypeRef> GetTypeDependences(Metadata.DB_Type type)
+        {
+            Metadata.Model model = new Metadata.Model(new DataBaseFinder());
 
-        //    foreach(var s in methodBody.List)
-        //    {
-                
-        //    }
+            Metadata.MyCppHeaderTypeFinder f = new Metadata.MyCppHeaderTypeFinder(model);
+            model.Visit(type, f);
 
-        //    return result;
-        //}
+            return f.result;
+            //if (!type.base_type.IsVoid)
+            //    result.Add(type.base_type);
+            //foreach (var m in type.members.Values)
+            //{
+            //    if (m.member_type == (int)Metadata.MemberTypes.Field)
+            //    {
+            //        result.Add(m.field_type);
+            //    }
+            //    else if (m.member_type == (int)Metadata.MemberTypes.Method || m.member_type == (int)Metadata.MemberTypes.Constructor)
+            //    {
+            //        if (!m.method_ret_type.IsVoid)
+            //            result.Add(m.method_ret_type);
+            //        foreach (var a in m.method_args)
+            //        {
+            //            result.Add(a.type);
+            //        }
+            //    }
+            //}
+
+            //return result;
+        }
+
+        static public HashSet<Metadata.DB_TypeRef> GetMethodBodyDependences(Metadata.DB_Type type)
+        {
+            Metadata.Model model = new Metadata.Model(new DataBaseFinder());
+
+            Metadata.MyCppMethodBodyTypeFinder f = new Metadata.MyCppMethodBodyTypeFinder(model);
+            model.Visit(type, f);
+
+            return f.typeRef;
+        }
 
         static void LoadTypeDependences(string full_name, Dictionary<string, Metadata.DB_Type> loaded)
         {
@@ -238,7 +285,17 @@ namespace CppConverter
                 return;
             loaded.Add(type.full_name, type);
             HashSet<Metadata.DB_TypeRef> dep = GetTypeDependences(type);
-            foreach(var t in dep)
+
+            foreach (var t in dep)
+            {
+                //string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
+                if (!loaded.ContainsKey(t.identifer))
+                {
+                    LoadTypeDependences(t.identifer, loaded);
+                }
+            }
+            HashSet<Metadata.DB_TypeRef> body_Dep = GetMethodBodyDependences(type);
+            foreach (var t in body_Dep)
             {
                 //string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
                 if (!loaded.ContainsKey(t.identifer))
@@ -294,7 +351,7 @@ namespace CppConverter
                 //Metadata.DB_Type type = Metadata.DB.LoadType("HelloWorld.Program", _con);
                 Model.types = new Dictionary<string, Metadata.DB_Type>();
                 LoadTypeDependences(TypeName, Model.types);
-                LoadTypeDependences("System.Console", Model.types);
+                //LoadTypeDependences("System.Console", Model.types);
 
                 foreach (var t in Model.types.Values)
                 {
@@ -592,19 +649,19 @@ namespace CppConverter
 
         static void ConvertStatement(Metadata.DB_LocalDeclarationStatementSyntax bs)
         {
-            Metadata.DB_Type type = Model.GetType(bs.Type);
+            Metadata.DB_Type type = Model.GetType(bs.Declaration.Type);
             if(type.is_class)
                 Append("Ref<"+ GetCppTypeName(type) + "> ");
             else
                 Append(GetCppTypeName(type) + " ");
-            for (int i=0;i<bs.Variables.Count;i++)
+            for (int i=0;i<bs.Declaration.Variables.Count;i++)
             {
-                sb.Append(ExpressionToString(bs.Variables[i]));
-                if(i<bs.Variables.Count-2)
+                sb.Append(ExpressionToString(bs.Declaration.Variables[i]));
+                if(i<bs.Declaration.Variables.Count-2)
                 {
                     sb.Append(",");
                 }
-                Model.AddLocal(bs.Variables[i].Identifier, Model.GetType(bs.Type));
+                Model.AddLocal(bs.Declaration.Variables[i].Identifier, Model.GetType(bs.Declaration.Type));
             }
             sb.AppendLine(";");
         }

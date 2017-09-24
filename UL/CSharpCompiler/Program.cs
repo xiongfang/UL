@@ -1014,10 +1014,10 @@ namespace CSharpCompiler
         static Metadata.DB_StatementSyntax ExportStatement(LocalDeclarationStatementSyntax ss)
         {
             Metadata.DB_LocalDeclarationStatementSyntax db_ss = new Metadata.DB_LocalDeclarationStatementSyntax();
-            db_ss.Type = GetType(ss.Declaration.Type).GetRefType();
+            db_ss.Declaration.Type = GetType(ss.Declaration.Type).GetRefType();
             foreach(var v in ss.Declaration.Variables)
             {
-                db_ss.Variables.Add(ExportExp(v));
+                db_ss.Declaration.Variables.Add(ExportExp(v));
             }
             return db_ss;
         }
@@ -1167,7 +1167,17 @@ namespace CSharpCompiler
         static Metadata.Expression.Exp ExportExp(InvocationExpressionSyntax es)
         {
             Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
-            db_les.Caller = ExportExp(es.Expression);
+            if(es.Expression is MemberAccessExpressionSyntax)
+            {
+                MemberAccessExpressionSyntax maes = es.Expression as MemberAccessExpressionSyntax;
+                db_les.Name = (maes).Name.Identifier.Text;
+                db_les.Caller = ExportExp(maes.Expression);
+            }
+            else
+            {
+                Console.Error.WriteLine("不支持的方法调用表达式 " + es.ToString());
+            }
+            
             foreach(var a in es.ArgumentList.Arguments)
             {
                 db_les.Args.Add(ExportExp(a.Expression));

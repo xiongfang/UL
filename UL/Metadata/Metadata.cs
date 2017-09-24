@@ -587,17 +587,7 @@ namespace Metadata
     [JsonConverter(typeof(JsonConverterType<DB_LocalDeclarationStatementSyntax>))]
     public class DB_LocalDeclarationStatementSyntax : DB_StatementSyntax
     {
-        public DB_TypeRef Type;
-        public List<VariableDeclaratorSyntax> Variables = new List<VariableDeclaratorSyntax>();
-        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
-        {
-            hash.Add(Type);
-            foreach(var v in Variables)
-            {
-                v.GetTypeRefList(hash);
-            }
-        }
-
+        public VariableDeclarationSyntax Declaration = new VariableDeclarationSyntax();
     }
     [JsonConverter(typeof(JsonConverterType<VariableDeclarationSyntax>))]
     public sealed class VariableDeclarationSyntax : DB_Syntax
@@ -688,7 +678,7 @@ namespace Metadata
             //调用函数的对象，或者类，如果为null，表示创建Name类型的对象
             public Exp Caller;
             //调用的函数名
-            //public string Name;
+            public string Name;
 
             //调用的参数
             public List<Exp> Args = new List<Exp>();

@@ -98,7 +98,7 @@ namespace HelloWorld
 
             int[] v = new int[6];
 
-            for(int i=0,c=6;i<3;i++)
+            for (int i=0,c=6;i<3;i++)
             {
 
             }
