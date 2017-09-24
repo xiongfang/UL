@@ -19,8 +19,10 @@ class Ref
 	T* v;
 public:
 	Ref(T* ptr) { this->v = ptr; }
+	Ref() { v = nullptr; }
 	T* operator->()
 	{
 		return v;
 	}
+
 };

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -23,7 +23,7 @@
     <ProjectGuid>{1DA12301-D547-4F40-A1AE-D7A598D215C2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>CppApp</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -148,12 +148,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Array.h" />
+    <ClInclude Include="Array_ExtHeader.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="Int32.h" />
+    <ClInclude Include="Int32_ExtHeader.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="String.h" />
+    <ClInclude Include="String_ExtHeader.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestGeneric.h" />
     <ClInclude Include="TestInt.h" />

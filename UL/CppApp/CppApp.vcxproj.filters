@@ -48,6 +48,15 @@
     <ClInclude Include="Console.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Int32_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="String_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Array_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

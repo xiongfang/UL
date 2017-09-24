@@ -1,7 +1,7 @@
 
 namespace System
 {
-    public class Int32
+    public struct Int32
     {
         public Int32 op_Equals(Int32 b)
         {
@@ -12,6 +12,11 @@ namespace System
             return 1;
         }
         public Int32 op_Assign(Int32 b)
+        {
+            return 1;
+        }
+
+        public Int32 op_PlusPlus(Int32 b)
         {
             return 1;
         }
@@ -29,7 +34,7 @@ namespace System
 
     public class Array<T>
     {
-
+        public Array(int len) { }
     }
 
     public class Console

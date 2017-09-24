@@ -386,11 +386,11 @@ namespace CSharpCompiler
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
                     //导出所有类
-                    var classNodes = nodes.OfType<ClassDeclarationSyntax>();
+                    var classNodes = nodes.OfType<TypeDeclarationSyntax>();
                     step = ECompilerStet.ScanType;
                     foreach (var c in classNodes)
                     {
-                        ExportClass(c);
+                        ExportType(c);
                     }
 
 
@@ -409,12 +409,12 @@ namespace CSharpCompiler
                     }
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
-                    var classNodes = nodes.OfType<ClassDeclarationSyntax>();
+                    var classNodes = nodes.OfType<TypeDeclarationSyntax>();
 
                     step = ECompilerStet.ScanMember;
                     foreach (var c in classNodes)
                     {
-                        ExportClass(c);
+                        ExportType(c);
                     }
                 }
 
@@ -431,12 +431,12 @@ namespace CSharpCompiler
                     }
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
-                    var classNodes = nodes.OfType<ClassDeclarationSyntax>();
+                    var classNodes = nodes.OfType<TypeDeclarationSyntax>();
 
                     step = ECompilerStet.Compile;
                     foreach (var c in classNodes)
                     {
-                        ExportClass(c);
+                        ExportType(c);
                     }
                 }
 
@@ -483,7 +483,163 @@ namespace CSharpCompiler
         //    }
         //}
 
+        static void ExportType(TypeDeclarationSyntax c)
+        {
+            if(c is ClassDeclarationSyntax)
+            {
+                ExportClass(c as ClassDeclarationSyntax);
+            }
+            else if(c is StructDeclarationSyntax)
+            {
+                ExportStruct(c as StructDeclarationSyntax);
+            }
+        }
 
+        static void ExportStruct(StructDeclarationSyntax c)
+        {
+            if (step == ECompilerStet.ScanType)
+            {
+                Metadata.DB_Type type = new Metadata.DB_Type();
+
+                //bool isPublic = ContainModifier(c.Modifiers, "public");
+                //bool isProtected = ContainModifier(c.Modifiers, "protected");
+                //bool isPrivate = !isPublic && !isProtected;
+                type.is_abstract = ContainModifier(c.Modifiers, "abstract");
+
+                Console.WriteLine("Identifier:" + c.Identifier);
+                Console.WriteLine("Modifiers:" + c.Modifiers);
+                type.modifier = GetModifier(c.Modifiers);
+                type.is_interface = false;
+                type.is_value_type = true;
+                type.name = c.Identifier.Text;
+
+                type.usingNamespace = new List<string>();
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    //type.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
+                    type.usingNamespace.AddRange(Model.usingNamespace);
+                    foreach (var ns in namespaceDeclarationSyntax.Usings)
+                    {
+                        type.usingNamespace.Add(ns.Name.ToString());
+                    }
+                    type._namespace = namespaceDeclarationSyntax.Name.ToString();
+                }
+
+                //父类
+                if (c.BaseList != null)
+                {
+                    foreach (var b in c.BaseList.Types)
+                    {
+                        Metadata.DB_Type dB_Type = GetType(b.Type);
+                        if (dB_Type.is_interface)
+                        {
+                            type.interfaces.Add(dB_Type.GetRefType());
+                        }
+                        else
+                        {
+                            type.base_type = dB_Type.GetRefType();
+                        }
+                    }
+                }
+                else
+                {
+
+                }
+
+                //泛型
+                if (c.TypeParameterList != null)
+                {
+                    type.is_generic_type_definition = true;
+                    foreach (var p in c.TypeParameterList.Parameters)
+                    {
+                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = new Metadata.DB_Type.GenericParameterDefinition();
+                        genericParameterDefinition.type_name = p.Identifier.Text;
+                        type.generic_parameter_definitions.Add(genericParameterDefinition);
+                    }
+                }
+
+                //Metadata.DB.SaveDBType(type, _con, _trans);
+                Model.AddCompilerType(type);
+            }
+            else if (step == ECompilerStet.ScanMember)
+            {
+                string typeName = c.Identifier.Text;
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    Model.EnterNS(namespaceDeclarationSyntax.Name.ToString());
+                }
+                if (c.TypeParameterList != null)
+                {
+                    typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
+                }
+
+                Metadata.DB_Type type = Model.FindType(typeName);
+
+                if (type.full_name != "System.Object" && type.base_type.IsVoid)
+                    type.base_type = Model.GetType("System.Object").GetRefType();
+
+                Model.EnterType(type);
+
+                //泛型参数
+                if (c.ConstraintClauses != null)
+                {
+                    foreach (var Constraint in c.ConstraintClauses)
+                    {
+
+                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                        foreach (var tpc in Constraint.Constraints)
+                        {
+                            genericParameterDefinition.constraint.Add(Model.FindType(tpc.ToString()).full_name);
+                        }
+
+                    }
+                }
+
+
+                //导出所有变量
+                var virableNodes = c.ChildNodes().OfType<FieldDeclarationSyntax>();
+                foreach (var v in virableNodes)
+                {
+                    ExportVariable(v, type);
+                }
+
+                //导出所有方法
+                var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
+                foreach (var f in funcNodes)
+                {
+                    ExportMethod(f, type);
+                }
+                Model.LeaveType();
+                Console.WriteLine();
+            }
+            else if (step == ECompilerStet.Compile)
+            {
+                string typeName = c.Identifier.Text;
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    Model.EnterNS(namespaceDeclarationSyntax.Name.ToString());
+                }
+                if (c.TypeParameterList != null)
+                {
+                    typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
+                }
+
+                Metadata.DB_Type type = Model.FindType(typeName);
+                Model.EnterType(type);
+
+                //导出所有方法
+                var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
+                foreach (var f in funcNodes)
+                {
+                    ExportMethod(f, type);
+                }
+
+                Model.LeaveType();
+            }
+        }
 
         static void ExportClass(ClassDeclarationSyntax c)
         {
@@ -501,6 +657,7 @@ namespace CSharpCompiler
                 type.modifier = GetModifier(c.Modifiers);
                 type.is_interface = false;
                 type.is_value_type = false;
+                type.is_class = true;
                 type.name = c.Identifier.Text;
 
                 type.usingNamespace = new List<string>();
@@ -547,10 +704,6 @@ namespace CSharpCompiler
                         genericParameterDefinition.type_name = p.Identifier.Text;
                         type.generic_parameter_definitions.Add(genericParameterDefinition);
                     }
-                }
-                else
-                {
-                    type.is_class = true;
                 }
 
                 //Metadata.DB.SaveDBType(type, _con, _trans);
@@ -600,7 +753,7 @@ namespace CSharpCompiler
                 }
 
                 //导出所有方法
-                var funcNodes = c.ChildNodes().OfType<MethodDeclarationSyntax>();
+                var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
                 foreach (var f in funcNodes)
                 {
                     ExportMethod(f, type);
@@ -625,7 +778,7 @@ namespace CSharpCompiler
                 Model.EnterType(type);
 
                 //导出所有方法
-                var funcNodes = c.ChildNodes().OfType<MethodDeclarationSyntax>();
+                var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
                 foreach (var f in funcNodes)
                 {
                     ExportMethod(f, type);
@@ -673,49 +826,98 @@ namespace CSharpCompiler
         }
 
 
-        static Dictionary<MethodDeclarationSyntax, Metadata.DB_Member> MemberMap = new Dictionary<MethodDeclarationSyntax, Metadata.DB_Member>();
-        static void ExportMethod(MethodDeclarationSyntax f, Metadata.DB_Type type)
+        static Dictionary<BaseMethodDeclarationSyntax, Metadata.DB_Member> MemberMap = new Dictionary<BaseMethodDeclarationSyntax, Metadata.DB_Member>();
+        static void ExportMethod(BaseMethodDeclarationSyntax v, Metadata.DB_Type type)
         {
-            if(step == ECompilerStet.ScanMember)
+            if(v is MethodDeclarationSyntax)
             {
-                Console.WriteLine("\tIdentifier:" + f.Identifier);
-                Console.WriteLine("\tModifiers:" + f.Modifiers);
-                Console.WriteLine("\tReturnType:" + f.ReturnType);
-                //TypeInfo ti = GetTypeInfo(f.ReturnType);
-
-                
-
-                Metadata.DB_Member dB_Member = new Metadata.DB_Member();
-                dB_Member.name = f.Identifier.Text;
-                dB_Member.is_static = ContainModifier(f.Modifiers, "static");
-                dB_Member.declaring_type = type.full_name;
-                dB_Member.member_type = (int)Metadata.MemberTypes.Method;
-                dB_Member.modifier = GetModifier(f.Modifiers);
-
-                dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
-                for (int i = 0; i < f.ParameterList.Parameters.Count; i++)
+                MethodDeclarationSyntax f = v as MethodDeclarationSyntax;
+                if (step == ECompilerStet.ScanMember)
                 {
-                    dB_Member.method_args[i] = new Metadata.DB_Member.Argument();
-                    dB_Member.method_args[i].name = f.ParameterList.Parameters[i].Identifier.Text;
-                    dB_Member.method_args[i].type = GetType(f.ParameterList.Parameters[i].Type).GetRefType();
-                    dB_Member.method_args[i].is_out = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "out");
-                    dB_Member.method_args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
-                }
+                    Console.WriteLine("\tIdentifier:" + f.Identifier);
+                    Console.WriteLine("\tModifiers:" + f.Modifiers);
+                    Console.WriteLine("\tReturnType:" + f.ReturnType);
+                    //TypeInfo ti = GetTypeInfo(f.ReturnType);
 
-                Metadata.DB_Type retType = GetType(f.ReturnType);
-                if (retType != null)
-                    dB_Member.method_ret_type = retType.GetRefType();
-                else
+
+
+                    Metadata.DB_Member dB_Member = new Metadata.DB_Member();
+                    dB_Member.name = f.Identifier.Text;
+                    dB_Member.is_static = ContainModifier(f.Modifiers, "static");
+                    dB_Member.declaring_type = type.full_name;
+                    dB_Member.member_type = (int)Metadata.MemberTypes.Method;
+                    dB_Member.modifier = GetModifier(f.Modifiers);
+
+                    dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
+                    for (int i = 0; i < f.ParameterList.Parameters.Count; i++)
+                    {
+                        dB_Member.method_args[i] = new Metadata.DB_Member.Argument();
+                        dB_Member.method_args[i].name = f.ParameterList.Parameters[i].Identifier.Text;
+                        dB_Member.method_args[i].type = GetType(f.ParameterList.Parameters[i].Type).GetRefType();
+                        dB_Member.method_args[i].is_out = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "out");
+                        dB_Member.method_args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
+                    }
+
+                    Metadata.DB_Type retType = GetType(f.ReturnType);
+                    if (retType != null)
+                        dB_Member.method_ret_type = retType.GetRefType();
+                    else
+                        dB_Member.method_ret_type = Metadata.DB_TypeRef.Void;
+
+                    Model.AddMember(type.full_name, dB_Member);
+                    MemberMap[f] = dB_Member;
+                    Console.WriteLine();
+                }
+                else if (step == ECompilerStet.Compile)
+                {
+                    Metadata.DB_Member dB_Member = MemberMap[f];
+                    dB_Member.method_body = ExportBody(f.Body);
+                }
+            }
+            if (v is ConstructorDeclarationSyntax)
+            {
+                ConstructorDeclarationSyntax f = v as ConstructorDeclarationSyntax;
+                if (step == ECompilerStet.ScanMember)
+                {
+                    Console.WriteLine("\tIdentifier:" + f.Identifier);
+                    Console.WriteLine("\tModifiers:" + f.Modifiers);
+                    //Console.WriteLine("\tReturnType:" + f.ReturnType);
+                    //TypeInfo ti = GetTypeInfo(f.ReturnType);
+
+
+
+                    Metadata.DB_Member dB_Member = new Metadata.DB_Member();
+                    dB_Member.name = f.Identifier.Text;
+                    dB_Member.is_static = ContainModifier(f.Modifiers, "static");
+                    dB_Member.declaring_type = type.full_name;
+                    dB_Member.member_type = (int)Metadata.MemberTypes.Constructor;
+                    dB_Member.modifier = GetModifier(f.Modifiers);
+
+                    dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
+                    for (int i = 0; i < f.ParameterList.Parameters.Count; i++)
+                    {
+                        dB_Member.method_args[i] = new Metadata.DB_Member.Argument();
+                        dB_Member.method_args[i].name = f.ParameterList.Parameters[i].Identifier.Text;
+                        dB_Member.method_args[i].type = GetType(f.ParameterList.Parameters[i].Type).GetRefType();
+                        dB_Member.method_args[i].is_out = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "out");
+                        dB_Member.method_args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
+                    }
+
+                    //Metadata.DB_Type retType = GetType(f.ReturnType);
+                    //if (retType != null)
+                    //    dB_Member.method_ret_type = retType.GetRefType();
+                    //else
                     dB_Member.method_ret_type = Metadata.DB_TypeRef.Void;
 
-                Model.AddMember(type.full_name, dB_Member);
-                MemberMap[f] = dB_Member;
-                Console.WriteLine();
-            }
-            else if(step == ECompilerStet.Compile)
-            {
-                Metadata.DB_Member dB_Member = MemberMap[f];
-                dB_Member.method_body = ExportBody(f.Body);
+                    Model.AddMember(type.full_name, dB_Member);
+                    MemberMap[f] = dB_Member;
+                    Console.WriteLine();
+                }
+                else if (step == ECompilerStet.Compile)
+                {
+                    Metadata.DB_Member dB_Member = MemberMap[f];
+                    dB_Member.method_body = ExportBody(f.Body);
+                }
             }
         }
 
