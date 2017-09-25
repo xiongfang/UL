@@ -363,6 +363,28 @@ namespace Metadata
 
             return dB_Type;
         }
+
+        public DB_Member FindMethod(string name,List<DB_Type> typeParameters)
+        {
+            foreach(var m in members.Values)
+            {
+                if (m.name != name)
+                    continue;
+                if(m.member_type == (int)MemberTypes.Constructor || m.member_type == (int)MemberTypes.Method)
+                {
+                    if(m.method_args.Length == typeParameters.Count)
+                    {
+                        for(int i=0;i< m.method_args.Length;i++)
+                        {
+                            if (m.method_args[i].type == typeParameters[i].GetRefType())
+                                return m;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 
     public class DB_Member

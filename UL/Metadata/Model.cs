@@ -160,7 +160,16 @@ namespace Metadata
 
             if (exp is Metadata.Expression.MethodExp)
             {
-                return GetExpType(((Metadata.Expression.MethodExp)(exp)).Caller);
+                Metadata.Expression.MethodExp me = exp as Metadata.Expression.MethodExp;
+                //Metadata.Expression.FieldExp e = me.Caller as Metadata.Expression.FieldExp;
+                Metadata.DB_Type caller_type = GetExpType(me.Caller);
+                List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                foreach (var t in me.Args)
+                {
+                    argTypes.Add(GetExpType(t));
+                }
+                Metadata.DB_Member member = caller_type.FindMethod(me.Name, argTypes);
+                return GetType(member.typeName);
             }
 
             if (exp is Metadata.Expression.ObjectCreateExp)

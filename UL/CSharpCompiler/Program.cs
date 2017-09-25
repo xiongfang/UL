@@ -1242,52 +1242,54 @@ namespace CSharpCompiler
         static Metadata.Expression.Exp ExportExp(AssignmentExpressionSyntax es)
         {
             Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
-            Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
-            op_Equals.Name = "op_Equals";
-            op_Equals.Caller = ExportExp(es.Left);
-            db_les.Caller = op_Equals;
+            //Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
+            //op_Equals.Name = "op_Equals";
+            //op_Equals.Caller = ExportExp(es.Left);
+            db_les.Caller = ExportExp(es.Left);
+            db_les.Name = "op_Equals";
             db_les.Args.Add(ExportExp(es.Right));
             return db_les;
         }
         static Metadata.Expression.Exp ExportExp(BinaryExpressionSyntax es)
         {
             Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
-            Metadata.Expression.FieldExp op_Token = new Metadata.Expression.FieldExp();
+            //Metadata.Expression.FieldExp op_Token = new Metadata.Expression.FieldExp();
             if(es.OperatorToken.Text == "<")
             {
-                op_Token.Name = "op_Small";
+                db_les.Name = "op_Small";
             }
-            op_Token.Caller = ExportExp(es.Left);
-            db_les.Caller = op_Token;
+            db_les.Caller = ExportExp(es.Left);
+            //db_les.Caller = op_Token;
             db_les.Args.Add(ExportExp(es.Right));
             return db_les;
         }
         static Metadata.Expression.Exp ExportExp(PostfixUnaryExpressionSyntax es)
         {
-            Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
+            
 
-            Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
-            op_Equals.Name = "op_Assign";
-            op_Equals.Caller = ExportExp(es.Operand);
+            //Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
+            
+            //db_les.Caller = ExportExp(es.Operand);
 
-            Metadata.Expression.FieldExp op_Token = new Metadata.Expression.FieldExp();
+            Metadata.Expression.MethodExp db_Add = new Metadata.Expression.MethodExp();
             if (es.OperatorToken.Text == "++")
             {
-                op_Token.Name = "op_PlusPlus";
+                db_Add.Name = "op_PlusPlus";
             }
             else if(es.OperatorToken.Text == "--")
             {
-                op_Token.Name = "op_SubSub";
+                db_Add.Name = "op_SubSub";
             }
-            op_Token.Caller = ExportExp(es.Operand);
+            db_Add.Caller = ExportExp(es.Operand);
 
 
-            Metadata.Expression.MethodExp db_Add = new Metadata.Expression.MethodExp();
-            db_Add.Caller = op_Token;
+            
+            //db_Add.Caller = op_Token;
             db_Add.Args.Add(new Metadata.Expression.ConstExp() { value = "1" });
 
-
-            db_les.Caller = op_Equals;
+            Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
+            db_les.Caller = db_Add;
+            db_les.Name = "op_Assign";
             db_les.Args.Add(db_Add);
             return db_les;
         }

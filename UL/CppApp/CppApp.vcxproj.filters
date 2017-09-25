@@ -48,13 +48,19 @@
     <ClInclude Include="Console.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Array_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
     <ClInclude Include="Int32_ExtHeader.h">
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="String_ExtHeader.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="Array_ExtHeader.h">
+    <ClInclude Include="Boolean.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Boolean_ExtHeader.h">
       <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -87,6 +93,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Console.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Boolean.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

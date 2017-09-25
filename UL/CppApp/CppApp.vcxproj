@@ -23,7 +23,7 @@
     <ProjectGuid>{1DA12301-D547-4F40-A1AE-D7A598D215C2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>CppApp</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -149,6 +149,8 @@
   <ItemGroup>
     <ClInclude Include="Array.h" />
     <ClInclude Include="Array_ExtHeader.h" />
+    <ClInclude Include="Boolean.h" />
+    <ClInclude Include="Boolean_ExtHeader.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="Int32.h" />
     <ClInclude Include="Int32_ExtHeader.h" />
@@ -163,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Array.cpp" />
+    <ClCompile Include="Boolean.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CppApp.cpp" />
     <ClCompile Include="Int32.cpp" />

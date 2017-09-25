@@ -7,7 +7,7 @@ namespace System
         {
             return 1;
         }
-        public Int32 op_Small(Int32 b)
+        public Boolean op_Small(Int32 b)
         {
             return 1;
         }
@@ -20,6 +20,11 @@ namespace System
         {
             return 1;
         }
+    }
+
+    public struct Boolean
+    {
+
     }
 
     public class String

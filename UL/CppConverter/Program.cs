@@ -165,17 +165,19 @@ namespace CppConverter
             if (exp is Metadata.Expression.ConstExp)
             {
                 Metadata.Expression.ConstExp e = exp as Metadata.Expression.ConstExp;
+                int int_v;
+                if (int.TryParse(e.value, out int_v))
+                {
+                    return Model.GetType("System.Int32");
+                }
+
                 long long_v;
                 if (long.TryParse(e.value, out long_v))
                 {
                     return Model.GetType("System.Int64");
                 }
 
-                int int_v;
-                if (int.TryParse(e.value, out int_v))
-                {
-                    return Model.GetType("System.Int32");
-                }
+                
 
 
                 return Model.GetType("System.String");
@@ -196,7 +198,16 @@ namespace CppConverter
 
             if (exp is Metadata.Expression.MethodExp)
             {
-                return GetExpType(((Metadata.Expression.MethodExp)(exp)).Caller);
+                Metadata.Expression.MethodExp me = exp as Metadata.Expression.MethodExp;
+                //Metadata.Expression.FieldExp e = me.Caller as Metadata.Expression.FieldExp;
+                Metadata.DB_Type caller_type = GetExpType(me.Caller);
+                List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                foreach (var t in me.Args)
+                {
+                    argTypes.Add(GetExpType(t));
+                }
+                Metadata.DB_Member member = caller_type.FindMethod(me.Name, argTypes);
+                return Model.GetType(member.typeName);
             }
 
             if (exp is Metadata.Expression.ObjectCreateExp)
@@ -442,7 +453,16 @@ namespace CppConverter
                 sb.AppendLine("#include \"" + type.name + ".h\"");
                 //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
 
-                foreach(var us in type.usingNamespace)
+                //包含依赖的头文件
+                HashSet<Metadata.DB_TypeRef> depTypes = GetMethodBodyDependences(type);
+                foreach (var t in depTypes)
+                {
+                    Metadata.DB_Type depType = Model.GetType(t);
+                    if (!depType.is_generic_paramter && t.identifer != type.full_name)
+                        sb.AppendLine("#include \"" + depType.name + ".h\"");
+                }
+
+                foreach (var us in type.usingNamespace)
                 {
                     sb.AppendLine("using namespace " + us + ";");
                 }
@@ -795,21 +815,62 @@ namespace CppConverter
         //}
         static string ExpressionToString(Metadata.Expression.MethodExp es)
         {
-            StringBuilder ExpSB = new StringBuilder();
-            ExpSB.Append(ExpressionToString(es.Caller));
-            ExpSB.Append("(");
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append(ExpressionToString(es.Caller));
+
+            Metadata.DB_Type caller_type = null;
+
+            if (es.Caller is Metadata.Expression.IndifierExp)
+            {
+                Metadata.Expression.IndifierExp ie = es.Caller as Metadata.Expression.IndifierExp;
+                Model.IndifierInfo ii = Model.FindVariable(ie.Name);
+                if (ii.is_namespace || ii.is_type)
+                {
+                    stringBuilder.Append("::");
+                    caller_type = null;
+                }
+                else
+                {
+                    caller_type = ii.type;
+                }
+            }
+            else
+            {
+                caller_type = GetExpType(es.Caller);
+            }
+
+            if (caller_type != null)
+            {
+                if (caller_type.is_class)
+                {
+                    //Metadata.DB_Member member = caller_type.members[es.Name];
+                    //if (member.is_static)
+                    stringBuilder.Append("->");
+                    //else if (member.member_type == (int)Metadata.MemberTypes.Method)
+                    //{
+
+                    //}
+                }
+                else
+                {
+                    stringBuilder.Append(".");
+                }
+            }
+
+            stringBuilder.Append(es.Name);
+            stringBuilder.Append("(");
             if (es.Args != null)
             {
                 for (int i = 0; i < es.Args.Count; i++)
                 {
-                    ExpSB.Append(ExpressionToString(es.Args[i]));
+                    stringBuilder.Append(ExpressionToString(es.Args[i]));
                     if (i < es.Args.Count - 2)
-                        ExpSB.Append(",");
+                        stringBuilder.Append(",");
                 }
             }
-            ExpSB.Append(")");
+            stringBuilder.Append(")");
 
-            return ExpSB.ToString();
+            return stringBuilder.ToString();
         }
         static string ExpressionToString(Metadata.Expression.ConstExp es)
         {
