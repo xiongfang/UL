@@ -871,7 +871,8 @@ namespace CSharpCompiler
                 else if (step == ECompilerStet.Compile)
                 {
                     Metadata.DB_Member dB_Member = MemberMap[f];
-                    dB_Member.method_body = ExportBody(f.Body);
+                    if(f.Body!=null)
+                        dB_Member.method_body = ExportBody(f.Body);
                 }
             }
             if (v is ConstructorDeclarationSyntax)

@@ -7,6 +7,15 @@ using System.Threading.Tasks;
 
 namespace CppConverter
 {
+
+    class TypeConfig
+    {
+        public string name;
+        public string ext_header;
+        public string ext_cpp;
+    }
+
+
     class Finder:Metadata.IModelTypeFinder
     {
         //查找一个数据库类型
@@ -249,14 +258,41 @@ namespace CppConverter
             }
         }
 
-        static public HashSet<Metadata.DB_TypeRef> GetTypeDependences(Metadata.DB_Type type)
+        static HashSet<string> GetTypeList(Metadata.DB_TypeRef type)
+        {
+            HashSet<string> set = new HashSet<string>();
+
+            set.Add(type.identifer);
+            foreach(var p in type.parameters)
+            {
+                foreach(var l in GetTypeList(p))
+                {
+                    set.Add(l);
+                }
+            }
+            
+
+            return set;
+        }
+
+        static public HashSet<string> GetTypeDependences(Metadata.DB_Type type)
         {
             Metadata.Model model = new Metadata.Model(new DataBaseFinder());
 
             Metadata.MyCppHeaderTypeFinder f = new Metadata.MyCppHeaderTypeFinder(model);
             model.Visit(type, f);
 
-            return f.result;
+            HashSet<string> set = new HashSet<string>();
+            foreach (var s in f.result)
+            {
+                set.Add(s.identifer);
+                foreach (var l in GetTypeList(s))
+                {
+                    set.Add(l);
+                }
+            }
+
+            return set;
             //if (!type.base_type.IsVoid)
             //    result.Add(type.base_type);
             //foreach (var m in type.members.Values)
@@ -279,14 +315,24 @@ namespace CppConverter
             //return result;
         }
 
-        static public HashSet<Metadata.DB_TypeRef> GetMethodBodyDependences(Metadata.DB_Type type)
+        static public HashSet<string> GetMethodBodyDependences(Metadata.DB_Type type)
         {
             Metadata.Model model = new Metadata.Model(new DataBaseFinder());
 
             Metadata.MyCppMethodBodyTypeFinder f = new Metadata.MyCppMethodBodyTypeFinder(model);
             model.Visit(type, f);
 
-            return f.typeRef;
+            HashSet<string> set = new HashSet<string>();
+            foreach (var s in f.typeRef)
+            {
+                set.Add(s.identifer);
+                foreach (var l in GetTypeList(s))
+                {
+                    set.Add(l);
+                }
+            }
+
+            return set;
         }
 
         static void LoadTypeDependences(string full_name, Dictionary<string, Metadata.DB_Type> loaded)
@@ -295,23 +341,23 @@ namespace CppConverter
             if (type == null)
                 return;
             loaded.Add(type.full_name, type);
-            HashSet<Metadata.DB_TypeRef> dep = GetTypeDependences(type);
+            HashSet<string> dep = GetTypeDependences(type);
 
             foreach (var t in dep)
             {
                 //string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
-                if (!loaded.ContainsKey(t.identifer))
+                if (!loaded.ContainsKey(t))
                 {
-                    LoadTypeDependences(t.identifer, loaded);
+                    LoadTypeDependences(t, loaded);
                 }
             }
-            HashSet<Metadata.DB_TypeRef> body_Dep = GetMethodBodyDependences(type);
+            HashSet<string> body_Dep = GetMethodBodyDependences(type);
             foreach (var t in body_Dep)
             {
                 //string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
-                if (!loaded.ContainsKey(t.identifer))
+                if (!loaded.ContainsKey(t))
                 {
-                    LoadTypeDependences(t.identifer, loaded);
+                    LoadTypeDependences(t, loaded);
                 }
             }
         }
@@ -320,7 +366,7 @@ namespace CppConverter
         static StringBuilder sb = new StringBuilder();
         static int depth;
         static string outputDir;
-
+        static Dictionary<string, TypeConfig> configs = new Dictionary<string, TypeConfig>();
 
         static string GetCppTypeName(Metadata.DB_Type type)
         {
@@ -353,6 +399,12 @@ namespace CppConverter
 
         static void Main(string[] args)
         {
+            TypeConfig[] cfg = Metadata.DB.ReadObject<TypeConfig[]>(System.IO.File.ReadAllText("ext.json"));
+            foreach(var c in cfg)
+            {
+                configs[c.name] = c;
+            }
+
             string TypeName = args[0];
             outputDir = args[1];
             using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
@@ -403,11 +455,11 @@ namespace CppConverter
                 sb.Clear();
                 sb.AppendLine("#pragma once");
                 //包含头文件
-                HashSet<Metadata.DB_TypeRef> depTypes = GetTypeDependences(type);
+                HashSet<string> depTypes = GetTypeDependences(type);
                 foreach(var t in depTypes)
                 {
                     Metadata.DB_Type depType = Model.GetType(t);
-                    if (!depType.is_generic_paramter && t.identifer !=type.full_name)
+                    if (!depType.is_generic_paramter && t !=type.full_name)
                         sb.AppendLine("#include \"" + depType.name + ".h\"");
                 }
                 sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
@@ -437,6 +489,14 @@ namespace CppConverter
                         depth--;
                     }
 
+                    if(configs.ContainsKey(type.full_name))
+                    {
+                        if(!string.IsNullOrEmpty( configs[type.full_name].ext_header))
+                        {
+                            AppendLine("#include \"" + configs[type.full_name].ext_header +"\"");
+                        }
+                    }
+
                     AppendLine("};");
                     depth--;
                 }
@@ -454,17 +514,26 @@ namespace CppConverter
                 //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
 
                 //包含依赖的头文件
-                HashSet<Metadata.DB_TypeRef> depTypes = GetMethodBodyDependences(type);
+                HashSet<string> depTypes = GetMethodBodyDependences(type);
                 foreach (var t in depTypes)
                 {
                     Metadata.DB_Type depType = Model.GetType(t);
-                    if (!depType.is_generic_paramter && t.identifer != type.full_name)
+                    if (!depType.is_generic_paramter && t != type.full_name)
                         sb.AppendLine("#include \"" + depType.name + ".h\"");
                 }
 
                 foreach (var us in type.usingNamespace)
                 {
                     sb.AppendLine("using namespace " + us + ";");
+                }
+
+
+                if (configs.ContainsKey(type.full_name))
+                {
+                    if (!string.IsNullOrEmpty(configs[type.full_name].ext_cpp))
+                    {
+                        AppendLine("#include \"" + configs[type.full_name].ext_cpp + "\"");
+                    }
                 }
 
                 foreach (var m in type.members.Values)
@@ -565,7 +634,7 @@ namespace CppConverter
             else if (member.member_type == (int)Metadata.MemberTypes.Method || member.member_type == (int)Metadata.MemberTypes.Constructor)
             {
                 Metadata.DB_Type declare_type = Model.GetType(member.declaring_type);
-                if (!declare_type.is_generic_type_definition)
+                if (!declare_type.is_generic_type_definition && member.method_body!=null)
                 {
                     if (member.member_type == (int)Metadata.MemberTypes.Method)
                         sb.Append(string.Format("{0} {1}::{2}", member.method_ret_type.IsVoid ? "void" : GetCppTypeName(Model.GetType(member.method_ret_type)), GetCppTypeName(Model.GetType(member.declaring_type)), member.name));

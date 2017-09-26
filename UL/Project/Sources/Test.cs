@@ -44,10 +44,7 @@ namespace System
 
     public class Console
     {
-        public static void WriteLine(string v)
-        {
-
-        }
+        public static void WriteLine(string v);
     }
 }
 namespace HelloWorld
@@ -76,7 +73,7 @@ namespace HelloWorld
         public TestGeneric<int, string> v;
         public int[] s;
 
-        static void Main(string arg,int arg2)
+        public static void Main()
         {
             if(true)
             {

@@ -152,6 +152,7 @@
     <ClInclude Include="Boolean.h" />
     <ClInclude Include="Boolean_ExtHeader.h" />
     <ClInclude Include="Console.h" />
+    <ClInclude Include="Console_ExtCpp.h" />
     <ClInclude Include="Int32.h" />
     <ClInclude Include="Int32_ExtHeader.h" />
     <ClInclude Include="Object.h" />
