@@ -66,6 +66,9 @@
     <ClInclude Include="Console_ExtCpp.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="IComparable.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -99,6 +102,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Boolean.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="IComparable.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

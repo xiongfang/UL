@@ -309,6 +309,8 @@ namespace CSharpCompiler
                     return "System.Single";
                 case "double":
                     return "System.Double";
+                case "object":
+                    return "System.Object";
                 default:
                     return "void";
             }
@@ -465,9 +467,9 @@ namespace CSharpCompiler
             return Modifiers.Count > 0 && Modifiers.Count((a) => { return a.Text == token; }) > 0;
         }
 
-        static int GetModifier(SyntaxTokenList Modifiers)
+        static int GetModifier(Metadata.DB_Type current_type, SyntaxTokenList Modifiers)
         {
-            bool isPublic = ContainModifier(Modifiers, "public");
+            bool isPublic = current_type.is_interface?true: ContainModifier(Modifiers, "public");
             bool isProtected = ContainModifier(Modifiers, "protected");
             bool isPrivate = !isPublic && !isProtected;
 
@@ -493,9 +495,12 @@ namespace CSharpCompiler
             {
                 ExportStruct(c as StructDeclarationSyntax);
             }
+            else if(c is InterfaceDeclarationSyntax)
+            {
+                ExportInterface(c as InterfaceDeclarationSyntax);
+            }
         }
-
-        static void ExportStruct(StructDeclarationSyntax c)
+        static void ExportInterface(InterfaceDeclarationSyntax c)
         {
             if (step == ECompilerStet.ScanType)
             {
@@ -505,12 +510,11 @@ namespace CSharpCompiler
                 //bool isProtected = ContainModifier(c.Modifiers, "protected");
                 //bool isPrivate = !isPublic && !isProtected;
                 type.is_abstract = ContainModifier(c.Modifiers, "abstract");
-
+                type.is_interface = true;
+                type.is_value_type = false;
                 Console.WriteLine("Identifier:" + c.Identifier);
                 Console.WriteLine("Modifiers:" + c.Modifiers);
-                type.modifier = GetModifier(c.Modifiers);
-                type.is_interface = false;
-                type.is_value_type = true;
+                type.modifier = GetModifier(type,c.Modifiers);
                 type.name = c.Identifier.Text;
 
                 type.usingNamespace = new List<string>();
@@ -577,8 +581,149 @@ namespace CSharpCompiler
 
                 Metadata.DB_Type type = Model.FindType(typeName);
 
+                //if (type.full_name != "System.Object" && type.base_type.IsVoid)
+                //    type.base_type = Model.GetType("System.Object").GetRefType();
+
+                //父类
+                if (c.BaseList != null)
+                {
+                    foreach (var b in c.BaseList.Types)
+                    {
+                        Metadata.DB_Type dB_Type = GetType(b.Type);
+                        if (dB_Type.is_interface)
+                        {
+                            type.interfaces.Add(dB_Type.GetRefType());
+                        }
+                        else
+                        {
+                            type.base_type = dB_Type.GetRefType();
+                        }
+                    }
+                }
+                else
+                {
+
+                }
+
+                Model.EnterType(type);
+
+                //泛型参数
+                if (c.ConstraintClauses != null)
+                {
+                    foreach (var Constraint in c.ConstraintClauses)
+                    {
+
+                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                        foreach (var tpc in Constraint.Constraints)
+                        {
+                            genericParameterDefinition.constraint.Add(Model.FindType(tpc.ToString()).full_name);
+                        }
+
+                    }
+                }
+
+
+                //导出所有变量
+                var virableNodes = c.ChildNodes().OfType<FieldDeclarationSyntax>();
+                foreach (var v in virableNodes)
+                {
+                    ExportVariable(v, type);
+                }
+
+                //导出所有方法
+                var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
+                foreach (var f in funcNodes)
+                {
+                    ExportMethod(f, type);
+                }
+                Model.LeaveType();
+                Console.WriteLine();
+            }
+        }
+        static void ExportStruct(StructDeclarationSyntax c)
+        {
+            if (step == ECompilerStet.ScanType)
+            {
+                Metadata.DB_Type type = new Metadata.DB_Type();
+
+                //bool isPublic = ContainModifier(c.Modifiers, "public");
+                //bool isProtected = ContainModifier(c.Modifiers, "protected");
+                //bool isPrivate = !isPublic && !isProtected;
+                type.is_abstract = ContainModifier(c.Modifiers, "abstract");
+
+                Console.WriteLine("Identifier:" + c.Identifier);
+                Console.WriteLine("Modifiers:" + c.Modifiers);
+                type.is_interface = false;
+                type.is_value_type = true;
+                type.modifier = GetModifier(type,c.Modifiers);
+                type.name = c.Identifier.Text;
+
+                type.usingNamespace = new List<string>();
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    //type.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
+                    type.usingNamespace.AddRange(Model.usingNamespace);
+                    foreach (var ns in namespaceDeclarationSyntax.Usings)
+                    {
+                        type.usingNamespace.Add(ns.Name.ToString());
+                    }
+                    type._namespace = namespaceDeclarationSyntax.Name.ToString();
+                }
+
+                //泛型
+                if (c.TypeParameterList != null)
+                {
+                    type.is_generic_type_definition = true;
+                    foreach (var p in c.TypeParameterList.Parameters)
+                    {
+                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = new Metadata.DB_Type.GenericParameterDefinition();
+                        genericParameterDefinition.type_name = p.Identifier.Text;
+                        type.generic_parameter_definitions.Add(genericParameterDefinition);
+                    }
+                }
+
+                //Metadata.DB.SaveDBType(type, _con, _trans);
+                Model.AddCompilerType(type);
+            }
+            else if (step == ECompilerStet.ScanMember)
+            {
+                string typeName = c.Identifier.Text;
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    Model.EnterNS(namespaceDeclarationSyntax.Name.ToString());
+                }
+                if (c.TypeParameterList != null)
+                {
+                    typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
+                }
+
+                Metadata.DB_Type type = Model.FindType(typeName);
+
                 if (type.full_name != "System.Object" && type.base_type.IsVoid)
                     type.base_type = Model.GetType("System.Object").GetRefType();
+
+                //父类
+                if (c.BaseList != null)
+                {
+                    foreach (var b in c.BaseList.Types)
+                    {
+                        Metadata.DB_Type dB_Type = GetType(b.Type);
+                        if (dB_Type.is_interface)
+                        {
+                            type.interfaces.Add(dB_Type.GetRefType());
+                        }
+                        else
+                        {
+                            type.base_type = dB_Type.GetRefType();
+                        }
+                    }
+                }
+                else
+                {
+
+                }
 
                 Model.EnterType(type);
 
@@ -651,13 +796,12 @@ namespace CSharpCompiler
                 //bool isProtected = ContainModifier(c.Modifiers, "protected");
                 //bool isPrivate = !isPublic && !isProtected;
                 type.is_abstract = ContainModifier(c.Modifiers, "abstract");
-
-                Console.WriteLine("Identifier:" + c.Identifier);
-                Console.WriteLine("Modifiers:" + c.Modifiers);
-                type.modifier = GetModifier(c.Modifiers);
                 type.is_interface = false;
                 type.is_value_type = false;
                 type.is_class = true;
+                Console.WriteLine("Identifier:" + c.Identifier);
+                Console.WriteLine("Modifiers:" + c.Modifiers);
+                type.modifier = GetModifier(type,c.Modifiers);
                 type.name = c.Identifier.Text;
 
                 type.usingNamespace = new List<string>();
@@ -673,26 +817,7 @@ namespace CSharpCompiler
                     type._namespace = namespaceDeclarationSyntax.Name.ToString();
                 }
 
-                //父类
-                if(c.BaseList!=null)
-                {
-                    foreach(var b in c.BaseList.Types)
-                    {
-                        Metadata.DB_Type dB_Type = GetType(b.Type);
-                        if(dB_Type.is_interface)
-                        {
-                            type.interfaces.Add(dB_Type.GetRefType());
-                        }
-                        else
-                        {
-                            type.base_type = dB_Type.GetRefType();
-                        }
-                    }
-                }
-                else
-                {
-
-                }
+                
                 
                 //泛型
                 if(c.TypeParameterList!=null)
@@ -726,6 +851,27 @@ namespace CSharpCompiler
 
                 if (type.full_name != "System.Object" && type.base_type.IsVoid)
                     type.base_type = Model.GetType("System.Object").GetRefType();
+
+                //父类
+                if (c.BaseList != null)
+                {
+                    foreach (var b in c.BaseList.Types)
+                    {
+                        Metadata.DB_Type dB_Type = GetType(b.Type);
+                        if (dB_Type.is_interface)
+                        {
+                            type.interfaces.Add(dB_Type.GetRefType());
+                        }
+                        else
+                        {
+                            type.base_type = dB_Type.GetRefType();
+                        }
+                    }
+                }
+                else
+                {
+
+                }
 
                 Model.EnterType(type);
 
@@ -814,7 +960,7 @@ namespace CSharpCompiler
                     dB_Member.is_static = ContainModifier(v.Modifiers, "static");
                     dB_Member.declaring_type = type.full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Field;
-                    dB_Member.modifier = GetModifier(v.Modifiers);
+                    dB_Member.modifier = GetModifier(type,v.Modifiers);
                     dB_Member.field_type = v_type.GetRefType();
 
                     //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
@@ -846,7 +992,7 @@ namespace CSharpCompiler
                     dB_Member.is_static = ContainModifier(f.Modifiers, "static");
                     dB_Member.declaring_type = type.full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Method;
-                    dB_Member.modifier = GetModifier(f.Modifiers);
+                    dB_Member.modifier = GetModifier(type,f.Modifiers);
 
                     dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
                     for (int i = 0; i < f.ParameterList.Parameters.Count; i++)
@@ -892,7 +1038,7 @@ namespace CSharpCompiler
                     dB_Member.is_static = ContainModifier(f.Modifiers, "static");
                     dB_Member.declaring_type = type.full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Constructor;
-                    dB_Member.modifier = GetModifier(f.Modifiers);
+                    dB_Member.modifier = GetModifier(type,f.Modifiers);
 
                     dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
                     for (int i = 0; i < f.ParameterList.Parameters.Count; i++)

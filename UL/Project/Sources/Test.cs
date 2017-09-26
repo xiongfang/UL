@@ -1,7 +1,11 @@
 
 namespace System
 {
-    public struct Int32
+    public interface IComparable
+    {
+        int CompareTo(object obj);
+    }
+    public struct Int32: IComparable
     {
         public Int32 op_Equals(Int32 b)
         {

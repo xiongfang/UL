@@ -258,6 +258,76 @@ namespace CppConverter
             }
         }
 
+        public class MyCppHeaderTypeNoDeclareFinder : Metadata.ITypeVisitor
+        {
+            Metadata.Model model;
+            public MyCppHeaderTypeNoDeclareFinder(Metadata.Model model)
+            {
+                this.model = model;
+            }
+            public HashSet<Metadata.DB_TypeRef> result = new HashSet<Metadata.DB_TypeRef>();
+            public void VisitType(Metadata.DB_Type type)
+            {
+                if (!type.base_type.IsVoid)
+                    result.Add(type.base_type);
+                foreach (var i in type.interfaces)
+                {
+                    result.Add(i);
+                }
+                foreach (var m in type.members.Values)
+                {
+                    if (m.member_type == (int)Metadata.MemberTypes.Field)
+                    {
+                        result.Add(m.field_type);
+                    }
+                    else if (m.member_type == (int)Metadata.MemberTypes.Method || m.member_type == (int)Metadata.MemberTypes.Constructor)
+                    {
+                        if (m.method_ret_type.parameters.Count>0)
+                            result.Add(m.method_ret_type);
+                        foreach (var a in m.method_args)
+                        {
+                            if(a.type.parameters.Count>0)
+                                result.Add(a.type);
+                        }
+                    }
+                }
+            }
+            public bool VisitMember(Metadata.DB_Type type, Metadata.DB_Member member)
+            {
+                return false;
+            }
+            public void VisitStatement(Metadata.DB_Type type, Metadata.DB_Member member, Metadata.DB_StatementSyntax statement)
+            {
+
+            }
+            public void VisitExp(Metadata.DB_Type type, Metadata.DB_Member member, Metadata.DB_StatementSyntax statement, Metadata.Expression.Exp exp)
+            {
+
+            }
+        }
+        //返回一个类型的不可以声明的类型
+        static HashSet<string> GetTypeDependencesNoDeclareType(Metadata.DB_Type type)
+        {
+            Metadata.Model model = new Metadata.Model(new DataBaseFinder());
+
+            MyCppHeaderTypeNoDeclareFinder f = new MyCppHeaderTypeNoDeclareFinder(model);
+            model.Visit(type, f);
+
+            HashSet<string> set = new HashSet<string>();
+            foreach (var s in f.result)
+            {
+                if (s.IsVoid)
+                    continue;
+                set.Add(s.identifer);
+                foreach (var l in GetTypeList(s))
+                {
+                    set.Add(l);
+                }
+            }
+
+            return set;
+        }
+
         static HashSet<string> GetTypeList(Metadata.DB_TypeRef type)
         {
             HashSet<string> set = new HashSet<string>();
@@ -285,6 +355,8 @@ namespace CppConverter
             HashSet<string> set = new HashSet<string>();
             foreach (var s in f.result)
             {
+                if (s.IsVoid)
+                    continue;
                 set.Add(s.identifer);
                 foreach (var l in GetTypeList(s))
                 {
@@ -325,6 +397,8 @@ namespace CppConverter
             HashSet<string> set = new HashSet<string>();
             foreach (var s in f.typeRef)
             {
+                if (s.IsVoid)
+                    continue;
                 set.Add(s.identifer);
                 foreach (var l in GetTypeList(s))
                 {
@@ -389,6 +463,8 @@ namespace CppConverter
                 sb.Append(">");
                 return sb.ToString();
             }
+            if(type.is_interface)
+                return type._namespace + "::" + type.name;
             if (type.is_class)
                 return type._namespace + "::" + type.name;
             if(type.is_value_type)
@@ -450,17 +526,47 @@ namespace CppConverter
             Model.EnterType(type);
             //头文件
             {
-                
-
                 sb.Clear();
                 sb.AppendLine("#pragma once");
+
                 //包含头文件
                 HashSet<string> depTypes = GetTypeDependences(type);
+
+                HashSet<string> NoDeclareTypes = GetTypeDependencesNoDeclareType(type);
                 foreach(var t in depTypes)
                 {
                     Metadata.DB_Type depType = Model.GetType(t);
-                    if (!depType.is_generic_paramter && t !=type.full_name)
-                        sb.AppendLine("#include \"" + depType.name + ".h\"");
+                    if (!depType.is_generic_paramter && t != type.full_name)
+                    {
+                        if (NoDeclareTypes.Contains(t))
+                        {
+                            sb.AppendLine("#include \"" + depType.name + ".h\"");
+                        }
+                        else
+                        {
+                            //前向声明
+                            sb.AppendLine("namespace " + depType._namespace);
+                            sb.AppendLine("{");
+                            if (depType.is_generic_type_definition)
+                            {
+                                sb.Append("template");
+                                sb.Append("<");
+                                for (int i = 0; i < depType.generic_parameter_definitions.Count; i++)
+                                {
+                                    sb.Append(depType.generic_parameter_definitions[i].type_name);
+                                    if (i < depType.generic_parameter_definitions.Count - 1)
+                                        sb.Append(",");
+                                }
+                                sb.AppendLine(">");
+                                sb.AppendLine("class " + depType.name+";");
+                            }
+                            else
+                            {
+                                sb.AppendLine("class " + depType.name + ";");
+                            }
+                            sb.AppendLine("}");
+                        }
+                    }
                 }
                 sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
                 {
@@ -476,7 +582,25 @@ namespace CppConverter
                         }
                         sb.AppendLine(">");
                     }
-                    AppendLine(string.Format("class {0}{{", type.name));
+                    Append(string.Format("class {0}", type.name));
+                    if(!type.base_type.IsVoid || type.interfaces.Count>0)
+                    {
+                        sb.Append(":");
+                        if (!type.base_type.IsVoid)
+                        {
+                            sb.Append("public "+GetCppTypeName(Model.GetType(type.base_type)));
+                            if(type.interfaces.Count>0)
+                                sb.Append(",");
+                        }
+                        for(int i=0;i<type.interfaces.Count;i++)
+                        {
+                            sb.Append("public " + GetCppTypeName(Model.GetType(type.interfaces[i])));
+                            if (i<type.interfaces.Count-1)
+                                sb.Append(",");
+                        }
+                        sb.AppendLine();
+                    }
+                    AppendLine("{");
                     {
                         depth++;
 
@@ -515,12 +639,23 @@ namespace CppConverter
 
                 //包含依赖的头文件
                 HashSet<string> depTypes = GetMethodBodyDependences(type);
-                foreach (var t in depTypes)
+                HashSet<string> headDepTypes = GetTypeDependences(type);
+                foreach (var t in headDepTypes)
                 {
                     Metadata.DB_Type depType = Model.GetType(t);
                     if (!depType.is_generic_paramter && t != type.full_name)
                         sb.AppendLine("#include \"" + depType.name + ".h\"");
                 }
+                foreach (var t in depTypes)
+                {
+                    if(!headDepTypes.Contains(t))
+                    {
+                        Metadata.DB_Type depType = Model.GetType(t);
+                        if (!depType.is_generic_paramter && t != type.full_name)
+                            sb.AppendLine("#include \"" + depType.name + ".h\"");
+                    }
+                }
+               
 
                 foreach (var us in type.usingNamespace)
                 {

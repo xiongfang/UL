@@ -396,6 +396,39 @@ namespace Metadata
         void VisitExp(DB_Type type, ITypeVisitor visitor, DB_Member method, DB_StatementSyntax statement,Expression.Exp exp)
         {
             visitor.VisitExp(type, method, statement, exp);
+            if (exp is Expression.IndifierExp)
+            {
+            }
+            else if (exp is Expression.FieldExp)
+            {
+                Expression.FieldExp e = exp as Expression.FieldExp;
+                VisitExp(type, visitor, method, statement, e.Caller);
+            }
+            else if (exp is Expression.ObjectCreateExp)
+            {
+                Expression.ObjectCreateExp e = exp as Expression.ObjectCreateExp;
+                foreach (var a in e.Args)
+                {
+                    VisitExp(type, visitor, method, statement, a);
+                }
+                
+            }
+            else if (exp is Expression.ConstExp)
+            {
+                Expression.ConstExp e = exp as Expression.ConstExp;
+                
+            }
+            else if (exp is Expression.MethodExp)
+            {
+                Expression.MethodExp e = exp as Expression.MethodExp;
+                VisitExp(type, visitor, method, statement, e.Caller);
+                List<DB_Type> argTypes = new List<DB_Type>();
+                foreach (var a in e.Args)
+                {
+                    VisitExp(type, visitor, method, statement, a);
+                }
+            }
+
         }
 
         void VisitDeclareVairable(DB_Type type, ITypeVisitor visitor, DB_Member method, DB_StatementSyntax statement,VariableDeclarationSyntax Declaration)
@@ -421,6 +454,10 @@ namespace Metadata
         {
             if (!type.base_type.IsVoid)
                 result.Add(type.base_type);
+            foreach(var i in type.interfaces)
+            {
+                result.Add(i);
+            }
             foreach (var m in type.members.Values)
             {
                 if (m.member_type == (int)Metadata.MemberTypes.Field)
@@ -492,10 +529,6 @@ namespace Metadata
             {
                 Expression.ObjectCreateExp e = exp as Expression.ObjectCreateExp;
                 typeRef.Add(e.Type);
-                foreach (var a in e.Args)
-                {
-                    typeRef.Add(model.GetExpType(a).GetRefType());
-                }
             }
             else if(exp is Expression.ConstExp)
             {
@@ -507,10 +540,12 @@ namespace Metadata
                 Expression.MethodExp e = exp as Expression.MethodExp;
                 DB_Type caller = model.GetExpType(e.Caller);
                 typeRef.Add(caller.GetRefType());
+                List<DB_Type> argTypes = new List<DB_Type>();
                 foreach(var a in e.Args)
                 {
-                    typeRef.Add(model.GetExpType(a).GetRefType());
+                    argTypes.Add(model.GetExpType(a));
                 }
+                typeRef.Add(caller.FindMethod(e.Name, argTypes).method_ret_type);
             }
         }
     }

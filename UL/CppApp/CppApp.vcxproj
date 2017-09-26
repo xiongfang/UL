@@ -153,6 +153,7 @@
     <ClInclude Include="Boolean_ExtHeader.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="Console_ExtCpp.h" />
+    <ClInclude Include="IComparable.h" />
     <ClInclude Include="Int32.h" />
     <ClInclude Include="Int32_ExtHeader.h" />
     <ClInclude Include="Object.h" />
@@ -169,6 +170,7 @@
     <ClCompile Include="Boolean.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CppApp.cpp" />
+    <ClCompile Include="IComparable.cpp" />
     <ClCompile Include="Int32.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Program.cpp" />
