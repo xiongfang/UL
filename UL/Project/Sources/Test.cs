@@ -50,6 +50,49 @@ namespace System
     {
         public static void WriteLine(string v);
     }
+
+    //
+    // 摘要:
+    //     
+    public enum MemberTypes
+    {
+        //
+        // 摘要:
+        //     指定该成员是一个构造函数
+        Constructor = 1,
+        //
+        // 摘要:
+        //     指定该成员是一个事件。
+        Event = 2,
+        //
+        // 摘要:
+        //     指定该成员是一个字段。
+        Field = 4,
+        //
+        // 摘要:
+        //     指定该成员是一种方法。
+        Method = 8,
+        //
+        // 摘要:
+        //     指定成员是属性。
+        Property = 16,
+        //
+        // 摘要:
+        //     指定该成员是一种类型。
+        TypeInfo = 32,
+        //
+        // 摘要:
+        //     指定该成员是自定义成员的指针类型。
+        Custom = 64,
+        //
+        // 摘要:
+        //     指定该成员是嵌套的类型。
+        NestedType = 128,
+        //
+        // 摘要:
+        //     指定所有成员类型。
+        All = 191
+    }
 }
 namespace HelloWorld
 {
@@ -70,6 +113,13 @@ namespace HelloWorld
     {
         public int a = 6;
     }
+    enum TestE
+    {
+        A,
+        B,
+        C
+    }
+
     public class Program
     {
         public static int a = 6;
@@ -90,17 +140,14 @@ namespace HelloWorld
 
             }
         }
-        enum TestE
-        {
-            A,
-            B,
-            C
-        }
+
         void Print(ref TestInt hello)
         {
             TestInt c = new TestInt();
             c.a = 7;
             Console.WriteLine("Print");
+
+            MemberTypes testEnum = MemberTypes.Event;
 
             int[] v = new int[6];
 

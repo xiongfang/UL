@@ -48,9 +48,6 @@
     <ClInclude Include="Console.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="Array_ExtHeader.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="Int32_ExtHeader.h">
       <Filter>源文件</Filter>
     </ClInclude>
@@ -69,15 +66,15 @@
     <ClInclude Include="IComparable.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="MemberTypes.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CppApp.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Array.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Int32.cpp">
@@ -90,9 +87,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="String.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="TestGeneric.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TestInt.cpp">

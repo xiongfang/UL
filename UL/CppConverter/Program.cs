@@ -469,7 +469,9 @@ namespace CppConverter
                 return type._namespace + "::" + type.name;
             if(type.is_value_type)
                 return type._namespace + "::" + type.name;
-            
+            if(type.is_enum)
+                return type._namespace + "::" + type.name;
+
             return type.full_name;
         }
 
@@ -571,44 +573,66 @@ namespace CppConverter
                 sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
                 {
                     depth++;
-                    if (type.is_generic_type_definition)
+                    if(type.is_enum)
                     {
-                        Append("template<");
-                        for (int i = 0; i < type.generic_parameter_definitions.Count; i++)
-                        {
-                            sb.Append("class "+ type.generic_parameter_definitions[i].type_name);
-                            if (i < type.generic_parameter_definitions.Count - 1)
-                                sb.Append(",");
-                        }
-                        sb.AppendLine(">");
+                        Append(string.Format("enum {0}", type.name));
                     }
-                    Append(string.Format("class {0}", type.name));
-                    if(!type.base_type.IsVoid || type.interfaces.Count>0)
+                    else
                     {
-                        sb.Append(":");
-                        if (!type.base_type.IsVoid)
+                        if (type.is_generic_type_definition)
                         {
-                            sb.Append("public "+GetCppTypeName(Model.GetType(type.base_type)));
-                            if(type.interfaces.Count>0)
-                                sb.Append(",");
+                            Append("template<");
+                            for (int i = 0; i < type.generic_parameter_definitions.Count; i++)
+                            {
+                                sb.Append("class " + type.generic_parameter_definitions[i].type_name);
+                                if (i < type.generic_parameter_definitions.Count - 1)
+                                    sb.Append(",");
+                            }
+                            sb.AppendLine(">");
                         }
-                        for(int i=0;i<type.interfaces.Count;i++)
+                        Append(string.Format("class {0}", type.name));
+                        if (!type.base_type.IsVoid || type.interfaces.Count > 0)
                         {
-                            sb.Append("public " + GetCppTypeName(Model.GetType(type.interfaces[i])));
-                            if (i<type.interfaces.Count-1)
-                                sb.Append(",");
+                            sb.Append(":");
+                            if (!type.base_type.IsVoid)
+                            {
+                                sb.Append("public " + GetCppTypeName(Model.GetType(type.base_type)));
+                                if (type.interfaces.Count > 0)
+                                    sb.Append(",");
+                            }
+                            for (int i = 0; i < type.interfaces.Count; i++)
+                            {
+                                sb.Append("public " + GetCppTypeName(Model.GetType(type.interfaces[i])));
+                                if (i < type.interfaces.Count - 1)
+                                    sb.Append(",");
+                            }
+                            sb.AppendLine();
                         }
-                        sb.AppendLine();
                     }
+                    
                     AppendLine("{");
                     {
                         depth++;
 
-                        foreach (var m in type.members.Values)
+                        if(type.is_enum)
                         {
-                            ConvertMemberHeader(m);
+                            List<Metadata.DB_Member> members = type.members.Values.ToList();
+                            members.Sort((a, b) => { return a.order <= b.order ? -1 : 1; });
+                            for(int i=0;i< members.Count;i++)
+                            {
+                                Append(members[i].name);
+                                if (i < members.Count - 1)
+                                    sb.Append(",");
+                                sb.AppendLine();
+                            }
                         }
-
+                        else
+                        {
+                            foreach (var m in type.members.Values)
+                            {
+                                ConvertMemberHeader(m);
+                            }
+                        }
 
                         depth--;
                     }
@@ -633,51 +657,55 @@ namespace CppConverter
             //cpp文件
             {
                 sb.Clear();
-                sb.AppendLine("#include \"stdafx.h\"");
-                sb.AppendLine("#include \"" + type.name + ".h\"");
-                //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
+                if(!type.is_enum && !type.is_generic_type_definition)
+                {
+                    sb.AppendLine("#include \"stdafx.h\"");
+                    sb.AppendLine("#include \"" + type.name + ".h\"");
+                    //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
 
-                //包含依赖的头文件
-                HashSet<string> depTypes = GetMethodBodyDependences(type);
-                HashSet<string> headDepTypes = GetTypeDependences(type);
-                foreach (var t in headDepTypes)
-                {
-                    Metadata.DB_Type depType = Model.GetType(t);
-                    if (!depType.is_generic_paramter && t != type.full_name)
-                        sb.AppendLine("#include \"" + depType.name + ".h\"");
-                }
-                foreach (var t in depTypes)
-                {
-                    if(!headDepTypes.Contains(t))
+                    //包含依赖的头文件
+                    HashSet<string> depTypes = GetMethodBodyDependences(type);
+                    HashSet<string> headDepTypes = GetTypeDependences(type);
+                    foreach (var t in headDepTypes)
                     {
                         Metadata.DB_Type depType = Model.GetType(t);
                         if (!depType.is_generic_paramter && t != type.full_name)
                             sb.AppendLine("#include \"" + depType.name + ".h\"");
                     }
-                }
-               
-
-                foreach (var us in type.usingNamespace)
-                {
-                    sb.AppendLine("using namespace " + us + ";");
-                }
-
-
-                if (configs.ContainsKey(type.full_name))
-                {
-                    if (!string.IsNullOrEmpty(configs[type.full_name].ext_cpp))
+                    foreach (var t in depTypes)
                     {
-                        AppendLine("#include \"" + configs[type.full_name].ext_cpp + "\"");
+                        if (!headDepTypes.Contains(t))
+                        {
+                            Metadata.DB_Type depType = Model.GetType(t);
+                            if (!depType.is_generic_paramter && t != type.full_name)
+                                sb.AppendLine("#include \"" + depType.name + ".h\"");
+                        }
                     }
-                }
 
-                foreach (var m in type.members.Values)
-                {
-                    ConvertMemberCpp(m);
-                }
 
-                //sb.AppendLine("}");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString());
+                    foreach (var us in type.usingNamespace)
+                    {
+                        sb.AppendLine("using namespace " + us + ";");
+                    }
+
+
+                    if (configs.ContainsKey(type.full_name))
+                    {
+                        if (!string.IsNullOrEmpty(configs[type.full_name].ext_cpp))
+                        {
+                            AppendLine("#include \"" + configs[type.full_name].ext_cpp + "\"");
+                        }
+                    }
+
+                    foreach (var m in type.members.Values)
+                    {
+                        ConvertMemberCpp(m);
+                    }
+
+                    //sb.AppendLine("}");
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString());
+                }
+                
             }
 
             Model.LeaveType();

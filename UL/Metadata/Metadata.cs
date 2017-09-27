@@ -160,6 +160,7 @@ namespace Metadata
         public bool is_value_type;
         public bool is_interface;
         public bool is_class;
+        public bool is_enum;
         public List<DB_TypeRef> interfaces = new List<DB_TypeRef>();
         public bool is_generic_type_definition;
         public class GenericParameterDefinition
@@ -391,6 +392,7 @@ namespace Metadata
     {
         public string declaring_type;
         public string name;
+        public int order;   //字段序号
         public bool is_static;
         public int modifier;
         public string comments = "";
@@ -836,15 +838,8 @@ namespace Metadata
         //
         // 摘要:
         //     指定该成员是自定义成员的指针类型。
-        Custom = 64,
-        //
-        // 摘要:
-        //     指定该成员是嵌套的类型。
-        NestedType = 128,
-        //
-        // 摘要:
-        //     指定所有成员类型。
-        All = 191
+        EnumMember = 64,
+        
     }
 
     public enum Modifier
@@ -903,7 +898,7 @@ namespace Metadata
             }
 
             {
-                string cmdText = "insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions,name,namespace,usingNamespace) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+                string cmdText = "insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions,name,namespace,usingNamespace,is_enum) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
 
 
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
@@ -922,6 +917,7 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("13", type.name);
                 cmd.Parameters.AddWithValue("14", type._namespace);
                 cmd.Parameters.AddWithValue("15", WriteObject(type.usingNamespace));
+                cmd.Parameters.AddWithValue("16", type.is_enum);
                 cmd.ExecuteNonQuery();
             }
         }
@@ -936,7 +932,7 @@ namespace Metadata
             //}
 
             {
-                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?);",
+                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?);",
                 member.declaring_type, member.identifier, member.name, member.comments, member.modifier, member.is_static, member.member_type, member.ext);
 
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
@@ -945,7 +941,7 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("2", WriteObject( member.method_args));
                 cmd.Parameters.AddWithValue("3", member.method_ret_type.ToString());
                 cmd.Parameters.AddWithValue("4", WriteObject(member.method_body));
-
+                cmd.Parameters.AddWithValue("5", member.order);
 
                 cmd.ExecuteNonQuery();
             }
@@ -1004,6 +1000,7 @@ namespace Metadata
             type.is_generic_type_definition = (bool)reader["is_generic_type_definition"];
             type.generic_parameter_definitions = ReadObject<List<DB_Type.GenericParameterDefinition>>((string)reader["generic_parameter_definitions"]);
             type.usingNamespace = ReadObject<List<string>>((string)reader["usingNamespace"]);
+            type.is_enum = (bool)reader["is_enum"];
             return type;
         }
 
@@ -1028,6 +1025,7 @@ namespace Metadata
                 member.method_args = ReadObject<DB_Member.Argument[]>((string)reader["method_args"]);
                 member.method_body = ReadObject<DB_BlockSyntax>((string)reader["method_body"]);
                 member.method_ret_type = DB.ReadObject<DB_TypeRef>((string)reader["method_ret_type"]);
+                member.order = (int)reader["order"];
                 results.Add(member.identifier, member);
             }
 

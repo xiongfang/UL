@@ -148,7 +148,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Array.h" />
-    <ClInclude Include="Array_ExtHeader.h" />
     <ClInclude Include="Boolean.h" />
     <ClInclude Include="Boolean_ExtHeader.h" />
     <ClInclude Include="Console.h" />
@@ -156,6 +155,7 @@
     <ClInclude Include="IComparable.h" />
     <ClInclude Include="Int32.h" />
     <ClInclude Include="Int32_ExtHeader.h" />
+    <ClInclude Include="MemberTypes.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="stdafx.h" />
@@ -166,7 +166,6 @@
     <ClInclude Include="TestInt.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Array.cpp" />
     <ClCompile Include="Boolean.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CppApp.cpp" />
@@ -181,7 +180,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="String.cpp" />
-    <ClCompile Include="TestGeneric.cpp" />
     <ClCompile Include="TestInt.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

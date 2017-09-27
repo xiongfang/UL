@@ -388,7 +388,7 @@ namespace CSharpCompiler
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
                     //导出所有类
-                    var classNodes = nodes.OfType<TypeDeclarationSyntax>();
+                    var classNodes = nodes.OfType<BaseTypeDeclarationSyntax>();
                     step = ECompilerStet.ScanType;
                     foreach (var c in classNodes)
                     {
@@ -411,7 +411,7 @@ namespace CSharpCompiler
                     }
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
-                    var classNodes = nodes.OfType<TypeDeclarationSyntax>();
+                    var classNodes = nodes.OfType<BaseTypeDeclarationSyntax>();
 
                     step = ECompilerStet.ScanMember;
                     foreach (var c in classNodes)
@@ -433,7 +433,7 @@ namespace CSharpCompiler
                     }
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
-                    var classNodes = nodes.OfType<TypeDeclarationSyntax>();
+                    var classNodes = nodes.OfType<BaseTypeDeclarationSyntax>();
 
                     step = ECompilerStet.Compile;
                     foreach (var c in classNodes)
@@ -485,7 +485,7 @@ namespace CSharpCompiler
         //    }
         //}
 
-        static void ExportType(TypeDeclarationSyntax c)
+        static void ExportType(BaseTypeDeclarationSyntax c)
         {
             if(c is ClassDeclarationSyntax)
             {
@@ -499,7 +499,128 @@ namespace CSharpCompiler
             {
                 ExportInterface(c as InterfaceDeclarationSyntax);
             }
+            else if(c is EnumDeclarationSyntax)
+            {
+                ExportEnum(c as EnumDeclarationSyntax);
+            }
         }
+
+        static void ExportEnum(EnumDeclarationSyntax c)
+        {
+            if (step == ECompilerStet.ScanType)
+            {
+                Metadata.DB_Type type = new Metadata.DB_Type();
+
+                //bool isPublic = ContainModifier(c.Modifiers, "public");
+                //bool isProtected = ContainModifier(c.Modifiers, "protected");
+                //bool isPrivate = !isPublic && !isProtected;
+                type.is_abstract = ContainModifier(c.Modifiers, "abstract");
+                type.is_interface = false;
+                type.is_enum = true;
+                type.is_value_type = false;
+                Console.WriteLine("Identifier:" + c.Identifier);
+                Console.WriteLine("Modifiers:" + c.Modifiers);
+                type.modifier = GetModifier(type, c.Modifiers);
+                type.name = c.Identifier.Text;
+
+                type.usingNamespace = new List<string>();
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    //type.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
+                    type.usingNamespace.AddRange(Model.usingNamespace);
+                    foreach (var ns in namespaceDeclarationSyntax.Usings)
+                    {
+                        type.usingNamespace.Add(ns.Name.ToString());
+                    }
+                    type._namespace = namespaceDeclarationSyntax.Name.ToString();
+                }
+
+                //父类
+                if (c.BaseList != null)
+                {
+                    foreach (var b in c.BaseList.Types)
+                    {
+                        Metadata.DB_Type dB_Type = GetType(b.Type);
+                        if (dB_Type.is_interface)
+                        {
+                            type.interfaces.Add(dB_Type.GetRefType());
+                        }
+                        else
+                        {
+                            type.base_type = dB_Type.GetRefType();
+                        }
+                    }
+                }
+                else
+                {
+
+                }
+
+                //Metadata.DB.SaveDBType(type, _con, _trans);
+                Model.AddCompilerType(type);
+            }
+            else if (step == ECompilerStet.ScanMember)
+            {
+                string typeName = c.Identifier.Text;
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    Model.EnterNS(namespaceDeclarationSyntax.Name.ToString());
+                }
+
+                Metadata.DB_Type type = Model.FindType(typeName);
+
+                //if (type.full_name != "System.Object" && type.base_type.IsVoid)
+                //    type.base_type = Model.GetType("System.Object").GetRefType();
+
+                //父类
+                if (c.BaseList != null)
+                {
+                    foreach (var b in c.BaseList.Types)
+                    {
+                        Metadata.DB_Type dB_Type = GetType(b.Type);
+                        if (dB_Type.is_interface)
+                        {
+                            type.interfaces.Add(dB_Type.GetRefType());
+                        }
+                        else
+                        {
+                            type.base_type = dB_Type.GetRefType();
+                        }
+                    }
+                }
+                else
+                {
+
+                }
+
+                Model.EnterType(type);
+
+
+                //导出所有变量
+                var virableNodes = c.ChildNodes().OfType<EnumMemberDeclarationSyntax>();
+                int order = 0;
+                foreach (var v in virableNodes)
+                {
+                    Metadata.DB_Member dB_Member = new Metadata.DB_Member();
+                    dB_Member.name = v.Identifier.Text;
+                    dB_Member.is_static = false;
+                    dB_Member.declaring_type = type.full_name;
+                    dB_Member.member_type = (int)Metadata.MemberTypes.EnumMember;
+                    //dB_Member.modifier = GetModifier(type, v.Modifiers);
+                    //dB_Member.field_type = v_type.GetRefType();
+                    dB_Member.order = order++;
+                    //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
+                    Model.AddMember(type.full_name, dB_Member);
+                }
+
+                Model.LeaveType();
+                Console.WriteLine();
+            }
+        }
+
+
         static void ExportInterface(InterfaceDeclarationSyntax c)
         {
             if (step == ECompilerStet.ScanType)
