@@ -491,6 +491,18 @@ namespace CppConverter
             return type.static_full_name;
         }
 
+        static string GetCppTypeWrapName(Metadata.DB_Type type)
+        {
+            if (type.GetRefType().IsVoid)
+                return "void";
+            if (type.is_value_type)
+            {
+                return GetCppTypeName(type);
+            }
+            else
+                return string.Format("Ref<{0}>", GetCppTypeName(type));
+        }
+
         static void Main(string[] args)
         {
             TypeConfig[] cfg = Metadata.DB.ReadObject<TypeConfig[]>(System.IO.File.ReadAllText("ext.json"));
@@ -752,13 +764,8 @@ namespace CppConverter
                     Append("static ");
                 else
                     Append("");
-                
-                if(member_type.is_value_type)
-                {
-                    AppendLine(string.Format("{0} {1};", GetCppTypeName(Model.GetType(member.field_type)), member.name));
-                }
-                else
-                    AppendLine(string.Format("Ref<{0}> {1};",GetCppTypeName(Model.GetType(member.field_type)), member.name));
+
+                AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
             }
             else if(member.member_type == (int)Metadata.MemberTypes.Method || member.member_type == (int)Metadata.MemberTypes.Constructor)
             {
@@ -768,7 +775,7 @@ namespace CppConverter
                 else
                     Append("");
                 if(member.member_type == (int)Metadata.MemberTypes.Method)
-                    sb.Append(string.Format("{1} {2}","", member.method_ret_type.IsVoid? "void": GetCppTypeName(Model.GetType(member.method_ret_type)), member.name));
+                    sb.Append(string.Format("{1} {2}","", member.method_ret_type.IsVoid?"void": GetCppTypeWrapName(Model.GetType(member.method_ret_type)), member.name));
                 else
                     sb.Append(string.Format("{0}", member.name));
                 sb.Append("(");
@@ -776,7 +783,7 @@ namespace CppConverter
                 {
                     for (int i = 0; i < member.method_args.Length; i++)
                     {
-                        sb.Append(string.Format("{0} {1} {2}",GetCppTypeName(Model.GetType( member.method_args[i].type)),member.method_args[i].is_ref?"&":"", member.method_args[i].name));
+                        sb.Append(string.Format("{0} {1} {2}", GetCppTypeWrapName(Model.GetType( member.method_args[i].type)),member.method_args[i].is_ref?"&":"", member.method_args[i].name));
                         if (i < member.method_args.Length-1)
                             sb.Append(",");
                     }
@@ -806,7 +813,16 @@ namespace CppConverter
                     if(member_type.is_class)
                         AppendLine("Ref<"+GetCppTypeName(Model.GetType(member.field_type))+ "> " + GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name+";");
                     else if(member_type.is_value_type)
-                        AppendLine(GetCppTypeName(Model.GetType(member.field_type)) + " " + GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name + ";");
+                    {
+                        Append(GetCppTypeName(Model.GetType(member.field_type)) + " " + GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name);
+                        if(member.field_initializer!=null)
+                        {
+                            sb.Append("=");
+                            sb.Append(ExpressionToString(member.field_initializer));
+                        }
+                        sb.AppendLine(";");
+                    }
+                        
 
                 }
             }
@@ -816,7 +832,7 @@ namespace CppConverter
                 if (!declare_type.is_generic_type_definition && member.method_body!=null)
                 {
                     if (member.member_type == (int)Metadata.MemberTypes.Method)
-                        sb.Append(string.Format("{0} {1}::{2}", member.method_ret_type.IsVoid ? "void" : GetCppTypeName(Model.GetType(member.method_ret_type)), GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
+                        sb.Append(string.Format("{0} {1}::{2}", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
                     else
                         sb.Append(string.Format("{1}::{2}", "", GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
                     sb.Append("(");
@@ -824,7 +840,7 @@ namespace CppConverter
                     {
                         for (int i = 0; i < member.method_args.Length; i++)
                         {
-                            sb.Append(string.Format("{0} {1} {2}", GetCppTypeName(Model.GetType(member.method_args[i].type)), member.method_args[i].is_ref ? "&" : "", member.method_args[i].name));
+                            sb.Append(string.Format("{0} {1} {2}", GetCppTypeWrapName(Model.GetType(member.method_args[i].type)), member.method_args[i].is_ref ? "&" : "", member.method_args[i].name));
                             if (i < member.method_args.Length - 1)
                                 sb.Append(",");
                         }
@@ -1122,6 +1138,11 @@ namespace CppConverter
         }
         static string ExpressionToString(Metadata.Expression.ConstExp es)
         {
+            if(!string.IsNullOrEmpty(es.value))
+            {
+                if (es.value.Length>0 && es.value[0] == '"')
+                    return "new System::String(" + es.value + ")";
+            }
             return es.value;
         }
         static string ExpressionToString(Metadata.Expression.FieldExp es)

@@ -7,6 +7,9 @@ namespace System
     }
     public struct Int32: IComparable
     {
+        public const int MaxValue = 2147483647;
+        public const int MinValue = -2147483647;
+
         public Int32 op_Equals(Int32 b)
         {
             return 1;
@@ -38,7 +41,8 @@ namespace System
 
     public class Object
     {
-
+        public virtual string ToString();
+        public virtual bool Equals(object v);
     }
 
     public class Array<T>

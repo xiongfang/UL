@@ -1,5 +1,5 @@
 
-void System::Console::WriteLine(System::String  v)
+void System::Console::WriteLine(Ref<System::String>  v)
 {
-	printf("%s\n",v.c_str());
+	printf("%s\n",v->c_str());
 }

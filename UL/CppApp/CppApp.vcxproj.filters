@@ -69,6 +69,9 @@
     <ClInclude Include="MemberTypes.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Object_ExtCpp.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

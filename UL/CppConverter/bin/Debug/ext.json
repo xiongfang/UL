@@ -14,5 +14,9 @@
   {
     "name": "System.Console",
     "ext_cpp": "Console_ExtCpp.h"
+  },
+  {
+    "name": "System.Object",
+    "ext_cpp": "Object_ExtCpp.h"
   }
 ]

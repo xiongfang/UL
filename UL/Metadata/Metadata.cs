@@ -424,6 +424,7 @@ namespace Metadata
         public string ext = "";
         //*****************变量***********************/
         public Expression.TypeSyntax field_type  = Expression.TypeSyntax.Void;
+        public Expression.Exp field_initializer;
         //********************************************/
 
         //*****************方法***********************/
@@ -1163,7 +1164,7 @@ namespace Metadata
             //}
 
             {
-                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?);",
+                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?);",
                 member.declaring_type, member.identifier, member.name, member.comments, member.modifier, member.is_static, member.member_type, member.ext);
 
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
@@ -1173,7 +1174,7 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("3", WriteObject(member.method_ret_type));
                 cmd.Parameters.AddWithValue("4", WriteObject(member.method_body));
                 cmd.Parameters.AddWithValue("5", member.order);
-
+                cmd.Parameters.AddWithValue("6", WriteObject(member.field_initializer));
                 cmd.ExecuteNonQuery();
             }
 
@@ -1257,6 +1258,7 @@ namespace Metadata
                 member.method_body = ReadObject<DB_BlockSyntax>((string)reader["method_body"]);
                 member.method_ret_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["method_ret_type"]);
                 member.order = (int)reader["order"];
+                member.field_initializer = ReadObject<Expression.Exp>((string)reader["field_initializer"]);
                 results.Add(member.identifier, member);
             }
 

@@ -404,6 +404,8 @@ namespace CSharpCompiler
                     return "Double";
                 case "object":
                     return "Object";
+                case "bool":
+                    return "Boolean";
                 default:
                     return "void";
             }
@@ -1171,12 +1173,13 @@ namespace CSharpCompiler
                 {
                     Metadata.DB_Member dB_Member = new Metadata.DB_Member();
                     dB_Member.name = ve.Identifier.Text;
-                    dB_Member.is_static = ContainModifier(v.Modifiers, "static");
+                    dB_Member.is_static = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
                     dB_Member.declaring_type = type.static_full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Field;
                     dB_Member.modifier = GetModifier(type,v.Modifiers);
                     dB_Member.field_type = v_type.GetRefType();
-
+                    if(ve.Initializer!=null)
+                        dB_Member.field_initializer = ExportExp(ve.Initializer.Value);
                     //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
                     Model.AddMember(type.static_full_name, dB_Member);
                 }
@@ -1464,9 +1467,9 @@ namespace CSharpCompiler
             {
                 return ExportExp(es as LiteralExpressionSyntax);
             }
-            //else if(es is InitializerExpressionSyntax)
+            //else if (es is InitializerExpressionSyntax)
             //{
-            //    //return ExportExp(es as InitializerExpressionSyntax);
+            //    return ExportExp(es as InitializerExpressionSyntax);
             //}
             else if(es is ObjectCreationExpressionSyntax)
             {
@@ -1499,6 +1502,10 @@ namespace CSharpCompiler
             else if (es is ArrayCreationExpressionSyntax)
             {
                 return ExportExp(es as ArrayCreationExpressionSyntax);
+            }
+            else if(es is PrefixUnaryExpressionSyntax)
+            {
+                return ExportExp(es as PrefixUnaryExpressionSyntax);
             }
             else
             {
@@ -1641,6 +1648,10 @@ namespace CSharpCompiler
             {
                 db_Add.Name = "op_SubSub";
             }
+            else
+            {
+                Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
+            }
             db_Add.Caller = ExportExp(es.Operand);
 
 
@@ -1671,6 +1682,27 @@ namespace CSharpCompiler
             }
             return db_les;
         }
-        
+        static Metadata.Expression.Exp ExportExp(PrefixUnaryExpressionSyntax es)
+        {
+            if(es.Operand is LiteralExpressionSyntax)
+            {
+                Metadata.Expression.ConstExp exp = ExportExp(es.Operand) as Metadata.Expression.ConstExp;
+                if(es.OperatorToken.Text == "-")
+                    exp.value = "-" + exp.value;
+                else
+                    Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
+                return exp;
+            }
+
+            {
+                Metadata.Expression.MethodExp exp = new Metadata.Expression.MethodExp();
+                if (es.OperatorToken.Text == "-")
+                    exp.Name = "op_Invert";
+                else
+                    Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
+                exp.Caller = ExportExp(es.Operand);
+                return exp;
+            }
+        }
     }
 }
