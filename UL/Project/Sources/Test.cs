@@ -141,7 +141,7 @@ namespace HelloWorld
             }
         }
 
-        void Print(ref TestInt hello)
+        void Print(ref HelloWorld.TestInt hello)
         {
             TestInt c = new TestInt();
             c.a = 7;

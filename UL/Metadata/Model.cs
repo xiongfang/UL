@@ -11,7 +11,7 @@ namespace Metadata
         //查找一个数据库类型
         DB_Type FindType(string full_name);
         //查找一个类型，如果是动态类型，构造一个
-        DB_Type FindType(DB_TypeRef refType);
+        DB_Type FindType(Expression.TypeSyntax refType);
         //Dictionary<string, Metadata.DB_Type> FindNamespace(string ns);
     }
 
@@ -114,7 +114,7 @@ namespace Metadata
             return Finder.FindType(full_name);
         }
 
-        public Metadata.DB_Type GetType(Metadata.DB_TypeRef typeRef)
+        public Metadata.DB_Type GetType(Metadata.Expression.TypeSyntax typeRef)
         {
             return Finder.FindType(typeRef);
         }
@@ -449,7 +449,7 @@ namespace Metadata
         {
             this.model = model;
         }
-        public HashSet<DB_TypeRef> result = new HashSet<DB_TypeRef>();
+        public HashSet<Expression.TypeSyntax> result = new HashSet<Expression.TypeSyntax>();
         public void VisitType(DB_Type type)
         {
             if (!type.base_type.IsVoid)
@@ -496,7 +496,7 @@ namespace Metadata
         {
             this.model = model;
         }
-        public HashSet<DB_TypeRef> typeRef = new HashSet<DB_TypeRef>();
+        public HashSet<Expression.TypeSyntax> typeRef = new HashSet<Expression.TypeSyntax>();
         public void VisitType(DB_Type type)
         {
 

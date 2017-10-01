@@ -9,94 +9,94 @@ using System.Threading.Tasks;
 
 namespace Metadata
 {
-    public class DB_TypeRef
-    {
-        //数据库全名
-        public string identifer;
-        //类型参数
-        public List<DB_TypeRef> parameters;
-        //模板类型名
-        public string template_parameter_name;
+    //public class DB_TypeRef
+    //{
+    //    //数据库全名
+    //    public string identifer;
+    //    //类型参数
+    //    public List<DB_TypeRef> parameters;
+    //    //模板类型名
+    //    public string template_parameter_name;
 
-        public override string ToString()
-        {
-            return DB.WriteObject(this);
-        }
+    //    public override string ToString()
+    //    {
+    //        return DB.WriteObject(this);
+    //    }
 
-        public static DB_TypeRef Void
-        {
-            get
-            {
-                return new DB_TypeRef() { identifer = "void" };
-            }
-        }
+    //    public static DB_TypeRef Void
+    //    {
+    //        get
+    //        {
+    //            return new DB_TypeRef() { identifer = "void" };
+    //        }
+    //    }
 
-        public bool IsVoid
-        {
-            get
-            {
-                return identifer == "void";
-            }
-        }
+    //    public bool IsVoid
+    //    {
+    //        get
+    //        {
+    //            return identifer == "void";
+    //        }
+    //    }
 
-        public DB_TypeRef()
-        {
-            identifer = "void";
-            parameters = new List<DB_TypeRef>();
-            template_parameter_name = "";
-        }
+    //    public DB_TypeRef()
+    //    {
+    //        identifer = "void";
+    //        parameters = new List<DB_TypeRef>();
+    //        template_parameter_name = "";
+    //    }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is DB_TypeRef)
-            {
-                DB_TypeRef v = obj as DB_TypeRef;
-                if (v.identifer != identifer)
-                {
-                    return false;
-                }
-                if (v.parameters.Count != parameters.Count)
-                    return false;
-                for (int i = 0; i < v.parameters.Count; i++)
-                {
-                    if (parameters[i] != v.parameters[i])
-                        return false;
-                }
-                if (template_parameter_name != v.template_parameter_name)
-                    return false;
+    //    public override bool Equals(object obj)
+    //    {
+    //        if (obj is DB_TypeRef)
+    //        {
+    //            DB_TypeRef v = obj as DB_TypeRef;
+    //            if (v.identifer != identifer)
+    //            {
+    //                return false;
+    //            }
+    //            if (v.parameters.Count != parameters.Count)
+    //                return false;
+    //            for (int i = 0; i < v.parameters.Count; i++)
+    //            {
+    //                if (parameters[i] != v.parameters[i])
+    //                    return false;
+    //            }
+    //            if (template_parameter_name != v.template_parameter_name)
+    //                return false;
 
-                return true;
-            }
+    //            return true;
+    //        }
 
-            return base.Equals(obj);
-        }
+    //        return base.Equals(obj);
+    //    }
 
-        public static bool operator ==(DB_TypeRef a, DB_TypeRef b)
-        {
-            if (!System.Object.ReferenceEquals(a, null))
-                return a.Equals(b);
-            if (!System.Object.ReferenceEquals(b, null))
-                return b.Equals(a);
-            return System.Object.ReferenceEquals(a, b);
-        }
+    //    public static bool operator ==(DB_TypeRef a, DB_TypeRef b)
+    //    {
+    //        if (!System.Object.ReferenceEquals(a, null))
+    //            return a.Equals(b);
+    //        if (!System.Object.ReferenceEquals(b, null))
+    //            return b.Equals(a);
+    //        return System.Object.ReferenceEquals(a, b);
+    //    }
 
-        public static bool operator!=(DB_TypeRef a, DB_TypeRef b)
-        {
-            return !(a == b);
-        }
+    //    public static bool operator !=(DB_TypeRef a, DB_TypeRef b)
+    //    {
+    //        return !(a == b);
+    //    }
 
-        public override int GetHashCode()
-        {
-            int code = identifer.GetHashCode();
-            foreach(var p in parameters)
-            {
-                code ^= p.GetHashCode();
-            }
-            code ^= template_parameter_name.GetHashCode();
+    //    public override int GetHashCode()
+    //    {
+    //        int code = identifer.GetHashCode();
+    //        foreach (var p in parameters)
+    //        {
+    //            code ^= p.GetHashCode();
+    //        }
+    //        code ^= template_parameter_name.GetHashCode();
 
-            return code;
-        }
-    }
+    //        return code;
+    //    }
+    //}
 
     public class DB_Type
     {
@@ -106,67 +106,90 @@ namespace Metadata
 
 
         //存储的数据库的全局唯一名
-        public string full_name
+        public string static_full_name
         {
             get
             {
-                if (is_generic_type || is_generic_paramter)
-                    throw new Exception("不能访问数据库类型");
-                StringBuilder sb = new StringBuilder();
-                sb.Append(_namespace + "." + unique_name);
-                return sb.ToString();
+                return GetRefType().GetStaticFullName();
             }
         }
+
+
         //命名空间下的唯一名
         public string unique_name
         {
             get
             {
-                return name + genericDefinitionString;
+                return GetRefType().GetUniqueName();
             }
         }
         //返回此类的引用
-        public DB_TypeRef GetRefType()
+        public Expression.TypeSyntax GetRefType()
         {
-            Metadata.DB_TypeRef refData = new Metadata.DB_TypeRef();
-            if (is_generic_paramter || is_generic_type)
-                refData.identifer = declare_type;
-            else
-                refData.identifer = full_name;
+            //string[] ns_list = _namespace.Split(',');
+            //Expression.QualifiedNameSyntax root_ns = null;
+            //Expression.QualifiedNameSyntax last = null;
+            //for (int i=0;i<ns_list.Length;i++)
+            //{
+            //    Expression.QualifiedNameSyntax qas = new Expression.QualifiedNameSyntax();
+            //    qas.Left = last;
+            //    qas.Right = new Expression.IdentifierNameSyntax() { Identifier = ns_list[i] };
 
-            
+            //    if(last == null)
+            //    {
+            //        root_ns = qas;
+            //    }
+            //    last = qas;
+            //}
+            Expression.TypeSyntax ts = null;
             if (is_generic_paramter)
             {
-                refData.template_parameter_name = name;
+                ts = new Expression.GenericParameterSyntax() { Name = name, declare_type = declare_type };
             }
             else if(is_generic_type)
             {
-                foreach (var d in generic_parameters)
-                {
-                    refData.parameters.Add(d);
-                }
+                Expression.GenericNameSyntax syntax = new Expression.GenericNameSyntax();
+                syntax.Name = name;
+                syntax.name_space = _namespace;
+                foreach (var a in generic_parameters)
+                    syntax.Arguments.Add(a);
+                ts = syntax;
             }
 
-            return refData;
+            else if (is_generic_type_definition)
+            {
+                Expression.GenericNameSyntax syntax = new Expression.GenericNameSyntax();
+                syntax.Name = name;
+                syntax.name_space = _namespace;
+                foreach (var a in generic_parameter_definitions)
+                    syntax.Arguments.Add(new Expression.GenericParameterSyntax() { Name = name, declare_type = this.declare_type });
+                ts = syntax;
+            }
+            else
+            {
+                ts = new Expression.IdentifierNameSyntax() { Name = name,name_space = _namespace };
+            }
+
+            return ts;
         }
         public string _namespace;
         public string name;
         public string comments = "";
         public int modifier;
         public bool is_abstract;
-        public DB_TypeRef base_type = DB_TypeRef.Void;
+        public Expression.TypeSyntax base_type = Expression.TypeSyntax.Void;
         public List<string> usingNamespace = new List<string>();
         public string ext = "";
         public bool is_value_type;
         public bool is_interface;
         public bool is_class;
         public bool is_enum;
-        public List<DB_TypeRef> interfaces = new List<DB_TypeRef>();
+        public List<Expression.TypeSyntax> interfaces = new List<Expression.TypeSyntax>();
         public bool is_generic_type_definition;
         public class GenericParameterDefinition
         {
             public string type_name;    //类型占位符名称
-            public List<string> constraint = new List<string>();    //类型约束
+            public List<Expression.TypeSyntax> constraint = new List<Expression.TypeSyntax>();    //类型约束
         }
         public List<GenericParameterDefinition> generic_parameter_definitions = new List<GenericParameterDefinition>();
 
@@ -174,7 +197,7 @@ namespace Metadata
         public string declare_type; //动态类型引用的类型
 
         public bool is_generic_type;
-        public List<DB_TypeRef> generic_parameters = new List<DB_TypeRef>();
+        public List<Expression.TypeSyntax> generic_parameters = new List<Expression.TypeSyntax>();
 
         public bool is_generic_paramter;
         public int generic_parameter_position;
@@ -341,12 +364,12 @@ namespace Metadata
             }
         }
 
-        public static DB_Type MakeGenericType(DB_Type genericTypeDef, List<DB_TypeRef> genericParameters)
+        public static DB_Type MakeGenericType(DB_Type genericTypeDef, List<Expression.TypeSyntax> genericParameters)
         {
             DB_Type dB_Type = DB.ReadObject<DB_Type>(DB.WriteObject(genericTypeDef));
             dB_Type.is_generic_type_definition = false;
             dB_Type.is_generic_type = true;
-            dB_Type.declare_type = genericTypeDef.full_name;
+            dB_Type.declare_type = genericTypeDef.static_full_name;
             //dB_Type.generic_parameter_definitions.Clear();
             dB_Type.generic_parameters.AddRange(genericParameters);
             return dB_Type;
@@ -360,7 +383,7 @@ namespace Metadata
             dB_Type.generic_parameter_position = declare_type.generic_parameter_definitions.FindIndex((a) => { return a.type_name == def.type_name; });
             //dB_Type._namespace = dB_Type._namespace + "." + dB_Type.name;
             dB_Type.name = def.type_name;
-            dB_Type.declare_type = declare_type.full_name;
+            dB_Type.declare_type = declare_type.static_full_name;
 
             return dB_Type;
         }
@@ -400,13 +423,13 @@ namespace Metadata
         public int member_type;
         public string ext = "";
         //*****************变量***********************/
-        public DB_TypeRef field_type  = DB_TypeRef.Void;
+        public Expression.TypeSyntax field_type  = Expression.TypeSyntax.Void;
         //********************************************/
 
         //*****************方法***********************/
         public class Argument
         {
-            public Metadata.DB_TypeRef type;
+            public Metadata.Expression.TypeSyntax type;
             public string name;
             public bool is_ref;
             public bool is_out;
@@ -414,7 +437,7 @@ namespace Metadata
         }
         public Argument[] method_args;
 
-        public DB_TypeRef method_ret_type = DB_TypeRef.Void;
+        public Expression.TypeSyntax method_ret_type = Expression.TypeSyntax.Void;
 
         public DB_BlockSyntax method_body;
         //********************************************/
@@ -434,7 +457,7 @@ namespace Metadata
                     sb.Append("(");
                     for (int i = 0; i < method_args.Length; i++)
                     {
-                        sb.Append(method_args[i].type.identifer);
+                        sb.Append(method_args[i].type.ToString());
                         if (i < method_args.Length - 1)
                             sb.Append(",");
                     }
@@ -448,7 +471,7 @@ namespace Metadata
             }
         }
     
-        public DB_TypeRef typeName
+        public Expression.TypeSyntax typeName
         {
             get
             {
@@ -457,7 +480,7 @@ namespace Metadata
                 else if (member_type == (int)MemberTypes.Method)
                     return method_ret_type;
 
-                return DB_TypeRef.Void;
+                return Expression.TypeSyntax.Void;
             }
         }
     }
@@ -511,19 +534,27 @@ namespace Metadata
         {
             var jsonObject = JObject.Load(reader);
             var target = Create(objectType, jsonObject);
+            if (target == null)
+                return null;
             serializer.Populate(jsonObject.CreateReader(), target);
             return target;
         }
 
-        TBase Create(Type objectType, JObject jsonObject)
+        object Create(Type objectType, JObject jsonObject)
         {
             JToken jToken = null;
             if(jsonObject.TryGetValue("$Type",out jToken))
             {
                 string typeName = jToken.ToString();
-                return System.Activator.CreateInstance(Type.GetType(typeName)) as TBase;
+                Type trueType = Type.GetType(typeName);
+                object trueObject = System.Activator.CreateInstance(trueType);
+                //if(!(trueObject is TBase))
+                //{
+                //    Console.WriteLine(string.Format("无法转换 {0} => {1}", trueObject.GetType().FullName,typeof(TBase).FullName));
+                //}
+                return trueObject;
             }
-            return System.Activator.CreateInstance(objectType) as TBase;
+            return System.Activator.CreateInstance(objectType);
         }
 
         //
@@ -560,8 +591,6 @@ namespace Metadata
                 return GetType().FullName;
             }
         }
-
-        public virtual void GetTypeRefList(HashSet<DB_TypeRef> hash) { }
     }
 
     //语句
@@ -574,14 +603,6 @@ namespace Metadata
     public class DB_BlockSyntax: DB_StatementSyntax
     {
         public List<DB_StatementSyntax> List = new List<DB_StatementSyntax>();
-
-        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
-        {
-            foreach(var l in List)
-            {
-                l.GetTypeRefList(hash);
-            }
-        }
     }
     [JsonConverter(typeof(JsonConverterType<DB_IfStatementSyntax>))]
     public class DB_IfStatementSyntax:DB_StatementSyntax
@@ -589,24 +610,11 @@ namespace Metadata
         public Expression.Exp Condition;
         public DB_StatementSyntax Statement;
         public DB_StatementSyntax Else;
-
-        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
-        {
-            Condition.GetTypeRefList(hash);
-            if (Statement != null)
-                Statement.GetTypeRefList(hash);
-            if (Else != null)
-                Else.GetTypeRefList(hash);
-        }
     }
     [JsonConverter(typeof(JsonConverterType<DB_ExpressionStatementSyntax>))]
     public class DB_ExpressionStatementSyntax : DB_StatementSyntax
     {
         public Expression.Exp Exp;
-        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
-        {
-            Exp.GetTypeRefList(hash);
-        }
     }
     [JsonConverter(typeof(JsonConverterType<DB_LocalDeclarationStatementSyntax>))]
     public class DB_LocalDeclarationStatementSyntax : DB_StatementSyntax
@@ -616,28 +624,14 @@ namespace Metadata
     [JsonConverter(typeof(JsonConverterType<VariableDeclarationSyntax>))]
     public sealed class VariableDeclarationSyntax : DB_Syntax
     {
-        public DB_TypeRef Type;
+        public Expression.TypeSyntax Type;
         public List<VariableDeclaratorSyntax> Variables = new List<VariableDeclaratorSyntax>();
-
-        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
-        {
-            hash.Add(Type);
-            foreach(var v in Variables)
-            {
-                v.GetTypeRefList(hash);
-            }
-        }
     }
     [JsonConverter(typeof(JsonConverterType<VariableDeclaratorSyntax>))]
     public class VariableDeclaratorSyntax : DB_Syntax
     {
         public string Identifier;
         public Expression.Exp Initializer;
-        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
-        {
-            if (Initializer != null)
-                Initializer.GetTypeRefList(hash);
-        }
     }
 
     [JsonConverter(typeof(JsonConverterType<DB_ForStatementSyntax>))]
@@ -647,10 +641,6 @@ namespace Metadata
         public Expression.Exp Condition;
         public List<Expression.Exp> Incrementors = new List<Expression.Exp>();
         public DB_StatementSyntax Statement;
-        public override void GetTypeRefList(HashSet<DB_TypeRef> hash)
-        {
-
-        }
     }
 
     [JsonConverter(typeof(JsonConverterType<DB_DoStatementSyntax>))]
@@ -677,6 +667,8 @@ namespace Metadata
             public List<DB_StatementSyntax> Statements = new List<DB_StatementSyntax>();
         }
     }
+
+
 
     [JsonConverter(typeof(JsonConverterType<DB_BreakStatementSyntax>))]
     public class DB_BreakStatementSyntax : DB_StatementSyntax
@@ -741,10 +733,249 @@ namespace Metadata
         public class ObjectCreateExp : Exp
         {
             //类型名称
-            public DB_TypeRef Type;
+            public Expression.TypeSyntax Type;
             //调用的参数
             public List<Exp> Args = new List<Exp>();
         }
+        [JsonConverter(typeof(JsonConverterType<TypeSyntax>))]
+        public abstract class TypeSyntax : Exp
+        {
+            public string name_space = "";
+            public string Name = "";
+
+            [JsonIgnore]
+            public bool IsVoid
+            {
+                get { return this == Void; }
+            }
+            [JsonIgnore]
+            public static TypeSyntax Void
+            {
+                get
+                {
+                    return new IdentifierNameSyntax() { Name = "void",name_space = "System" };
+                }
+            }
+
+            public static bool operator ==(TypeSyntax a, TypeSyntax b)
+            {
+                if (!System.Object.ReferenceEquals(a, null))
+                    return a.Equals(b);
+                if (!System.Object.ReferenceEquals(b, null))
+                    return b.Equals(a);
+                return System.Object.ReferenceEquals(a, b);
+            }
+
+            public static bool operator !=(TypeSyntax a, TypeSyntax b)
+            {
+                return !(a == b);
+            }
+
+            public override bool Equals(object obj)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override int GetHashCode()
+            {
+                throw new NotImplementedException();
+            }
+
+            //数据库的全名
+            public abstract string GetStaticFullName();
+            //命名空间下唯一名
+            public abstract string GetUniqueName();
+            //全名
+            protected abstract string ToFullName();
+            //全名
+            public override string ToString()
+            {
+                return ToFullName();
+            }
+        }
+        //[JsonConverter(typeof(JsonConverterType<NameSyntax>))]
+        //public abstract class NameSyntax :TypeSyntax
+        //{
+        //    //public int Arity;
+        //}
+        //[JsonConverter(typeof(JsonConverterType<SimpleNameSyntax>))]
+        //public abstract class SimpleNameSyntax:NameSyntax
+        //{
+        //    public string Name = "";
+
+            
+        //}
+
+        [JsonConverter(typeof(JsonConverterType<IdentifierNameSyntax>))]
+        public class IdentifierNameSyntax: TypeSyntax
+        {
+            
+            public override bool Equals(object obj)
+            {
+                if (obj is IdentifierNameSyntax)
+                {
+                    IdentifierNameSyntax Other = obj as IdentifierNameSyntax;
+                    return Other.Name == Name && Other.name_space == name_space;
+                }
+
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return name_space.GetHashCode() ^ Name.GetHashCode();
+            }
+
+            public override string GetStaticFullName()
+            {
+                return name_space + "." + Name;
+            }
+            public override string GetUniqueName()
+            {
+                return Name;
+            }
+            protected override string ToFullName()
+            {
+                return GetStaticFullName();
+            }
+        }
+
+        [JsonConverter(typeof(JsonConverterType<GenericParameterSyntax>))]
+        public class GenericParameterSyntax:TypeSyntax
+        {
+            public string declare_type;
+            public override int GetHashCode()
+            {
+                return Name.GetHashCode();
+            }
+            public override bool Equals(object obj)
+            {
+                if (obj is GenericParameterSyntax)
+                {
+                    GenericParameterSyntax Other = obj as GenericParameterSyntax;
+                    return Other.Name == Name && declare_type == Other.declare_type;
+                }
+
+                return false;
+            }
+
+            public override string GetStaticFullName()
+            {
+                return declare_type;
+            }
+            public override string GetUniqueName()
+            {
+                return Name;
+            }
+            protected override string ToFullName()
+            {
+                return GetStaticFullName();
+            }
+        }
+
+        [JsonConverter(typeof(JsonConverterType<GenericNameSyntax>))]
+        public class GenericNameSyntax: TypeSyntax
+        {
+            public List<TypeSyntax> Arguments = new List<TypeSyntax>();
+
+            public override bool Equals(object obj)
+            {
+                if (obj is GenericNameSyntax)
+                {
+                    GenericNameSyntax other = obj as GenericNameSyntax;
+
+                    if (other.Arguments.Count != Arguments.Count)
+                        return false;
+                    for (int i = 0; i < Arguments.Count; i++)
+                        if (Arguments[i] != other.Arguments[i])
+                            return false;
+
+                    if (other.Name != Name)
+                        return false;
+                    return true;
+                }
+
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                int id_hash = Name.GetHashCode();
+                foreach (var a in Arguments)
+                    id_hash ^= a.GetHashCode();
+
+                return id_hash;
+            }
+
+            public override string GetStaticFullName()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(name_space);
+                sb.Append(".");
+                sb.Append(GetUniqueName());
+                return sb.ToString();
+            }
+            public override string GetUniqueName()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(Name);
+                sb.Append("[");
+                sb.Append(Arguments.Count);
+                sb.Append("]");
+                return sb.ToString();
+            }
+
+            protected override string ToFullName()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(name_space);
+                sb.Append(".");
+                sb.Append(Name);
+                sb.Append("<");
+                for (int i = 0; i < Arguments.Count; i++)
+                {
+                    sb.Append(Arguments[i].ToString());
+                    if (i < Arguments.Count - 1)
+                        sb.Append(",");
+                }
+                sb.Append(">");
+                return sb.ToString();
+            }
+        }
+
+        //[JsonConverter(typeof(JsonConverterType<QualifiedNameSyntax>))]
+        //public class QualifiedNameSyntax:NameSyntax
+        //{
+        //    public NameSyntax Left;
+
+        //    public SimpleNameSyntax Right;
+
+
+        //    public override bool Equals(object obj)
+        //    {
+        //        if (obj is QualifiedNameSyntax)
+        //        {
+        //            QualifiedNameSyntax other = obj as QualifiedNameSyntax;
+
+        //            if (other.Left!=Left)
+        //                return false;
+
+        //            if (other.Right != Right)
+        //                return false;
+        //            return true;
+        //        }
+
+        //        return false;
+        //    }
+
+        //    public override int GetHashCode()
+        //    {
+        //        int id_hash = Left!=null? Left.GetHashCode():1;
+        //        int id_right = Right != null ? Right.GetHashCode() : 1;
+
+        //        return id_hash ^ id_right;
+        //    }
+        //}
     }
 
 
@@ -886,13 +1117,13 @@ namespace Metadata
         public static void SaveDBType(DB_Type type, OdbcConnection _con, OdbcTransaction _trans)
         {
             {
-                string cmdText = string.Format("delete from type where full_name='{0}'", type.full_name);
+                string cmdText = string.Format("delete from type where full_name='{0}'", type.static_full_name);
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
                 cmd.ExecuteNonQuery();
             }
 
             {
-                string cmdText = string.Format("delete from member where declaring_type='{0}'", type.full_name);
+                string cmdText = string.Format("delete from member where declaring_type='{0}'", type.static_full_name);
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
                 cmd.ExecuteNonQuery();
             }
@@ -902,11 +1133,11 @@ namespace Metadata
 
 
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
-                cmd.Parameters.AddWithValue("1", type.full_name);
+                cmd.Parameters.AddWithValue("1", type.static_full_name);
                 cmd.Parameters.AddWithValue("2", type.comments);
                 cmd.Parameters.AddWithValue("3", type.modifier);
                 cmd.Parameters.AddWithValue("4", type.is_abstract);
-                cmd.Parameters.AddWithValue("5", type.base_type.ToString());
+                cmd.Parameters.AddWithValue("5", WriteObject(type.base_type));
                 cmd.Parameters.AddWithValue("6", type.ext);
                 cmd.Parameters.AddWithValue("7", type.is_value_type);
                 cmd.Parameters.AddWithValue("8", type.is_interface);
@@ -937,9 +1168,9 @@ namespace Metadata
 
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
 
-                cmd.Parameters.AddWithValue("1", member.field_type.ToString());
+                cmd.Parameters.AddWithValue("1", WriteObject(member.field_type));
                 cmd.Parameters.AddWithValue("2", WriteObject( member.method_args));
-                cmd.Parameters.AddWithValue("3", member.method_ret_type.ToString());
+                cmd.Parameters.AddWithValue("3", WriteObject(member.method_ret_type));
                 cmd.Parameters.AddWithValue("4", WriteObject(member.method_body));
                 cmd.Parameters.AddWithValue("5", member.order);
 
@@ -958,7 +1189,7 @@ namespace Metadata
             while(reader.Read())
             {
                 DB_Type type = ReadType(reader);
-                type.members = LoadMembers(type.full_name, _con);
+                type.members = LoadMembers(type.static_full_name, _con);
                 results.Add(type.unique_name, type);
             }
 
@@ -974,7 +1205,7 @@ namespace Metadata
             if (reader.Read())
             {
                 DB_Type type = ReadType(reader);
-                type.members = LoadMembers(type.full_name, _con);
+                type.members = LoadMembers(type.static_full_name, _con);
                 return type;
             }
 
@@ -994,9 +1225,9 @@ namespace Metadata
             type.is_abstract = (bool)reader["is_abstract"];
             type.is_interface = (bool)reader["is_interface"];
             type.is_value_type = (bool)reader["is_value_type"];
-            type.base_type = DB.ReadObject<DB_TypeRef>((string)reader["base_type"]);
+            type.base_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["base_type"]);
             type.is_class = (bool)reader["is_class"];
-            type.interfaces = ReadObject<List<DB_TypeRef>>((string)reader["interfaces"]);
+            type.interfaces = ReadObject<List<Expression.TypeSyntax>>((string)reader["interfaces"]);
             type.is_generic_type_definition = (bool)reader["is_generic_type_definition"];
             type.generic_parameter_definitions = ReadObject<List<DB_Type.GenericParameterDefinition>>((string)reader["generic_parameter_definitions"]);
             type.usingNamespace = ReadObject<List<string>>((string)reader["usingNamespace"]);
@@ -1017,14 +1248,14 @@ namespace Metadata
                 member.declaring_type = type;
                 member.comments = (string)reader["comments"];
                 member.ext = (string)reader["ext"];
-                member.field_type = DB.ReadObject<DB_TypeRef>((string)reader["field_type"]);
+                member.field_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["field_type"]);
                 member.is_static = (bool)reader["is_static"];
                 member.modifier = (int)reader["modifier"];
                 member.name = (string)reader["name"];
                 member.member_type = (int)reader["member_type"];
                 member.method_args = ReadObject<DB_Member.Argument[]>((string)reader["method_args"]);
                 member.method_body = ReadObject<DB_BlockSyntax>((string)reader["method_body"]);
-                member.method_ret_type = DB.ReadObject<DB_TypeRef>((string)reader["method_ret_type"]);
+                member.method_ret_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["method_ret_type"]);
                 member.order = (int)reader["order"];
                 results.Add(member.identifier, member);
             }
