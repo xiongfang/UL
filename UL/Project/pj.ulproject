@@ -1,8 +1,8 @@
 {
 	"name":"pj",
-	"files":
+	"dirs":
 	[
-		"Sources/Test.cs"
+		"Sources"
 	],
 	"ref_namespace":
 	[

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Data.Odbc;
+using System.IO;
 
 namespace CSharpCompiler
 {
@@ -22,6 +23,7 @@ namespace CSharpCompiler
         static string currentUsing;
         //当前处理的类型
         static Metadata.DB_Type currentType;
+        static Metadata.DB_Member currentMethod;
         //当前函数的本地变量和参数
         static Stack<Dictionary<string, Metadata.DB_Type>> stackLocalVariables = new Stack<Dictionary<string, Metadata.DB_Type>>();
 
@@ -34,6 +36,23 @@ namespace CSharpCompiler
         {
             compilerTypes.Add(type.static_full_name, type);
         }
+
+        public static void MergeCompilerType(Metadata.DB_Type type)
+        {
+            if(!compilerTypes.ContainsKey(type.static_full_name))
+            {
+                AddCompilerType(type);
+                return;
+            }
+
+            Metadata.DB_Type last_type = compilerTypes[type.static_full_name];
+            if (last_type.base_type.IsVoid && !type.base_type.IsVoid)
+                last_type.base_type = type.base_type;
+
+            last_type.interfaces.AddRange(type.interfaces);
+
+        }
+
         public static void AddMember(string full_name, Metadata.DB_Member member)
         {
             Metadata.DB_Type type = GetType(full_name);
@@ -93,7 +112,7 @@ namespace CSharpCompiler
             if(typeSyntax is Metadata.Expression.GenericParameterSyntax)
             {
                 Metadata.Expression.GenericParameterSyntax gps = typeSyntax as Metadata.Expression.GenericParameterSyntax;
-                return Metadata.DB_Type.MakeGenericParameterType(GetType(gps.declare_type), new Metadata.DB_Type.GenericParameterDefinition() { type_name = gps.Name });
+                return Metadata.DB_Type.MakeGenericParameterType(GetType(gps.declare_type), new Metadata.GenericParameterDefinition() { type_name = gps.Name });
             }
 
             return null;
@@ -106,6 +125,18 @@ namespace CSharpCompiler
             {
                 if (v.ContainsKey(name))
                     return v[name];
+            }
+
+            //泛型参数
+            if(currentMethod!=null)
+            {
+                foreach (var gd in currentMethod.method_generic_parameter_definitions)
+                {
+                    if (gd.type_name == name)
+                    {
+                        return Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
+                    }
+                }
             }
 
             //查找成员变量
@@ -196,6 +227,16 @@ namespace CSharpCompiler
         {
             stackLocalVariables.Pop();
         }
+        public static void EnterMethod(Metadata.DB_Member member)
+        {
+            currentMethod = member;
+        }
+        public static void LeaveMethod()
+        {
+            currentMethod = null;
+        }
+
+
 
         public static void AddLocal(string name,Metadata.DB_Type type)
         {
@@ -209,6 +250,7 @@ namespace CSharpCompiler
         static OdbcConnection _con;
         static OdbcTransaction _trans;
 
+        static bool ingore_method_body;
 
         //static Dictionary<string, Dictionary<string, Metadata.DB_Member>> dicMembers = new Dictionary<string, Dictionary<string, Metadata.DB_Member>>();
 
@@ -242,6 +284,10 @@ namespace CSharpCompiler
             {
                 TypeConstraintSyntax tcs = tpcs as TypeConstraintSyntax;
                 return GetTypeSyntax(tcs.Type);
+            }
+            else if(tpcs is ConstructorConstraintSyntax)
+            {
+                return new Metadata.Expression.IdentifierNameSyntax() { Name = "Object", name_space = "System" };
             }
             else
             {
@@ -414,10 +460,12 @@ namespace CSharpCompiler
         class ULProject
         {
             public string name;
-            public string[] files;
+            //public string[] files;
             public string[] ref_namespace;
             public string[] ref_type;
+            public string[] dirs;
         }
+
 
         /*
          *  第一步：从数据库加载引用的类
@@ -428,7 +476,9 @@ namespace CSharpCompiler
          * */
         static void Main(string[] args)
         {
+            List<string> arg_list = new List<string>(args);
             string project = System.IO.File.ReadAllText(args[0]);
+            ingore_method_body = arg_list.Contains("--ingore_method_body");
             ULProject pj = Metadata.DB.ReadObject<ULProject>(project);
 
             string pj_dir = System.IO.Path.GetFullPath(args[0]);
@@ -456,14 +506,18 @@ namespace CSharpCompiler
 
                 //分析文件
                 List<SyntaxTree> treeList = new List<SyntaxTree>();
-                foreach (var file in pj.files)
+                
+                foreach (var dir in pj.dirs)
                 {
-                    string file_full_path = System.IO.Path.Combine(pj_dir, file);
-                    string code = System.IO.File.ReadAllText(file_full_path);
-                    SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-                    treeList.Add(tree);
+                    string[] files = Directory.GetFiles(System.IO.Path.Combine(pj_dir, dir),"*.cs");
+                    foreach (var file in files)
+                    {
+                        string file_full_path = file;// System.IO.Path.Combine(pj_dir, file);
+                        string code = System.IO.File.ReadAllText(file_full_path);
+                        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+                        treeList.Add(tree);
+                    }
                 }
-
 
                 OdbcTransaction trans = con.BeginTransaction();
                 _trans = trans;
@@ -773,7 +827,7 @@ namespace CSharpCompiler
                     type.is_generic_type_definition = true;
                     foreach (var p in c.TypeParameterList.Parameters)
                     {
-                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = new Metadata.DB_Type.GenericParameterDefinition();
+                        Metadata.GenericParameterDefinition genericParameterDefinition = new Metadata.GenericParameterDefinition();
                         genericParameterDefinition.type_name = p.Identifier.Text;
                         type.generic_parameter_definitions.Add(genericParameterDefinition);
                     }
@@ -829,7 +883,7 @@ namespace CSharpCompiler
                     foreach (var Constraint in c.ConstraintClauses)
                     {
 
-                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                        Metadata.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
                         foreach (var tpc in Constraint.Constraints)
                         {
                             genericParameterDefinition.constraint.Add(GetTypeParameterSyntax(tpc));
@@ -893,14 +947,18 @@ namespace CSharpCompiler
                     type.is_generic_type_definition = true;
                     foreach (var p in c.TypeParameterList.Parameters)
                     {
-                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = new Metadata.DB_Type.GenericParameterDefinition();
+                        Metadata.GenericParameterDefinition genericParameterDefinition = new Metadata.GenericParameterDefinition();
                         genericParameterDefinition.type_name = p.Identifier.Text;
                         type.generic_parameter_definitions.Add(genericParameterDefinition);
                     }
                 }
 
                 //Metadata.DB.SaveDBType(type, _con, _trans);
-                Model.AddCompilerType(type);
+                bool partial = ContainModifier(c.Modifiers, "partial");
+                if (!partial)
+                    Model.AddCompilerType(type);
+                else
+                    Model.MergeCompilerType(type);
             }
             else if (step == ECompilerStet.ScanMember)
             {
@@ -949,7 +1007,7 @@ namespace CSharpCompiler
                     foreach (var Constraint in c.ConstraintClauses)
                     {
 
-                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                        Metadata.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
                         foreach (var tpc in Constraint.Constraints)
                         {
                             genericParameterDefinition.constraint.Add(GetTypeParameterSyntax(tpc));
@@ -1017,6 +1075,7 @@ namespace CSharpCompiler
                 type.is_class = true;
                 Console.WriteLine("Identifier:" + c.Identifier);
                 Console.WriteLine("Modifiers:" + c.Modifiers);
+                bool partial = ContainModifier(c.Modifiers, "partial");
                 type.modifier = GetModifier(type,c.Modifiers);
                 type.name = c.Identifier.Text;
 
@@ -1041,14 +1100,19 @@ namespace CSharpCompiler
                     type.is_generic_type_definition = true;
                     foreach(var p in c.TypeParameterList.Parameters)
                     {
-                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = new Metadata.DB_Type.GenericParameterDefinition();
+                        Metadata.GenericParameterDefinition genericParameterDefinition = new Metadata.GenericParameterDefinition();
                         genericParameterDefinition.type_name = p.Identifier.Text;
                         type.generic_parameter_definitions.Add(genericParameterDefinition);
                     }
                 }
 
                 //Metadata.DB.SaveDBType(type, _con, _trans);
-                Model.AddCompilerType(type);
+                if(partial)
+                {
+                    Model.MergeCompilerType(type);
+                }
+                else
+                    Model.AddCompilerType(type);
             }
             else if(step == ECompilerStet.ScanMember)
             {
@@ -1097,7 +1161,7 @@ namespace CSharpCompiler
                     foreach (var Constraint in c.ConstraintClauses)
                     {
 
-                        Metadata.DB_Type.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                        Metadata.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
                         foreach (var tpc in Constraint.Constraints)
                         {
                             genericParameterDefinition.constraint.Add(GetTypeParameterSyntax(tpc));
@@ -1221,6 +1285,33 @@ namespace CSharpCompiler
                         dB_Member.method_args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
                     }
 
+                    if(f.TypeParameterList != null)
+                    {
+                        foreach (var p in f.TypeParameterList.Parameters)
+                        {
+                            Metadata.GenericParameterDefinition genericParameterDefinition = new Metadata.GenericParameterDefinition();
+                            genericParameterDefinition.type_name = p.Identifier.Text;
+                            dB_Member.method_generic_parameter_definitions.Add(genericParameterDefinition);
+                        }
+
+                        //泛型参数
+                        if (f.ConstraintClauses != null)
+                        {
+                            foreach (var Constraint in f.ConstraintClauses)
+                            {
+
+                                Metadata.GenericParameterDefinition genericParameterDefinition = dB_Member.method_generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                                foreach (var tpc in Constraint.Constraints)
+                                {
+                                    genericParameterDefinition.constraint.Add(GetTypeParameterSyntax(tpc));
+                                }
+
+                            }
+                        }
+                    }
+
+                    Model.EnterMethod(dB_Member);
+
                     Metadata.Expression.TypeSyntax retType = GetTypeSyntax(f.ReturnType);
                     if (retType != null)
                         dB_Member.method_ret_type = retType;
@@ -1230,12 +1321,19 @@ namespace CSharpCompiler
                     Model.AddMember(type.static_full_name, dB_Member);
                     MemberMap[f] = dB_Member;
                     Console.WriteLine();
+
+                    Model.LeaveMethod();
                 }
                 else if (step == ECompilerStet.Compile)
                 {
                     Metadata.DB_Member dB_Member = MemberMap[f];
-                    if(f.Body!=null)
-                        dB_Member.method_body = ExportBody(f.Body);
+                    Model.EnterMethod(dB_Member);
+                    if (f.Body != null)
+                        if (!ingore_method_body)
+                        {
+                            dB_Member.method_body = ExportBody(f.Body);
+                        }
+                    Model.LeaveMethod();
                 }
             }
             if (v is ConstructorDeclarationSyntax)
@@ -1279,8 +1377,11 @@ namespace CSharpCompiler
                 }
                 else if (step == ECompilerStet.Compile)
                 {
-                    Metadata.DB_Member dB_Member = MemberMap[f];
-                    dB_Member.method_body = ExportBody(f.Body);
+                    if(!ingore_method_body)
+                    {
+                        Metadata.DB_Member dB_Member = MemberMap[f];
+                        dB_Member.method_body = ExportBody(f.Body);
+                    }
                 }
             }
         }

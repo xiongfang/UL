@@ -97,6 +97,11 @@ namespace Metadata
     //        return code;
     //    }
     //}
+    public class GenericParameterDefinition
+    {
+        public string type_name;    //类型占位符名称
+        public List<Expression.TypeSyntax> constraint = new List<Expression.TypeSyntax>();    //类型约束
+    }
 
     public class DB_Type
     {
@@ -186,11 +191,6 @@ namespace Metadata
         public bool is_enum;
         public List<Expression.TypeSyntax> interfaces = new List<Expression.TypeSyntax>();
         public bool is_generic_type_definition;
-        public class GenericParameterDefinition
-        {
-            public string type_name;    //类型占位符名称
-            public List<Expression.TypeSyntax> constraint = new List<Expression.TypeSyntax>();    //类型约束
-        }
         public List<GenericParameterDefinition> generic_parameter_definitions = new List<GenericParameterDefinition>();
 
         //动态类型
@@ -439,6 +439,8 @@ namespace Metadata
         public Argument[] method_args;
 
         public Expression.TypeSyntax method_ret_type = Expression.TypeSyntax.Void;
+        //泛型参数
+        public List<GenericParameterDefinition> method_generic_parameter_definitions = new List<GenericParameterDefinition>();
 
         public DB_BlockSyntax method_body;
         //********************************************/
@@ -452,17 +454,35 @@ namespace Metadata
                 {
                     return name;
                 }
-                else if(member_type == (int)MemberTypes.Method)
+                else if(member_type == (int)MemberTypes.Method || member_type == (int)MemberTypes.Constructor)
                 {
                     StringBuilder sb = new StringBuilder(name);
+
+                    if (method_generic_parameter_definitions.Count > 0)
+                    {
+                        sb.Append("<");
+                        for (int i = 0; i < method_generic_parameter_definitions.Count; i++)
+                        {
+                            sb.Append(method_generic_parameter_definitions[i].type_name);
+                            if (i < method_generic_parameter_definitions.Count - 1)
+                                sb.Append(",");
+                        }
+                        sb.Append(">");
+                    }
+
                     sb.Append("(");
                     for (int i = 0; i < method_args.Length; i++)
                     {
                         sb.Append(method_args[i].type.ToString());
+                        if (method_args[i].is_ref)
+                            sb.Append(" ref");
+                        if(method_args[i].is_out)
+                            sb.Append(" out");
                         if (i < method_args.Length - 1)
                             sb.Append(",");
                     }
                     sb.Append(")");
+                    
                     return sb.ToString();
                 }
                 else
@@ -1230,7 +1250,7 @@ namespace Metadata
             type.is_class = (bool)reader["is_class"];
             type.interfaces = ReadObject<List<Expression.TypeSyntax>>((string)reader["interfaces"]);
             type.is_generic_type_definition = (bool)reader["is_generic_type_definition"];
-            type.generic_parameter_definitions = ReadObject<List<DB_Type.GenericParameterDefinition>>((string)reader["generic_parameter_definitions"]);
+            type.generic_parameter_definitions = ReadObject<List<GenericParameterDefinition>>((string)reader["generic_parameter_definitions"]);
             type.usingNamespace = ReadObject<List<string>>((string)reader["usingNamespace"]);
             type.is_enum = (bool)reader["is_enum"];
             return type;
