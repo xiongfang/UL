@@ -30,10 +30,11 @@ namespace Metadata
         public IModelTypeFinder Finder;
 
         //当前类的命名空间
-        HashSet<string> usingNamespace = new HashSet<string>();
-        string outNamespace;
+        public HashSet<string> usingNamespace = new HashSet<string>();
+        public string outNamespace;
         //当前处理的类型
         Metadata.DB_Type currentType;
+        Metadata.DB_Member currentMethod;
         //当前函数的本地变量和参数
         Stack<Dictionary<string, Metadata.DB_Type>> stackLocalVariables = new Stack<Dictionary<string, Metadata.DB_Type>>();
 
@@ -68,6 +69,21 @@ namespace Metadata
         public void LeaveType()
         {
             currentType = null;
+        }
+
+        public void EnterMethod(Metadata.DB_Member member)
+        {
+            currentMethod = member;
+            EnterBlock();
+            foreach(var arg in member.method_args)
+            {
+                AddLocal(arg.name, GetType(arg.type));
+            }
+        }
+        public void LeaveMethod()
+        {
+            LeaveBlock();
+            currentMethod = null;
         }
 
         public void EnterBlock()
@@ -149,7 +165,7 @@ namespace Metadata
             {
                 Metadata.Expression.FieldExp e = exp as Metadata.Expression.FieldExp;
                 Metadata.DB_Type caller_type = GetExpType(e.Caller);
-                return GetType(caller_type.members[e.Name].typeName);
+                return GetType(caller_type.FindField(e.Name,this).typeName);
             }
 
             if (exp is Metadata.Expression.IndifierExp)
@@ -168,7 +184,7 @@ namespace Metadata
                 {
                     argTypes.Add(GetExpType(t));
                 }
-                Metadata.DB_Member member = caller_type.FindMethod(me.Name, argTypes);
+                Metadata.DB_Member member = caller_type.FindMethod(me.Name, argTypes,this);
                 return GetType(member.typeName);
             }
 
@@ -176,6 +192,11 @@ namespace Metadata
             {
                 Metadata.Expression.ObjectCreateExp e = exp as Metadata.Expression.ObjectCreateExp;
                 return GetType(e.Type);
+            }
+
+            if(exp is Metadata.Expression.BaseExp)
+            {
+                return GetType(currentType.base_type);
             }
 
             return null;
@@ -187,12 +208,15 @@ namespace Metadata
             public bool is_var;
             public bool is_namespace;
             public bool is_member;
+            public bool is_class_type_parameter;
+            public bool is_method_type_parameter;
             public Metadata.DB_Type type;
         }
 
         public IndifierInfo GetIndifierInfo(string name)
         {
             IndifierInfo info = new IndifierInfo();
+
             //查找本地变量
             foreach (var v in stackLocalVariables)
             {
@@ -205,13 +229,27 @@ namespace Metadata
 
             }
 
+            //泛型参数
+            if (currentMethod != null)
+            {
+                foreach (var gd in currentMethod.method_generic_parameter_definitions)
+                {
+                    if (gd.type_name == name)
+                    {
+                        info.is_method_type_parameter = true;
+                        info.type = Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
+                        return info;
+                    }
+                }
+            }
+
             //查找成员变量
             if (currentType != null)
             {
-                if (currentType.members.ContainsKey(name))
+                if (currentType.FindField(name,this)!=null)
                 {
                     info.is_member = true;
-                    info.type = GetType(currentType.members[name].typeName);
+                    info.type = GetType(currentType.FindField(name, this).typeName);
                     return info;
                 }
                 //查找泛型
@@ -221,7 +259,7 @@ namespace Metadata
                     {
                         if (gd.type_name == name)
                         {
-                            info.is_type = true;
+                            info.is_class_type_parameter = true;
                             info.type = Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
                             return info;
                         }
@@ -297,7 +335,11 @@ namespace Metadata
             visitor.VisitType(type);
             foreach(var m in type.members)
             {
-                EnterBlock();
+                if(m.Value.member_type == (int)MemberTypes.Method || m.Value.member_type == (int)MemberTypes.Constructor)
+                {
+                    EnterMethod(m.Value);
+                }
+                
                 if(visitor.VisitMember(type, m.Value))
                 {
                     if (m.Value.method_body != null)
@@ -305,7 +347,10 @@ namespace Metadata
                         VisitStatement(type, visitor, m.Value, m.Value.method_body);
                     }
                 }
-                LeaveBlock();
+                if (m.Value.member_type == (int)MemberTypes.Method || m.Value.member_type == (int)MemberTypes.Constructor)
+                {
+                    LeaveMethod();
+                }
             }
             LeaveType();
             LeaveNamespace();
@@ -545,7 +590,7 @@ namespace Metadata
                 {
                     argTypes.Add(model.GetExpType(a));
                 }
-                typeRef.Add(caller.FindMethod(e.Name, argTypes).method_ret_type);
+                typeRef.Add(caller.FindMethod(e.Name, argTypes,this.model).method_ret_type);
             }
         }
     }

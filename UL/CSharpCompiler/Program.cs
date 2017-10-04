@@ -11,21 +11,35 @@ using System.IO;
 
 namespace CSharpCompiler
 {
+    class Finder : Metadata.IModelTypeFinder
+    {
+        //查找一个数据库类型
+        public Metadata.DB_Type FindType(string full_name)
+        {
+            return Model.GetType(full_name);
+        }
+        //查找一个类型，如果是动态类型，构造一个
+        public Metadata.DB_Type FindType(Metadata.Expression.TypeSyntax refType)
+        {
+            return Model.GetType(refType);
+        }
+    }
 
     class Model
     {
+        public static Metadata.Model Instance = new Metadata.Model(new Finder());
         //引用的外部类型
         public static Dictionary<string, Metadata.DB_Type> refTypes = new Dictionary<string, Metadata.DB_Type>();
         //编译中的类型
         public static Dictionary<string, Metadata.DB_Type> compilerTypes = new Dictionary<string, Metadata.DB_Type>();
-        //当前类的命名空间
-        public static List<string> usingNamespace = new List<string>();
-        static string currentUsing;
-        //当前处理的类型
-        static Metadata.DB_Type currentType;
-        static Metadata.DB_Member currentMethod;
-        //当前函数的本地变量和参数
-        static Stack<Dictionary<string, Metadata.DB_Type>> stackLocalVariables = new Stack<Dictionary<string, Metadata.DB_Type>>();
+        ////当前类的命名空间
+        //public static List<string> usingNamespace = new List<string>();
+        //static string currentUsing;
+        ////当前处理的类型
+        //static Metadata.DB_Type currentType;
+        //static Metadata.DB_Member currentMethod;
+        ////当前函数的本地变量和参数
+        //static Stack<Dictionary<string, Metadata.DB_Type>> stackLocalVariables = new Stack<Dictionary<string, Metadata.DB_Type>>();
 
         public static void AddRefType(Metadata.DB_Type type)
         {
@@ -118,130 +132,130 @@ namespace CSharpCompiler
             return null;
         }
 
-        public static Metadata.DB_Type FindType(string name)
-        {
-            //查找本地变量
-            foreach (var v in stackLocalVariables)
-            {
-                if (v.ContainsKey(name))
-                    return v[name];
-            }
+        //public static Metadata.DB_Type FindType(string name)
+        //{
+        //    //查找本地变量
+        //    foreach (var v in stackLocalVariables)
+        //    {
+        //        if (v.ContainsKey(name))
+        //            return v[name];
+        //    }
 
-            //泛型参数
-            if(currentMethod!=null)
-            {
-                foreach (var gd in currentMethod.method_generic_parameter_definitions)
-                {
-                    if (gd.type_name == name)
-                    {
-                        return Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
-                    }
-                }
-            }
+        //    //泛型参数
+        //    if(currentMethod!=null)
+        //    {
+        //        foreach (var gd in currentMethod.method_generic_parameter_definitions)
+        //        {
+        //            if (gd.type_name == name)
+        //            {
+        //                return Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
+        //            }
+        //        }
+        //    }
 
-            //查找成员变量
-            if (currentType != null)
-            {
-                if (currentType.members.ContainsKey(name))
-                    return GetType(currentType.members[name].typeName.ToString());
-                //查找泛型
-                if (currentType.is_generic_type_definition)
-                {
-                    foreach (var gd in currentType.generic_parameter_definitions)
-                    {
-                        if (gd.type_name == name)
-                        {
-                            return Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
-                        }
-                    }
-                }
+        //    //查找成员变量
+        //    if (currentType != null)
+        //    {
+        //        if (currentType.FindField(name,this))
+        //            return GetType(currentType.FindField(name, this).typeName.ToString());
+        //        //查找泛型
+        //        if (currentType.is_generic_type_definition)
+        //        {
+        //            foreach (var gd in currentType.generic_parameter_definitions)
+        //            {
+        //                if (gd.type_name == name)
+        //                {
+        //                    return Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
+        //                }
+        //            }
+        //        }
 
-                //当前命名空间
-                {
-                    Dictionary<string, Metadata.DB_Type> ns = FindNamespace(currentType._namespace);
-                    if (ns.ContainsKey(name))
-                    {
-                        return ns[name];
-                    }
-                }
+        //        //当前命名空间
+        //        {
+        //            Dictionary<string, Metadata.DB_Type> ns = FindNamespace(currentType._namespace);
+        //            if (ns.ContainsKey(name))
+        //            {
+        //                return ns[name];
+        //            }
+        //        }
 
-                //命名空间查找
-                foreach (var nsName in currentType.usingNamespace)
-                {
-                    Dictionary<string, Metadata.DB_Type> ns = FindNamespace(nsName);
-                    if (ns.ContainsKey(name))
-                    {
-                        return ns[name];
-                    }
-                }
-            }
+        //        //命名空间查找
+        //        foreach (var nsName in currentType.usingNamespace)
+        //        {
+        //            Dictionary<string, Metadata.DB_Type> ns = FindNamespace(nsName);
+        //            if (ns.ContainsKey(name))
+        //            {
+        //                return ns[name];
+        //            }
+        //        }
+        //    }
 
-            //命名空间查找
-            foreach (var nsName in usingNamespace)
-            {
-                Dictionary<string, Metadata.DB_Type> ns = FindNamespace(nsName);
-                if (ns.ContainsKey(name))
-                {
-                    return ns[name];
-                }
-            }
+        //    //命名空间查找
+        //    foreach (var nsName in usingNamespace)
+        //    {
+        //        Dictionary<string, Metadata.DB_Type> ns = FindNamespace(nsName);
+        //        if (ns.ContainsKey(name))
+        //        {
+        //            return ns[name];
+        //        }
+        //    }
 
-            if (!string.IsNullOrEmpty(currentUsing))
-            {
-                Dictionary<string, Metadata.DB_Type> ns = FindNamespace(currentUsing);
-                if (ns.ContainsKey(name))
-                {
-                    return ns[name];
-                }
-            }
+        //    if (!string.IsNullOrEmpty(currentUsing))
+        //    {
+        //        Dictionary<string, Metadata.DB_Type> ns = FindNamespace(currentUsing);
+        //        if (ns.ContainsKey(name))
+        //        {
+        //            return ns[name];
+        //        }
+        //    }
 
-            return null;
-        }
-
-
-        public static void EnterNS(string ns)
-        {
-            currentUsing = ns;
-        }
-
-        public static void LeaveNS()
-        {
-            currentUsing = null;
-        }
-
-        public static void EnterType(Metadata.DB_Type type)
-        {
-            currentType = type;
-        }
-        public static void LeaveType()
-        {
-            currentType = null;
-        }
-
-        public static void EnterBlock()
-        {
-            stackLocalVariables.Push(new Dictionary<string, Metadata.DB_Type>());
-        }
-
-        public static void LeaveBlock()
-        {
-            stackLocalVariables.Pop();
-        }
-        public static void EnterMethod(Metadata.DB_Member member)
-        {
-            currentMethod = member;
-        }
-        public static void LeaveMethod()
-        {
-            currentMethod = null;
-        }
+        //    return null;
+        //}
 
 
+        //public static void EnterNS(string ns)
+        //{
+        //    currentUsing = ns;
+        //}
 
-        public static void AddLocal(string name,Metadata.DB_Type type)
-        {
-            stackLocalVariables.Peek().Add(name, type);
-        }
+        //public static void LeaveNS()
+        //{
+        //    currentUsing = null;
+        //}
+
+        //public static void EnterType(Metadata.DB_Type type)
+        //{
+        //    currentType = type;
+        //}
+        //public static void LeaveType()
+        //{
+        //    currentType = null;
+        //}
+
+        //public static void EnterBlock()
+        //{
+        //    stackLocalVariables.Push(new Dictionary<string, Metadata.DB_Type>());
+        //}
+
+        //public static void LeaveBlock()
+        //{
+        //    stackLocalVariables.Pop();
+        //}
+        //public static void EnterMethod(Metadata.DB_Member member)
+        //{
+        //    currentMethod = member;
+        //}
+        //public static void LeaveMethod()
+        //{
+        //    currentMethod = null;
+        //}
+
+
+
+        //public static void AddLocal(string name,Metadata.DB_Type type)
+        //{
+        //    stackLocalVariables.Peek().Add(name, type);
+        //}
     }
 
     class Program
@@ -332,7 +346,7 @@ namespace CSharpCompiler
             else if (typeSyntax is IdentifierNameSyntax)
             {
                 IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
-                Metadata.DB_Type type = Model.FindType(ts.Identifier.Text);
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(ts.Identifier.Text).type;
                 if(type.is_generic_paramter)
                 {
                     Metadata.Expression.GenericParameterSyntax ins = new Metadata.Expression.GenericParameterSyntax();
@@ -364,7 +378,7 @@ namespace CSharpCompiler
                 Metadata.Expression.GenericNameSyntax gns = new Metadata.Expression.GenericNameSyntax();
                 gns.Name = Name;
                 gns.Arguments = parameters;
-                Metadata.DB_Type type = Model.FindType(gns.GetUniqueName());
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(gns.GetUniqueName()).type;
                 gns.name_space = type._namespace;
                 return gns;
             }
@@ -528,14 +542,16 @@ namespace CSharpCompiler
                 {
                     var root = (CompilationUnitSyntax)tree.GetRoot();
 
-                    Model.usingNamespace.Clear();
+                    Model.Instance.ClearUsing();
+                    List<string> usingList = new List<string>();
                     if (root.Usings!=null)
                     {
                         foreach(var u in root.Usings)
                         {
-                            Model.usingNamespace.Add(u.Name.ToString());
+                            usingList.Add(u.Name.ToString());
                         }
                     }
+                    Model.Instance.StartUsing(usingList);
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
                     //导出所有类
@@ -552,14 +568,16 @@ namespace CSharpCompiler
                 foreach (var tree in treeList)
                 {
                     var root = (CompilationUnitSyntax)tree.GetRoot();
-                    Model.usingNamespace.Clear();
+                    Model.Instance.ClearUsing();
+                    List<string> usingList = new List<string>();
                     if (root.Usings != null)
                     {
                         foreach (var u in root.Usings)
                         {
-                            Model.usingNamespace.Add(u.Name.ToString());
+                            usingList.Add(u.Name.ToString());
                         }
                     }
+                    Model.Instance.StartUsing(usingList);
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
                     var classNodes = nodes.OfType<BaseTypeDeclarationSyntax>();
@@ -574,14 +592,16 @@ namespace CSharpCompiler
                 foreach (var tree in treeList)
                 {
                     var root = (CompilationUnitSyntax)tree.GetRoot();
-                    Model.usingNamespace.Clear();
+                    Model.Instance.ClearUsing();
+                    List<string> usingList = new List<string>();
                     if (root.Usings != null)
                     {
                         foreach (var u in root.Usings)
                         {
-                            Model.usingNamespace.Add(u.Name.ToString());
+                            usingList.Add(u.Name.ToString());
                         }
                     }
+                    Model.Instance.StartUsing(usingList);
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
                     var classNodes = nodes.OfType<BaseTypeDeclarationSyntax>();
@@ -679,7 +699,7 @@ namespace CSharpCompiler
                 if (namespaceDeclarationSyntax != null)
                 {
                     //type.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
-                    type.usingNamespace.AddRange(Model.usingNamespace);
+                    type.usingNamespace.AddRange(Model.Instance.usingNamespace);
                     foreach (var ns in namespaceDeclarationSyntax.Usings)
                     {
                         type.usingNamespace.Add(ns.Name.ToString());
@@ -717,10 +737,10 @@ namespace CSharpCompiler
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
-                    Model.EnterNS(namespaceDeclarationSyntax.Name.ToString());
+                    Model.Instance.EnterNamespace(namespaceDeclarationSyntax.Name.ToString());
                 }
 
-                Metadata.DB_Type type = Model.FindType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetType(typeName);
 
                 //if (type.full_name != "System.Object" && type.base_type.IsVoid)
                 //    type.base_type = Model.GetType("System.Object").GetRefType();
@@ -746,7 +766,7 @@ namespace CSharpCompiler
 
                 }
 
-                Model.EnterType(type);
+                Model.Instance.EnterType(type);
 
 
                 //导出所有变量
@@ -766,7 +786,7 @@ namespace CSharpCompiler
                     Model.AddMember(type.static_full_name, dB_Member);
                 }
 
-                Model.LeaveType();
+                Model.Instance.LeaveType();
                 Console.WriteLine();
             }
         }
@@ -794,7 +814,7 @@ namespace CSharpCompiler
                 if (namespaceDeclarationSyntax != null)
                 {
                     //type.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
-                    type.usingNamespace.AddRange(Model.usingNamespace);
+                    type.usingNamespace.AddRange(Model.Instance.usingNamespace);
                     foreach (var ns in namespaceDeclarationSyntax.Usings)
                     {
                         type.usingNamespace.Add(ns.Name.ToString());
@@ -844,14 +864,14 @@ namespace CSharpCompiler
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
-                    Model.EnterNS(namespaceDeclarationSyntax.Name.ToString());
+                    Model.Instance.EnterNamespace(namespaceDeclarationSyntax.Name.ToString());
                 }
                 if (c.TypeParameterList != null)
                 {
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.FindType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetType(typeName);
 
                 //if (type.full_name != "System.Object" && type.base_type.IsVoid)
                 //    type.base_type = Model.GetType("System.Object").GetRefType();
@@ -877,7 +897,7 @@ namespace CSharpCompiler
 
                 }
 
-                Model.EnterType(type);
+                Model.Instance.EnterType(type);
 
                 //泛型参数
                 if (c.ConstraintClauses != null)
@@ -908,7 +928,7 @@ namespace CSharpCompiler
                 {
                     ExportMethod(f, type);
                 }
-                Model.LeaveType();
+                Model.Instance.LeaveType();
                 Console.WriteLine();
             }
         }
@@ -935,7 +955,7 @@ namespace CSharpCompiler
                 if (namespaceDeclarationSyntax != null)
                 {
                     //type.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
-                    type.usingNamespace.AddRange(Model.usingNamespace);
+                    type.usingNamespace.AddRange(Model.Instance.usingNamespace);
                     foreach (var ns in namespaceDeclarationSyntax.Usings)
                     {
                         type.usingNamespace.Add(ns.Name.ToString());
@@ -968,14 +988,14 @@ namespace CSharpCompiler
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
-                    Model.EnterNS(namespaceDeclarationSyntax.Name.ToString());
+                    Model.Instance.EnterNamespace(namespaceDeclarationSyntax.Name.ToString());
                 }
                 if (c.TypeParameterList != null)
                 {
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.FindType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetType(typeName);
 
                 if (type.static_full_name != "System.Object" && type.base_type.IsVoid)
                     type.base_type = Model.GetType("System.Object").GetRefType();
@@ -1001,7 +1021,7 @@ namespace CSharpCompiler
 
                 }
 
-                Model.EnterType(type);
+                Model.Instance.EnterType(type);
 
                 //泛型参数
                 if (c.ConstraintClauses != null)
@@ -1032,7 +1052,7 @@ namespace CSharpCompiler
                 {
                     ExportMethod(f, type);
                 }
-                Model.LeaveType();
+                Model.Instance.LeaveType();
                 Console.WriteLine();
             }
             else if (step == ECompilerStet.Compile)
@@ -1041,15 +1061,15 @@ namespace CSharpCompiler
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
-                    Model.EnterNS(namespaceDeclarationSyntax.Name.ToString());
+                    Model.Instance.EnterNamespace(namespaceDeclarationSyntax.Name.ToString());
                 }
                 if (c.TypeParameterList != null)
                 {
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.FindType(typeName);
-                Model.EnterType(type);
+                Metadata.DB_Type type = Model.Instance.GetType(typeName);
+                Model.Instance.EnterType(type);
 
                 //导出所有方法
                 var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
@@ -1058,7 +1078,7 @@ namespace CSharpCompiler
                     ExportMethod(f, type);
                 }
 
-                Model.LeaveType();
+                Model.Instance.LeaveType();
             }
         }
 
@@ -1086,7 +1106,7 @@ namespace CSharpCompiler
                 if (namespaceDeclarationSyntax != null)
                 {
                     //type.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
-                    type.usingNamespace.AddRange(Model.usingNamespace);
+                    type.usingNamespace.AddRange(Model.Instance.usingNamespace);
                     foreach (var ns in namespaceDeclarationSyntax.Usings)
                     {
                         type.usingNamespace.Add(ns.Name.ToString());
@@ -1122,14 +1142,14 @@ namespace CSharpCompiler
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
-                    Model.EnterNS( namespaceDeclarationSyntax.Name.ToString());
+                    Model.Instance.EnterNamespace( namespaceDeclarationSyntax.Name.ToString());
                 }
                 if(c.TypeParameterList!=null)
                 {
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.FindType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetType(typeName);
 
                 if (type.static_full_name != "System.Object" && type.base_type.IsVoid)
                     type.base_type = Model.GetType("System.Object").GetRefType();
@@ -1155,7 +1175,7 @@ namespace CSharpCompiler
 
                 }
 
-                Model.EnterType(type);
+                Model.Instance.EnterType(type);
 
                 //泛型参数
                 if (c.ConstraintClauses != null)
@@ -1186,7 +1206,7 @@ namespace CSharpCompiler
                 {
                     ExportMethod(f, type);
                 }
-                Model.LeaveType();
+                Model.Instance.LeaveType();
                 Console.WriteLine();
             }
             else if(step == ECompilerStet.Compile)
@@ -1195,15 +1215,15 @@ namespace CSharpCompiler
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
-                    Model.EnterNS(namespaceDeclarationSyntax.Name.ToString());
+                    Model.Instance.EnterNamespace(namespaceDeclarationSyntax.Name.ToString());
                 }
                 if (c.TypeParameterList != null)
                 {
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.FindType(typeName);
-                Model.EnterType(type);
+                Metadata.DB_Type type = Model.Instance.GetType(typeName);
+                Model.Instance.EnterType(type);
 
                 //导出所有方法
                 var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
@@ -1212,7 +1232,7 @@ namespace CSharpCompiler
                     ExportMethod(f, type);
                 }
 
-                Model.LeaveType();
+                Model.Instance.LeaveType();
             }
         }
 
@@ -1276,7 +1296,9 @@ namespace CSharpCompiler
                     dB_Member.declaring_type = type.static_full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Method;
                     dB_Member.modifier = GetModifier(type,f.Modifiers);
-
+                    dB_Member.method_virtual = ContainModifier(f.Modifiers, "virtual");
+                    dB_Member.method_override = ContainModifier(f.Modifiers, "override");
+                    dB_Member.method_abstract = ContainModifier(f.Modifiers, "abstract");
                     dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
                     for (int i = 0; i < f.ParameterList.Parameters.Count; i++)
                     {
@@ -1312,7 +1334,7 @@ namespace CSharpCompiler
                         }
                     }
 
-                    Model.EnterMethod(dB_Member);
+                    Model.Instance.EnterMethod(dB_Member);
 
                     Metadata.Expression.TypeSyntax retType = GetTypeSyntax(f.ReturnType);
                     if (retType != null)
@@ -1324,18 +1346,18 @@ namespace CSharpCompiler
                     MemberMap[f] = dB_Member;
                     Console.WriteLine();
 
-                    Model.LeaveMethod();
+                    Model.Instance.LeaveMethod();
                 }
                 else if (step == ECompilerStet.Compile)
                 {
                     Metadata.DB_Member dB_Member = MemberMap[f];
-                    Model.EnterMethod(dB_Member);
+                    Model.Instance.EnterMethod(dB_Member);
                     if (f.Body != null)
                         if (!ingore_method_body)
                         {
                             dB_Member.method_body = ExportBody(f.Body);
                         }
-                    Model.LeaveMethod();
+                    Model.Instance.LeaveMethod();
                 }
             }
             if (v is ConstructorDeclarationSyntax)
@@ -1610,6 +1632,10 @@ namespace CSharpCompiler
             {
                 return ExportExp(es as PrefixUnaryExpressionSyntax);
             }
+            else if(es is BaseExpressionSyntax)
+            {
+                return ExportExp(es as BaseExpressionSyntax);
+            }
             else
             {
                 Console.Error.WriteLine(string.Format("error:不支持的表达式 {0} {1}" , es.GetType().Name,es.ToString()));
@@ -1806,6 +1832,12 @@ namespace CSharpCompiler
                 exp.Caller = ExportExp(es.Operand);
                 return exp;
             }
+        }
+
+        static Metadata.Expression.Exp ExportExp(BaseExpressionSyntax es)
+        {
+            Metadata.Expression.BaseExp exp = new Metadata.Expression.BaseExp();
+            return exp;
         }
     }
 }
