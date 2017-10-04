@@ -449,10 +449,19 @@ namespace CppConverter
 
         static void LoadTypeDependences(string full_name, Dictionary<string, Metadata.DB_Type> loaded)
         {
-            Metadata.DB_Type type = Metadata.DB.LoadType(full_name, _con);
-            if (type == null)
-                return;
-            loaded.Add(type.static_full_name, type);
+            Metadata.DB_Type type = null;
+            if (!loaded.ContainsKey(full_name))
+            {
+                type = Metadata.DB.LoadType(full_name, _con);
+                if (type == null)
+                    return;
+                loaded.Add(type.static_full_name, type);
+            }
+            else
+            {
+                type = loaded[full_name];
+            }
+            
             HashSet<string> dep = GetTypeDependences(type);
 
             foreach (var t in dep)
@@ -522,7 +531,10 @@ namespace CppConverter
                 return GetCppTypeName(type);
             }
             else
-                return string.Format("Ref<{0}>", GetCppTypeName(type));
+            {
+                return string.Format("{0}*", GetCppTypeName(type));
+            }
+
         }
 
         static Project cfg;
@@ -546,15 +558,15 @@ namespace CppConverter
 
                 Model.types = new Dictionary<string, Metadata.DB_Type>();
 
-                //加载引用类
-                foreach(var ns in cfg.ref_namespace)
-                {
-                    Dictionary<string, Metadata.DB_Type> nsTypes = Metadata.DB.LoadNamespace(ns, _con);
-                    foreach (var t in nsTypes)
-                    {
-                        Model.types.Add(t.Value.static_full_name, t.Value);
-                    }
-                }
+                ////加载引用类
+                //foreach(var ns in cfg.ref_namespace)
+                //{
+                //    Dictionary<string, Metadata.DB_Type> nsTypes = Metadata.DB.LoadNamespace(ns, _con);
+                //    foreach (var t in nsTypes)
+                //    {
+                //        Model.types.Add(t.Value.static_full_name, t.Value);
+                //    }
+                //}
 
                 //加载命名空间和导出的类
                 foreach (var ns in cfg.export_namespace)
@@ -571,14 +583,14 @@ namespace CppConverter
                     Model.types.Add(type.static_full_name, type);
                 }
 
-                ////加载依赖的类
-                //List<Metadata.DB_Type> typeList = new List<Metadata.DB_Type>();
-                //typeList.AddRange(Model.types.Values);
-                //foreach(var t in typeList)
-                //{
-                //    LoadTypeDependences(t.static_full_name, Model.types);
-                //}
-                
+                //加载依赖的类
+                List<Metadata.DB_Type> typeList = new List<Metadata.DB_Type>();
+                typeList.AddRange(Model.types.Values);
+                foreach (var t in typeList)
+                {
+                    LoadTypeDependences(t.static_full_name, Model.types);
+                }
+
                 //导出所有非引用的类型
                 foreach (var t in Model.types.Values)
                 {
@@ -840,7 +852,10 @@ namespace CppConverter
                 else
                     Append("");
 
-                AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
+                if(member_type.is_class)
+                    AppendLine(string.Format("{0}* {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
+                else
+                    AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
             }
             else if(member.member_type == (int)Metadata.MemberTypes.Method || member.member_type == (int)Metadata.MemberTypes.Constructor)
             {
@@ -1190,6 +1205,10 @@ namespace CppConverter
                     caller_type = ii.type;
                 }
             }
+            else if(es.Caller is Metadata.Expression.BaseExp)
+            {
+                stringBuilder.Append("::");
+            }
             else
             {
                 caller_type = Model.Instance.GetExpType(es.Caller);
@@ -1311,7 +1330,7 @@ namespace CppConverter
         }
         static string ExpressionToString(Metadata.Expression.BaseExp es)
         {
-            return "Super";
+            return GetCppTypeName(Model.GetType(Model.Instance.currentType.base_type));
         }
 
         static string ExpressionToString(Metadata.VariableDeclaratorSyntax es)

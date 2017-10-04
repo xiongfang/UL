@@ -33,7 +33,7 @@ namespace Metadata
         public HashSet<string> usingNamespace = new HashSet<string>();
         public string outNamespace;
         //当前处理的类型
-        Metadata.DB_Type currentType;
+        public Metadata.DB_Type currentType;
         Metadata.DB_Member currentMethod;
         //当前函数的本地变量和参数
         Stack<Dictionary<string, Metadata.DB_Type>> stackLocalVariables = new Stack<Dictionary<string, Metadata.DB_Type>>();
@@ -277,6 +277,29 @@ namespace Metadata
                     }
                 }
             }
+
+            //当前命名空间查找
+            if (!string.IsNullOrEmpty(outNamespace))
+            {
+                DB_Type type = Finder.FindType(outNamespace + "." + name);
+                if (type != null)
+                {
+                    info.is_type = true;
+                    info.type = type;
+                    return info;
+                }
+            }
+            foreach (var nsName in usingNamespace)
+            {
+                DB_Type type = Finder.FindType(nsName + "." + name);
+                if (type != null)
+                {
+                    info.is_type = true;
+                    info.type = type;
+                    return info;
+                }
+            }
+
 
             return null;
         }

@@ -98,12 +98,24 @@ namespace CSharpCompiler
             return rt;
         }
 
+        static HashSet<string> try_loaded = new HashSet<string>();
         public static Metadata.DB_Type GetType(string full_name)
         {
             if (compilerTypes.ContainsKey(full_name))
                 return compilerTypes[full_name];
             if (refTypes.ContainsKey(full_name))
                 return refTypes[full_name];
+
+            if(!try_loaded.Contains(full_name))
+            {
+                try_loaded.Add(full_name);
+                Metadata.DB_Type type = Metadata.DB.LoadType(full_name,Program._con);
+                if(type!=null)
+                {
+                    AddRefType(type);
+                }
+                return type;
+            }
             return null;
         }
 
@@ -261,7 +273,7 @@ namespace CSharpCompiler
     class Program
     {
 
-        static OdbcConnection _con;
+        public static OdbcConnection _con;
         static OdbcTransaction _trans;
 
         static bool ingore_method_body;
@@ -400,52 +412,6 @@ namespace CSharpCompiler
             return null;
         }
 
-
-        //public static Metadata.DB_Type GetType(TypeSyntax typeSyntax)
-        //{
-
-        //    if (typeSyntax is PredefinedTypeSyntax)
-        //    {
-        //        PredefinedTypeSyntax predefinedTypeSyntax = typeSyntax as PredefinedTypeSyntax;
-        //        string typeName = GetKeywordTypeName(predefinedTypeSyntax.Keyword.Text);
-        //        return Model.GetType(typeName);
-        //    }
-        //    else if (typeSyntax is ArrayTypeSyntax)
-        //    {
-        //        ArrayTypeSyntax ts = typeSyntax as ArrayTypeSyntax;
-        //        Metadata.DB_Type elementType = GetType(ts.ElementType);
-        //        List<Metadata.Expression.TypeSyntax> parameters = new List<Metadata.Expression.TypeSyntax>();
-        //        parameters.Add(elementType.GetRefType());
-        //        Metadata.DB_Type arrayType = Model.GetType("System.Array[1]");
-        //        return Metadata.DB_Type.MakeGenericType(arrayType, parameters);
-        //    }
-        //    else if (typeSyntax is IdentifierNameSyntax)
-        //    {
-        //        IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
-        //        return Model.FindType(ts.Identifier.Text);
-        //    }
-        //    else if (typeSyntax is GenericNameSyntax)
-        //    {
-        //        GenericNameSyntax ts = typeSyntax as GenericNameSyntax;
-        //        string Name = ts.Identifier.Text;
-        //        Metadata.DB_Type dB_GenericTypeDef = Model.FindType(Name + "[" + ts.TypeArgumentList.Arguments.Count + "]");
-        //        List<Metadata.Expression.TypeSyntax> parameters = new List<Metadata.Expression.TypeSyntax>();
-        //        foreach (var p in ts.TypeArgumentList.Arguments)
-        //        {
-        //            parameters.Add(GetType(p).GetRefType());
-        //        }
-        //        return Metadata.DB_Type.MakeGenericType(dB_GenericTypeDef, parameters);
-        //    }
-        //    else if(typeSyntax is QualifiedNameSyntax)
-        //    {
-
-        //    }
-        //    else
-        //    {
-        //        Console.Error.WriteLine("不支持的类型语法 " + typeSyntax.GetType().FullName);
-        //    }
-        //    return null;
-        //}
         static string GetKeywordTypeName(string kw)
         {
             switch (kw)
@@ -466,6 +432,14 @@ namespace CSharpCompiler
                     return "Object";
                 case "bool":
                     return "Boolean";
+                case "uint":
+                    return "UInt32";
+                case "ulong":
+                    return "UInt64";
+                case "long":
+                    return "Int64";
+                case "ushort":
+                    return "UInt16";
                 default:
                     return "void";
             }
@@ -506,19 +480,19 @@ namespace CSharpCompiler
 
 
                 //加载引用
-                foreach (var ref_ns in pj.ref_namespace)
-                {
-                    Dictionary<string, Metadata.DB_Type> ns_types = Metadata.DB.LoadNamespace(ref_ns, _con);
-                    foreach (var v in ns_types)
-                    {
-                        Model.AddRefType(v.Value);
-                    }
-                }
+                //foreach (var ref_ns in pj.ref_namespace)
+                //{
+                //    Dictionary<string, Metadata.DB_Type> ns_types = Metadata.DB.LoadNamespace(ref_ns, _con);
+                //    foreach (var v in ns_types)
+                //    {
+                //        Model.AddRefType(v.Value);
+                //    }
+                //}
 
-                foreach (var ref_ns in pj.ref_type)
-                {
-                    Model.AddRefType(Metadata.DB.LoadType(ref_ns, _con));
-                }
+                //foreach (var ref_ns in pj.ref_type)
+                //{
+                //    Model.AddRefType(Metadata.DB.LoadType(ref_ns, _con));
+                //}
 
                 //分析文件
                 List<SyntaxTree> treeList = new List<SyntaxTree>();
@@ -535,9 +509,7 @@ namespace CSharpCompiler
                     }
                 }
 
-                OdbcTransaction trans = con.BeginTransaction();
-                _trans = trans;
-
+                
                 foreach(var tree in treeList)
                 {
                     var root = (CompilationUnitSyntax)tree.GetRoot();
@@ -612,6 +584,9 @@ namespace CSharpCompiler
                         ExportType(c);
                     }
                 }
+
+                OdbcTransaction trans = con.BeginTransaction();
+                _trans = trans;
 
                 //存储数据库
                 foreach (var v in Model.compilerTypes)
@@ -689,8 +664,8 @@ namespace CSharpCompiler
                 type.is_interface = false;
                 type.is_enum = true;
                 type.is_value_type = false;
-                Console.WriteLine("Identifier:" + c.Identifier);
-                Console.WriteLine("Modifiers:" + c.Modifiers);
+                //Console.WriteLine("Identifier:" + c.Identifier);
+                //Console.WriteLine("Modifiers:" + c.Modifiers);
                 type.modifier = GetModifier(type, c.Modifiers);
                 type.name = c.Identifier.Text;
 
@@ -740,7 +715,7 @@ namespace CSharpCompiler
                     Model.Instance.EnterNamespace(namespaceDeclarationSyntax.Name.ToString());
                 }
 
-                Metadata.DB_Type type = Model.Instance.GetType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
 
                 //if (type.full_name != "System.Object" && type.base_type.IsVoid)
                 //    type.base_type = Model.GetType("System.Object").GetRefType();
@@ -787,7 +762,7 @@ namespace CSharpCompiler
                 }
 
                 Model.Instance.LeaveType();
-                Console.WriteLine();
+                //Console.WriteLine();
             }
         }
 
@@ -804,8 +779,8 @@ namespace CSharpCompiler
                 type.is_abstract = ContainModifier(c.Modifiers, "abstract");
                 type.is_interface = true;
                 type.is_value_type = false;
-                Console.WriteLine("Identifier:" + c.Identifier);
-                Console.WriteLine("Modifiers:" + c.Modifiers);
+                //Console.WriteLine("Identifier:" + c.Identifier);
+                //Console.WriteLine("Modifiers:" + c.Modifiers);
                 type.modifier = GetModifier(type,c.Modifiers);
                 type.name = c.Identifier.Text;
 
@@ -871,7 +846,7 @@ namespace CSharpCompiler
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.Instance.GetType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
 
                 //if (type.full_name != "System.Object" && type.base_type.IsVoid)
                 //    type.base_type = Model.GetType("System.Object").GetRefType();
@@ -929,7 +904,7 @@ namespace CSharpCompiler
                     ExportMethod(f, type);
                 }
                 Model.Instance.LeaveType();
-                Console.WriteLine();
+                //Console.WriteLine();
             }
         }
         static void ExportStruct(StructDeclarationSyntax c)
@@ -943,8 +918,8 @@ namespace CSharpCompiler
                 //bool isPrivate = !isPublic && !isProtected;
                 type.is_abstract = ContainModifier(c.Modifiers, "abstract");
 
-                Console.WriteLine("Identifier:" + c.Identifier);
-                Console.WriteLine("Modifiers:" + c.Modifiers);
+                //Console.WriteLine("Identifier:" + c.Identifier);
+                //Console.WriteLine("Modifiers:" + c.Modifiers);
                 type.is_interface = false;
                 type.is_value_type = true;
                 type.modifier = GetModifier(type,c.Modifiers);
@@ -995,7 +970,7 @@ namespace CSharpCompiler
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.Instance.GetType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
 
                 if (type.static_full_name != "System.Object" && type.base_type.IsVoid)
                     type.base_type = Model.GetType("System.Object").GetRefType();
@@ -1053,7 +1028,7 @@ namespace CSharpCompiler
                     ExportMethod(f, type);
                 }
                 Model.Instance.LeaveType();
-                Console.WriteLine();
+                //Console.WriteLine();
             }
             else if (step == ECompilerStet.Compile)
             {
@@ -1068,7 +1043,7 @@ namespace CSharpCompiler
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.Instance.GetType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
                 Model.Instance.EnterType(type);
 
                 //导出所有方法
@@ -1095,8 +1070,8 @@ namespace CSharpCompiler
                 type.is_interface = false;
                 type.is_value_type = false;
                 type.is_class = true;
-                Console.WriteLine("Identifier:" + c.Identifier);
-                Console.WriteLine("Modifiers:" + c.Modifiers);
+               // Console.WriteLine("Identifier:" + c.Identifier);
+                //Console.WriteLine("Modifiers:" + c.Modifiers);
                 bool partial = ContainModifier(c.Modifiers, "partial");
                 type.modifier = GetModifier(type,c.Modifiers);
                 type.name = c.Identifier.Text;
@@ -1149,7 +1124,7 @@ namespace CSharpCompiler
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.Instance.GetType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
 
                 if (type.static_full_name != "System.Object" && type.base_type.IsVoid)
                     type.base_type = Model.GetType("System.Object").GetRefType();
@@ -1207,7 +1182,7 @@ namespace CSharpCompiler
                     ExportMethod(f, type);
                 }
                 Model.Instance.LeaveType();
-                Console.WriteLine();
+                //Console.WriteLine();
             }
             else if(step == ECompilerStet.Compile)
             {
@@ -1222,7 +1197,7 @@ namespace CSharpCompiler
                     typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
                 }
 
-                Metadata.DB_Type type = Model.Instance.GetType(typeName);
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
                 Model.Instance.EnterType(type);
 
                 //导出所有方法
@@ -1283,9 +1258,9 @@ namespace CSharpCompiler
                 MethodDeclarationSyntax f = v as MethodDeclarationSyntax;
                 if (step == ECompilerStet.ScanMember)
                 {
-                    Console.WriteLine("\tIdentifier:" + f.Identifier);
-                    Console.WriteLine("\tModifiers:" + f.Modifiers);
-                    Console.WriteLine("\tReturnType:" + f.ReturnType);
+                    //Console.WriteLine("\tIdentifier:" + f.Identifier);
+                    //Console.WriteLine("\tModifiers:" + f.Modifiers);
+                    //Console.WriteLine("\tReturnType:" + f.ReturnType);
                     //TypeInfo ti = GetTypeInfo(f.ReturnType);
 
 
@@ -1344,7 +1319,7 @@ namespace CSharpCompiler
 
                     Model.AddMember(type.static_full_name, dB_Member);
                     MemberMap[f] = dB_Member;
-                    Console.WriteLine();
+                    //Console.WriteLine();
 
                     Model.Instance.LeaveMethod();
                 }
@@ -1365,8 +1340,8 @@ namespace CSharpCompiler
                 ConstructorDeclarationSyntax f = v as ConstructorDeclarationSyntax;
                 if (step == ECompilerStet.ScanMember)
                 {
-                    Console.WriteLine("\tIdentifier:" + f.Identifier);
-                    Console.WriteLine("\tModifiers:" + f.Modifiers);
+                    //Console.WriteLine("\tIdentifier:" + f.Identifier);
+                    //Console.WriteLine("\tModifiers:" + f.Modifiers);
                     //Console.WriteLine("\tReturnType:" + f.ReturnType);
                     //TypeInfo ti = GetTypeInfo(f.ReturnType);
 
@@ -1397,7 +1372,7 @@ namespace CSharpCompiler
 
                     Model.AddMember(type.static_full_name, dB_Member);
                     MemberMap[f] = dB_Member;
-                    Console.WriteLine();
+                    //Console.WriteLine();
                 }
                 else if (step == ECompilerStet.Compile)
                 {
