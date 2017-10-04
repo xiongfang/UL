@@ -154,6 +154,7 @@
     <ClInclude Include="Console_ExtCpp.h" />
     <ClInclude Include="IComparable.h" />
     <ClInclude Include="Int32.h" />
+    <ClInclude Include="Int32_ExtCpp.h" />
     <ClInclude Include="Int32_ExtHeader.h" />
     <ClInclude Include="MemberTypes.h" />
     <ClInclude Include="Object.h" />

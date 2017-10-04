@@ -7,13 +7,24 @@ using System.Threading.Tasks;
 
 namespace CppConverter
 {
-
     class TypeConfig
     {
         public string name;
         public string ext_header;
         public string ext_cpp;
+        public string header_path;
     }
+
+    class Project
+    {
+        public TypeConfig[] type_settings;
+        public string[] export_namespace;
+        public string[] export_type;
+        public string export_dir;
+        public string[] ref_namespace;
+        public string precompile_header;
+    }
+    
 
 
     //class Finder:Metadata.IModelTypeFinder
@@ -84,7 +95,7 @@ namespace CppConverter
             if(typeRef is Metadata.Expression.GenericParameterSyntax)
             {
                 Metadata.DB_Type declareType = type;
-                Metadata.DB_Type.GenericParameterDefinition typeDef = declareType.generic_parameter_definitions.Find((a) => { return a.type_name == typeRef.Name; });
+                Metadata.GenericParameterDefinition typeDef = declareType.generic_parameter_definitions.Find((a) => { return a.type_name == typeRef.Name; });
                 return Metadata.DB_Type.MakeGenericParameterType(declareType, typeDef);
             }
             
@@ -503,28 +514,67 @@ namespace CppConverter
                 return string.Format("Ref<{0}>", GetCppTypeName(type));
         }
 
+        static Project cfg;
+
         static void Main(string[] args)
         {
-            TypeConfig[] cfg = Metadata.DB.ReadObject<TypeConfig[]>(System.IO.File.ReadAllText("ext.json"));
-            foreach(var c in cfg)
+            cfg = Metadata.DB.ReadObject<Project>(System.IO.File.ReadAllText(args[0]));
+            foreach(var c in cfg.type_settings)
             {
                 configs[c.name] = c;
             }
 
-            string TypeName = args[0];
-            outputDir = args[1];
+            outputDir = cfg.export_dir;
+            List<string> ref_ns = new List<string>();
+            ref_ns.AddRange(cfg.ref_namespace);
+
             using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
             {
                 con.Open();
                 _con = con;
-                //Metadata.DB_Type type = Metadata.DB.LoadType("HelloWorld.Program", _con);
-                Model.types = new Dictionary<string, Metadata.DB_Type>();
-                LoadTypeDependences(TypeName, Model.types);
-                //LoadTypeDependences("System.Console", Model.types);
 
+                Model.types = new Dictionary<string, Metadata.DB_Type>();
+
+                //加载引用类
+                foreach(var ns in cfg.ref_namespace)
+                {
+                    Dictionary<string, Metadata.DB_Type> nsTypes = Metadata.DB.LoadNamespace(ns, _con);
+                    foreach (var t in nsTypes)
+                    {
+                        Model.types.Add(t.Value.static_full_name, t.Value);
+                    }
+                }
+
+                //加载命名空间和导出的类
+                foreach (var ns in cfg.export_namespace)
+                {
+                    Dictionary<string, Metadata.DB_Type> nsTypes = Metadata.DB.LoadNamespace(ns, _con);
+                    foreach(var t in nsTypes)
+                    {
+                        Model.types.Add(t.Value.static_full_name, t.Value);
+                    }
+                }
+                foreach (var ns in cfg.export_type)
+                {
+                    Metadata.DB_Type type = Metadata.DB.LoadType(ns, _con);
+                    Model.types.Add(type.static_full_name, type);
+                }
+
+                ////加载依赖的类
+                //List<Metadata.DB_Type> typeList = new List<Metadata.DB_Type>();
+                //typeList.AddRange(Model.types.Values);
+                //foreach(var t in typeList)
+                //{
+                //    LoadTypeDependences(t.static_full_name, Model.types);
+                //}
+                
+                //导出所有非引用的类型
                 foreach (var t in Model.types.Values)
                 {
-                    ConvertType(t);
+                    if(!ref_ns.Contains(t._namespace))
+                    {
+                        ConvertType(t);
+                    }
                 }
 
                 
@@ -551,6 +601,17 @@ namespace CppConverter
             sb.Append(msg);
         }
 
+        static string GetTypeHeader(Metadata.DB_Type type)
+        {
+            if(configs.ContainsKey(type.static_full_name))
+            {
+                if(!string.IsNullOrEmpty(configs[type.static_full_name].header_path))
+                    return configs[type.static_full_name].header_path;
+            }
+
+            return type.name + ".h";
+        }
+
         static void ConvertType(Metadata.DB_Type type)
         {
             Model.EnterType(type);
@@ -570,7 +631,7 @@ namespace CppConverter
                     {
                         if (NoDeclareTypes.Contains(t))
                         {
-                            sb.AppendLine("#include \"" + depType.name + ".h\"");
+                            sb.AppendLine("#include \"" + GetTypeHeader(depType) + "\"");
                         }
                         else
                         {
@@ -687,8 +748,11 @@ namespace CppConverter
                 sb.Clear();
                 if(!type.is_enum && !type.is_generic_type_definition)
                 {
-                    sb.AppendLine("#include \"stdafx.h\"");
-                    sb.AppendLine("#include \"" + type.name + ".h\"");
+                    if(!string.IsNullOrEmpty(cfg.precompile_header))
+                    {
+                        sb.AppendLine(string.Format("#include \"{0}\"", cfg.precompile_header));
+                    }
+                    sb.AppendLine("#include \"" + GetTypeHeader(type) + "\"");
                     //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
 
                     //包含依赖的头文件
@@ -698,7 +762,7 @@ namespace CppConverter
                     {
                         Metadata.DB_Type depType = Model.GetType(t);
                         if (!depType.is_generic_paramter && t != type.static_full_name)
-                            sb.AppendLine("#include \"" + depType.name + ".h\"");
+                            sb.AppendLine("#include \"" + GetTypeHeader(depType) + "\"");
                     }
                     foreach (var t in depTypes)
                     {
@@ -706,7 +770,7 @@ namespace CppConverter
                         {
                             Metadata.DB_Type depType = Model.GetType(t);
                             if (!depType.is_generic_paramter && t != type.static_full_name)
-                                sb.AppendLine("#include \"" + depType.name + ".h\"");
+                                sb.AppendLine("#include \"" + GetTypeHeader(depType) + "\"");
                         }
                     }
 

@@ -464,6 +464,7 @@ namespace CSharpCompiler
             public string[] ref_namespace;
             public string[] ref_type;
             public string[] dirs;
+            public bool ingore_method_body;
         }
 
 
@@ -478,9 +479,9 @@ namespace CSharpCompiler
         {
             List<string> arg_list = new List<string>(args);
             string project = System.IO.File.ReadAllText(args[0]);
-            ingore_method_body = arg_list.Contains("--ingore_method_body");
+            
             ULProject pj = Metadata.DB.ReadObject<ULProject>(project);
-
+            ingore_method_body = pj.ingore_method_body;
             string pj_dir = System.IO.Path.GetFullPath(args[0]);
             pj_dir = pj_dir.Substring(0, pj_dir.Length- System.IO.Path.GetFileName(pj_dir).Length-1);
 
@@ -493,7 +494,8 @@ namespace CSharpCompiler
                 //加载引用
                 foreach (var ref_ns in pj.ref_namespace)
                 {
-                    foreach(var v in Metadata.DB.LoadNamespace(ref_ns, _con))
+                    Dictionary<string, Metadata.DB_Type> ns_types = Metadata.DB.LoadNamespace(ref_ns, _con);
+                    foreach (var v in ns_types)
                     {
                         Model.AddRefType(v.Value);
                     }

@@ -458,7 +458,7 @@ namespace Metadata
                 {
                     StringBuilder sb = new StringBuilder(name);
 
-                    if (method_generic_parameter_definitions.Count > 0)
+                    if (method_generic_parameter_definitions!=null && method_generic_parameter_definitions.Count > 0)
                     {
                         sb.Append("<");
                         for (int i = 0; i < method_generic_parameter_definitions.Count; i++)
@@ -1184,7 +1184,7 @@ namespace Metadata
             //}
 
             {
-                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?);",
+                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer,method_generic_parameter_definitions) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?,?);",
                 member.declaring_type, member.identifier, member.name, member.comments, member.modifier, member.is_static, member.member_type, member.ext);
 
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
@@ -1195,6 +1195,7 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("4", WriteObject(member.method_body));
                 cmd.Parameters.AddWithValue("5", member.order);
                 cmd.Parameters.AddWithValue("6", WriteObject(member.field_initializer));
+                cmd.Parameters.AddWithValue("7", WriteObject(member.method_generic_parameter_definitions));
                 cmd.ExecuteNonQuery();
             }
 
@@ -1203,17 +1204,18 @@ namespace Metadata
         public static Dictionary<string,DB_Type> LoadNamespace(string ns, OdbcConnection _con)
         {
             Dictionary<string, DB_Type> results = new Dictionary<string, DB_Type>();
-            string cmdText = string.Format("select * from type where full_name like '{0}%'", ns);
+            string cmdText = "select * from type where namespace = ?";
             OdbcCommand cmd = new OdbcCommand(cmdText, _con);
-            //cmd.Parameters.AddWithValue("1", ns);
-            var reader = cmd.ExecuteReader();
-            while(reader.Read())
+            cmd.Parameters.AddWithValue("1", ns);
+            using (var reader = cmd.ExecuteReader())
             {
-                DB_Type type = ReadType(reader);
-                type.members = LoadMembers(type.static_full_name, _con);
-                results.Add(type.unique_name, type);
+                while (reader.Read())
+                {
+                    DB_Type type = ReadType(reader);
+                    type.members = LoadMembers(type.static_full_name, _con);
+                    results.Add(type.unique_name, type);
+                }
             }
-
             return results;
         }
 
@@ -1222,14 +1224,15 @@ namespace Metadata
             string cmdText = string.Format("select * from type where full_name = '{0}'", full_name);
             OdbcCommand cmd = new OdbcCommand(cmdText, _con);
             //cmd.Parameters.AddWithValue("1", ns);
-            var reader = cmd.ExecuteReader();
-            if (reader.Read())
+            using (var reader = cmd.ExecuteReader())
             {
-                DB_Type type = ReadType(reader);
-                type.members = LoadMembers(type.static_full_name, _con);
-                return type;
+                if(reader.Read())
+                {
+                    DB_Type type = ReadType(reader);
+                    type.members = LoadMembers(type.static_full_name, _con);
+                    return type;
+                }
             }
-
             return null;
         }
 
@@ -1262,26 +1265,28 @@ namespace Metadata
             string cmdText = string.Format("select * from member where declaring_type = ?");
             OdbcCommand cmd = new OdbcCommand(cmdText, _con);
             cmd.Parameters.AddWithValue("1", type);
-            var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            using (var reader = cmd.ExecuteReader())
             {
-                DB_Member member = new DB_Member();
-                member.declaring_type = type;
-                member.comments = (string)reader["comments"];
-                member.ext = (string)reader["ext"];
-                member.field_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["field_type"]);
-                member.is_static = (bool)reader["is_static"];
-                member.modifier = (int)reader["modifier"];
-                member.name = (string)reader["name"];
-                member.member_type = (int)reader["member_type"];
-                member.method_args = ReadObject<DB_Member.Argument[]>((string)reader["method_args"]);
-                member.method_body = ReadObject<DB_BlockSyntax>((string)reader["method_body"]);
-                member.method_ret_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["method_ret_type"]);
-                member.order = (int)reader["order"];
-                member.field_initializer = ReadObject<Expression.Exp>((string)reader["field_initializer"]);
-                results.Add(member.identifier, member);
+                while (reader.Read())
+                {
+                    DB_Member member = new DB_Member();
+                    member.declaring_type = type;
+                    member.comments = (string)reader["comments"];
+                    member.ext = (string)reader["ext"];
+                    member.field_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["field_type"]);
+                    member.is_static = (bool)reader["is_static"];
+                    member.modifier = (int)reader["modifier"];
+                    member.name = (string)reader["name"];
+                    member.member_type = (int)reader["member_type"];
+                    member.method_args = ReadObject<DB_Member.Argument[]>((string)reader["method_args"]);
+                    member.method_body = ReadObject<DB_BlockSyntax>((string)reader["method_body"]);
+                    member.method_ret_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["method_ret_type"]);
+                    member.order = (int)reader["order"];
+                    member.field_initializer = ReadObject<Expression.Exp>((string)reader["field_initializer"]);
+                    member.method_generic_parameter_definitions = ReadObject<List<GenericParameterDefinition>>((string)reader["method_generic_parameter_definitions"]);
+                    results.Add(member.identifier, member);
+                }
             }
-
             return results;
         }
     }
