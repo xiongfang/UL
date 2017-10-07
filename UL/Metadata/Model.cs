@@ -199,6 +199,11 @@ namespace Metadata
                 return GetType(currentType.base_type);
             }
 
+            if(exp is Metadata.Expression.ThisExp)
+            {
+                return currentType;
+            }
+
             return null;
         }
 
@@ -213,9 +218,22 @@ namespace Metadata
             public Metadata.DB_Type type;
         }
 
-        public IndifierInfo GetIndifierInfo(string name)
+        public IndifierInfo GetIndifierInfo(string name,string name_space="")
         {
             IndifierInfo info = new IndifierInfo();
+
+            //在指定的命名空间查找标示符
+            if(!string.IsNullOrEmpty(name_space))
+            {
+                DB_Type type = Finder.FindType(name_space + "." + name);
+                if (type != null)
+                {
+                    info.is_type = true;
+                    info.type = type;
+                    return info;
+                }
+                return null;
+            }
 
             //查找本地变量
             foreach (var v in stackLocalVariables)

@@ -157,11 +157,19 @@ namespace Metadata
 
                 if(m.method_args.Length == typeParameters.Count)
                 {
+                    if (m.method_args.Length == 0)
+                        return m;
+                    bool all_arg_type_same = true;
                     for(int i=0;i< m.method_args.Length;i++)
                     {
-                        if (m.method_args[i].type == typeParameters[i].GetRefType())
-                            return m;
+                        if (!model.GetType( m.method_args[i].type).IsAssignableFrom(typeParameters[i],model))
+                        {
+                            all_arg_type_same = false;
+                            break;
+                        }
                     }
+                    if(all_arg_type_same)
+                        return m;
                 }
             }
 
@@ -182,6 +190,28 @@ namespace Metadata
             }
 
             return null;
+        }
+
+        public  bool IsSubclassOf(DB_Type type, Model model)
+        {
+            if (base_type == type.GetRefType())
+                return true;
+            if(base_type != null)
+            {
+                return model.GetType(base_type).IsSubclassOf(type, model);
+            }
+            return false;
+        }
+
+        public bool IsAssignableFrom(DB_Type type, Model model)
+        {
+            if (type.GetRefType() == GetRefType())
+                return true;
+            if (type.IsSubclassOf(this,model))
+                return true;
+            if (this.is_interface && type.interfaces.Contains(GetRefType()))
+                return true;
+            return false;
         }
     }
 
@@ -491,6 +521,10 @@ namespace Metadata
         public class BaseExp : Exp
         {
         }
+        [JsonConverter(typeof(JsonConverterType<ThisExp>))]
+        public class ThisExp : Exp
+        {
+        }
         [JsonConverter(typeof(JsonConverterType<MethodExp>))]
         public class MethodExp : Exp
         {
@@ -523,7 +557,6 @@ namespace Metadata
         {
             public string value;
         }
-
 
         //变量访问表达式（可能是本地变量，成员变量，类）
         //public class VariableExp : Exp
@@ -990,7 +1023,7 @@ namespace Metadata
         public static Dictionary<string,DB_Type> LoadNamespace(string ns, OdbcConnection _con)
         {
             Dictionary<string, DB_Type> results = new Dictionary<string, DB_Type>();
-            string cmdText = "select * from type where namespace = ?";
+            string cmdText = "select * from type where binary namespace = ?";
             OdbcCommand cmd = new OdbcCommand(cmdText, _con);
             cmd.Parameters.AddWithValue("1", ns);
             using (var reader = cmd.ExecuteReader())
@@ -1007,7 +1040,7 @@ namespace Metadata
 
         public static DB_Type LoadType(string full_name, OdbcConnection _con)
         {
-            string cmdText = string.Format("select * from type where full_name = '{0}'", full_name);
+            string cmdText = string.Format("select * from type where binary full_name = '{0}'", full_name);
             OdbcCommand cmd = new OdbcCommand(cmdText, _con);
             //cmd.Parameters.AddWithValue("1", ns);
             using (var reader = cmd.ExecuteReader())
@@ -1048,7 +1081,7 @@ namespace Metadata
         public static Dictionary<string,DB_Member> LoadMembers(string type, OdbcConnection _con)
         {
             Dictionary<string, DB_Member> results = new Dictionary<string, DB_Member>();
-            string cmdText = string.Format("select * from member where declaring_type = ?");
+            string cmdText = string.Format("select * from member where binary declaring_type = ?");
             OdbcCommand cmd = new OdbcCommand(cmdText, _con);
             cmd.Parameters.AddWithValue("1", type);
             using (var reader = cmd.ExecuteReader())

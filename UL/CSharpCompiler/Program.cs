@@ -322,7 +322,7 @@ namespace CSharpCompiler
             return null;
         }
 
-        public static Metadata.Expression.TypeSyntax GetTypeSyntax(TypeSyntax typeSyntax)
+        public static Metadata.Expression.TypeSyntax GetTypeSyntax(TypeSyntax typeSyntax,string ns = "")
         {
             if (typeSyntax == null)
                 return null;
@@ -342,7 +342,7 @@ namespace CSharpCompiler
             else if (typeSyntax is ArrayTypeSyntax)
             {
                 ArrayTypeSyntax ts = typeSyntax as ArrayTypeSyntax;
-                Metadata.Expression.TypeSyntax elementType = GetTypeSyntax(ts.ElementType);
+                Metadata.Expression.TypeSyntax elementType = GetTypeSyntax(ts.ElementType,"");
                 List<Metadata.Expression.TypeSyntax> parameters = new List<Metadata.Expression.TypeSyntax>();
                 parameters.Add(elementType);
                 Metadata.Expression.GenericNameSyntax gns = new Metadata.Expression.GenericNameSyntax();
@@ -358,8 +358,19 @@ namespace CSharpCompiler
             else if (typeSyntax is IdentifierNameSyntax)
             {
                 IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
-                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(ts.Identifier.Text).type;
-                if(type.is_generic_paramter)
+                Metadata.DB_Type type = null;
+                if (!string.IsNullOrEmpty(ns))
+                {
+                    type = Model.Instance.GetIndifierInfo(ts.Identifier.Text,ns).type;
+                }
+                else
+                {
+                    type = Model.Instance.GetIndifierInfo(ts.Identifier.Text).type;
+                }
+
+                //Metadata.DB_Type type = Model.Instance.GetIndifierInfo(Identifier).type;
+                //Model.Instance.GetIndifierInfo(ts.Identifier.Text).type;
+                if (type.is_generic_paramter)
                 {
                     Metadata.Expression.GenericParameterSyntax ins = new Metadata.Expression.GenericParameterSyntax();
 
@@ -385,7 +396,7 @@ namespace CSharpCompiler
                 List<Metadata.Expression.TypeSyntax> parameters = new List<Metadata.Expression.TypeSyntax>();
                 foreach (var p in ts.TypeArgumentList.Arguments)
                 {
-                    parameters.Add(GetTypeSyntax(p));
+                    parameters.Add(GetTypeSyntax(p,""));
                 }
                 Metadata.Expression.GenericNameSyntax gns = new Metadata.Expression.GenericNameSyntax();
                 gns.Name = Name;
@@ -397,10 +408,18 @@ namespace CSharpCompiler
             else if (typeSyntax is QualifiedNameSyntax)
             {
                 QualifiedNameSyntax qns = typeSyntax as QualifiedNameSyntax;
-                string ns = qns.Left.ToString();
+                string name_space = qns.Left.ToString();
+                if(!string.IsNullOrEmpty(ns))
+                {
+                    ns = ns + "." + name_space;
+                }
+                else
+                {
+                    ns = name_space;
+                }
                 //Metadata.Expression.QualifiedNameSyntax my_qns = new Metadata.Expression.QualifiedNameSyntax();
                 //my_qns.Left = GetTypeSyntax(qns.Left) as Metadata.Expression.NameSyntax;
-                Metadata.Expression.TypeSyntax ts = GetTypeSyntax(qns.Right);
+                Metadata.Expression.TypeSyntax ts = GetTypeSyntax(qns.Right, ns);
                 ts.name_space = ns;
                 return ts;
             }
@@ -1567,10 +1586,10 @@ namespace CSharpCompiler
             {
                 return ExportExp(es as LiteralExpressionSyntax);
             }
-            //else if (es is InitializerExpressionSyntax)
-            //{
-            //    return ExportExp(es as InitializerExpressionSyntax);
-            //}
+            else if (es is ThisExpressionSyntax)
+            {
+                return ExportExp(es as ThisExpressionSyntax);
+            }
             else if(es is ObjectCreationExpressionSyntax)
             {
                 return ExportExp(es as ObjectCreationExpressionSyntax);
@@ -1645,6 +1664,12 @@ namespace CSharpCompiler
                 db_les.Name = (maes).Name.Identifier.Text;
                 db_les.Caller = ExportExp(maes.Expression);
             }
+            else if (es.Expression is IdentifierNameSyntax)
+            {
+                IdentifierNameSyntax nameSyntax = es.Expression as IdentifierNameSyntax;
+                db_les.Name = nameSyntax.Identifier.Text;
+                db_les.Caller = new Metadata.Expression.ThisExp();
+            }
             else
             {
                 Console.Error.WriteLine("不支持的方法调用表达式 " + es.ToString());
@@ -1718,7 +1743,7 @@ namespace CSharpCompiler
             //op_Equals.Name = "op_Equals";
             //op_Equals.Caller = ExportExp(es.Left);
             db_les.Caller = ExportExp(es.Left);
-            db_les.Name = "op_Equals";
+            db_les.Name = "op_Assign";
             db_les.Args.Add(ExportExp(es.Right));
             return db_les;
         }
@@ -1812,6 +1837,12 @@ namespace CSharpCompiler
         static Metadata.Expression.Exp ExportExp(BaseExpressionSyntax es)
         {
             Metadata.Expression.BaseExp exp = new Metadata.Expression.BaseExp();
+            return exp;
+        }
+
+        static Metadata.Expression.Exp ExportExp(ThisExpressionSyntax es)
+        {
+            Metadata.Expression.ThisExp exp = new Metadata.Expression.ThisExp();
             return exp;
         }
     }
