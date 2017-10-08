@@ -198,7 +198,7 @@ namespace Metadata
         {
             if (base_type == type.GetRefType())
                 return true;
-            if(base_type != null)
+            if(base_type != null && !base_type.IsVoid)
             {
                 return model.GetType(base_type).IsSubclassOf(type, model);
             }
@@ -667,6 +667,9 @@ namespace Metadata
             
             public override bool Equals(object obj)
             {
+                if (System.Object.ReferenceEquals(obj, null) && this.IsVoid)
+                    return true;
+
                 if (obj is IdentifierNameSyntax)
                 {
                     IdentifierNameSyntax Other = obj as IdentifierNameSyntax;

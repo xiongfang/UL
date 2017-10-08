@@ -46,6 +46,38 @@ namespace CppConverter
             sb.Append(msg);
         }
 
+        bool HasCppAttribute(List<Metadata.DB_AttributeSyntax> attributes)
+        {
+            foreach (var att in attributes)
+            {
+                if (att.TypeName.Name == "UCLASS" || att.TypeName.Name == "UFUNCTION" || att.TypeName.Name == "UPROPERTY" || att.TypeName.Name == "USTRUCT")
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        string ConvertCppAttribute(List<Metadata.DB_AttributeSyntax> attributes)
+        {
+            foreach(var att in attributes)
+            {
+                if(att.TypeName.Name == "UCLASS" || att.TypeName.Name == "UFUNCTION" || att.TypeName.Name == "UPROPERTY" || att.TypeName.Name == "USTRUCT")
+                {
+                    if(att.AttributeArgumentList.Count > 0)
+                    {
+                        Metadata.Expression.ConstExp constExp = att.AttributeArgumentList[0].exp as Metadata.Expression.ConstExp;
+                        string v = constExp.value.Substring(1, constExp.value.Length - 2);
+                        return string.Format("{0}({1})", att.TypeName.Name, v);
+                    }
+
+                    return string.Format("{0}()", att.TypeName.Name);
+                }
+            }
+
+            return "";
+        }
+
         public void ConvertTypeHeader(Metadata.DB_Type type)
         {
             Model.EnterType(type);
@@ -83,18 +115,33 @@ namespace CppConverter
                                         sb.Append(",");
                                 }
                                 sb.AppendLine(">");
-                                sb.AppendLine("class " + depType.name + ";");
+                                if(depType.is_value_type)
+                                    sb.AppendLine("struct " + depType.name + ";");
+                                else
+                                    sb.AppendLine("class " + depType.name + ";");
                             }
                             else
                             {
-                                sb.AppendLine("class " + depType.name + ";");
+                                if (depType.is_value_type)
+                                    sb.AppendLine("struct " + depType.name + ";");
+                                else
+                                    sb.AppendLine("class " + depType.name + ";");
                             }
                             //sb.AppendLine("}");
                         }
                     }
                 }
 
-                //包含虚幻生成的头文件
+
+                if (HasCppAttribute(type.attributes))
+                {
+                    //包含虚幻生成的头文件
+                    AppendLine(string.Format("#include \"{0}.generated.h\"", type.name));
+
+                    //属性
+                    AppendLine(ConvertCppAttribute(type.attributes));
+                }
+
 
                 //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
                 {
@@ -116,11 +163,18 @@ namespace CppConverter
                             }
                             sb.AppendLine(">");
                         }
-                        Append(string.Format("class {0}", type.name));
-                        if (!type.base_type.IsVoid || type.interfaces.Count > 0)
+                        else if(type.is_value_type)
+                        {
+                            Append(string.Format("struct {0}", type.name));
+                        }
+                        else
+                        {
+                            Append(string.Format("class {0}", type.name));
+                        }
+                        if (!type.base_type.IsVoid && !type.is_value_type || type.interfaces.Count > 0)
                         {
                             sb.Append(":");
-                            if (!type.base_type.IsVoid)
+                            if (!type.base_type.IsVoid && !type.is_value_type)
                             {
                                 sb.Append("public " + GetCppTypeName(Model.GetType(type.base_type)));
                                 if (type.interfaces.Count > 0)
@@ -154,6 +208,11 @@ namespace CppConverter
                         }
                         else
                         {
+                            if (HasCppAttribute(type.attributes))
+                            {
+                                AppendLine("GENERATED_BODY()");
+                            }
+
                             foreach (var m in type.members.Values)
                             {
                                 ConvertMemberHeader(m);
@@ -378,11 +437,14 @@ namespace CppConverter
             if (member.member_type == (int)Metadata.MemberTypes.Field)
             {
                 AppendLine(GetModifierString(member.modifier) + ":");
+                //属性
+                AppendLine(ConvertCppAttribute(member.attributes));
                 if (member.is_static)
                     Append("static ");
                 else
                     Append("");
 
+                
                 if (member_type.is_class)
                     AppendLine(string.Format("{0}* {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
                 else
@@ -391,9 +453,12 @@ namespace CppConverter
             else if (member.member_type == (int)Metadata.MemberTypes.Method || member.member_type == (int)Metadata.MemberTypes.Constructor)
             {
                 Model.EnterMethod(member);
+               
                 AppendLine(GetModifierString(member.modifier) + ":");
 
 
+                //属性
+                AppendLine(ConvertCppAttribute(member.attributes));
 
                 if (member.is_static)
                     Append("static ");
