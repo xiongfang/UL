@@ -38,7 +38,8 @@ CREATE TABLE `member` (
   `method_generic_parameter_definitions` text CHARACTER SET utf8 NOT NULL,
   `method_virtual` bit(1) NOT NULL,
   `method_override` bit(1) NOT NULL,
-  `method_abstract` bit(1) NOT NULL
+  `method_abstract` bit(1) NOT NULL,
+  `attributes` varchar(2048) COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='类成员';
 
 /*Table structure for table `type` */
@@ -61,7 +62,8 @@ CREATE TABLE `type` (
   `name` varchar(256) COLLATE utf8mb4_bin NOT NULL,
   `namespace` varchar(256) COLLATE utf8mb4_bin NOT NULL,
   `usingNamespace` varchar(1024) COLLATE utf8mb4_bin NOT NULL,
-  `is_enum` bit(1) NOT NULL
+  `is_enum` bit(1) NOT NULL,
+  `attributes` varchar(2048) COLLATE utf8mb4_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='类型';
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

@@ -93,9 +93,12 @@ namespace CppConverter
                         }
                     }
                 }
+
+                //包含虚幻生成的头文件
+
                 //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
                 {
-                    depth++;
+                    //depth++;
                     if (type.is_enum)
                     {
                         Append(string.Format("enum {0}", type.name));
@@ -171,7 +174,7 @@ namespace CppConverter
                     }
 
                     AppendLine("};");
-                    depth--;
+                    //depth--;
                 }
 
                 //sb.AppendLine("}");

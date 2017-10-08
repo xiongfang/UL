@@ -891,6 +891,9 @@ namespace CSharpCompiler
 
                 }
 
+                //属性
+                type.attributes = ExportAttributes(c.AttributeLists);
+
                 Model.Instance.EnterType(type);
 
                 //泛型参数
@@ -1015,6 +1018,9 @@ namespace CSharpCompiler
 
                 }
 
+                //属性
+                type.attributes = ExportAttributes(c.AttributeLists);
+
                 Model.Instance.EnterType(type);
 
                 //泛型参数
@@ -1074,6 +1080,33 @@ namespace CSharpCompiler
 
                 Model.Instance.LeaveType();
             }
+        }
+
+        static List<Metadata.DB_AttributeSyntax> ExportAttributes(SyntaxList<AttributeListSyntax> attList )
+        {
+            List<Metadata.DB_AttributeSyntax> List = new List<Metadata.DB_AttributeSyntax>();
+            if (attList == null)
+                return List;
+
+            foreach (var a in attList)
+            {
+                foreach(var att in a.Attributes)
+                {
+                    Metadata.DB_AttributeSyntax db_att = new Metadata.DB_AttributeSyntax();
+                    db_att.TypeName = GetTypeSyntax(att.Name);
+                    foreach(var arg in att.ArgumentList.Arguments)
+                    {
+                        Metadata.DB_AttributeArgumentSyntax db_att_arg = new Metadata.DB_AttributeArgumentSyntax();
+                        db_att_arg.name = arg.NameEquals.Name.Identifier.Text;
+                        db_att_arg.exp = ExportExp(arg.Expression);
+                        db_att.AttributeArgumentList.Add(db_att_arg);
+                        
+                    }
+                    List.Add(db_att);
+                }
+            }
+
+            return List;
         }
 
         static void ExportClass(ClassDeclarationSyntax c)
@@ -1169,6 +1202,10 @@ namespace CSharpCompiler
 
                 }
 
+                //属性
+                type.attributes = ExportAttributes(c.AttributeLists);
+
+
                 Model.Instance.EnterType(type);
 
                 //泛型参数
@@ -1260,6 +1297,8 @@ namespace CSharpCompiler
                     dB_Member.field_type = v_type.GetRefType();
                     if(ve.Initializer!=null)
                         dB_Member.field_initializer = ExportExp(ve.Initializer.Value);
+
+                    dB_Member.attributes = ExportAttributes(v.AttributeLists);
                     //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
                     Model.AddMember(type.static_full_name, dB_Member);
                 }
@@ -1327,6 +1366,9 @@ namespace CSharpCompiler
                             }
                         }
                     }
+
+                    //属性
+                    dB_Member.attributes = ExportAttributes(v.AttributeLists);
 
                     Model.Instance.EnterMethod(dB_Member);
 

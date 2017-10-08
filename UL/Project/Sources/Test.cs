@@ -96,4 +96,9 @@ namespace System
     public struct Double
     {
     }
+
+    public class Attribute
+    {
+
+    }
 }

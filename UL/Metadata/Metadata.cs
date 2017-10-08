@@ -90,6 +90,8 @@ namespace Metadata
         public bool is_generic_type_definition;
         public List<GenericParameterDefinition> generic_parameter_definitions = new List<GenericParameterDefinition>();
 
+        public List<DB_AttributeSyntax> attributes = new List<DB_AttributeSyntax>();
+
         //动态类型
         public string declare_type; //动态类型引用的类型
 
@@ -226,6 +228,9 @@ namespace Metadata
         //public int id;
         public int member_type;
         public string ext = "";
+
+        public List<DB_AttributeSyntax> attributes = new List<DB_AttributeSyntax>();
+
         //*****************变量***********************/
         public Expression.TypeSyntax field_type  = Expression.TypeSyntax.Void;
         public Expression.Exp field_initializer;
@@ -509,6 +514,20 @@ namespace Metadata
     public class DB_ReturnStatementSyntax : DB_StatementSyntax
     {
         public Expression.Exp Expression;
+    }
+
+    [JsonConverter(typeof(JsonConverterType<DB_AttributeSyntax>))]
+    public class DB_AttributeSyntax:DB_Syntax
+    {
+        public Expression.TypeSyntax TypeName;
+        public List<DB_AttributeArgumentSyntax> AttributeArgumentList = new List<DB_AttributeArgumentSyntax>();
+    }
+
+    [JsonConverter(typeof(JsonConverterType<DB_AttributeArgumentSyntax>))]
+    public class DB_AttributeArgumentSyntax: DB_Syntax
+    {
+        public string name;
+        public Expression.Exp exp;
     }
 
     namespace Expression
@@ -965,7 +984,7 @@ namespace Metadata
             }
 
             {
-                string cmdText = "insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions,name,namespace,usingNamespace,is_enum) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+                string cmdText = "insert into type(full_name,comments,modifier,is_abstract,base_type,ext,is_value_type,is_interface,is_class,interfaces,is_generic_type_definition,generic_parameter_definitions,name,namespace,usingNamespace,is_enum,attributes) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
 
 
                 OdbcCommand cmd = new OdbcCommand(cmdText, _con, _trans);
@@ -985,6 +1004,7 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("14", type._namespace);
                 cmd.Parameters.AddWithValue("15", WriteObject(type.usingNamespace));
                 cmd.Parameters.AddWithValue("16", type.is_enum);
+                cmd.Parameters.AddWithValue("17", WriteObject(type.attributes));
                 cmd.ExecuteNonQuery();
             }
         }
@@ -999,7 +1019,7 @@ namespace Metadata
             //}
 
             {
-                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer,method_generic_parameter_definitions,method_virtual,method_override,method_abstract) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?,?,?,?,?);",
+                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer,method_generic_parameter_definitions,method_virtual,method_override,method_abstract,attributes) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?,?,?,?,?,?);",
                 member.declaring_type, member.identifier, member.name, member.comments, member.modifier, member.is_static, member.member_type, member.ext);
 
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
@@ -1014,7 +1034,7 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("8", member.method_virtual);
                 cmd.Parameters.AddWithValue("9", member.method_override);
                 cmd.Parameters.AddWithValue("10", member.method_abstract);
-
+                cmd.Parameters.AddWithValue("11", WriteObject(member.attributes));
                 cmd.ExecuteNonQuery();
             }
 
@@ -1075,6 +1095,7 @@ namespace Metadata
             type.generic_parameter_definitions = ReadObject<List<GenericParameterDefinition>>((string)reader["generic_parameter_definitions"]);
             type.usingNamespace = ReadObject<List<string>>((string)reader["usingNamespace"]);
             type.is_enum = (bool)reader["is_enum"];
+            type.attributes = ReadObject<List<DB_AttributeSyntax>>((string)reader["attributes"]);
             return type;
         }
 
@@ -1106,6 +1127,7 @@ namespace Metadata
                     member.method_virtual = (bool)reader["method_virtual"];
                     member.method_override = (bool)reader["method_override"];
                     member.method_abstract = (bool)reader["method_abstract"];
+                    member.attributes = ReadObject<List<DB_AttributeSyntax>>((string)reader["attributes"]);
                     results.Add(member.identifier, member);
                 }
             }
