@@ -40,7 +40,7 @@ namespace CppConverter
     {
         int priority { get; }
         bool SupportType(IConverter Converter, Metadata.DB_Type type);
-        bool GetCppTypeName(out string name);
+        bool GetCppTypeName(IConverter Converter, Metadata.DB_Type type, out string name);
         bool ConvertTypeHeader(IConverter Converter, Metadata.DB_Type type,out string header);
         bool ConvertTypeCpp(IConverter Converter, Metadata.DB_Type type, out string cpp);
         bool ConvertMethodExp(IConverter Converter, Metadata.DB_Type type, Metadata.Expression.MethodExp me,out string exp_string);

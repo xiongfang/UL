@@ -6,15 +6,35 @@ using System.Threading.Tasks;
 
 namespace CppConverter
 {
+    //类定义
+    //类标识符，访问成员
+    //作为类成员
+    //作为函数参数
+    //作为函数返回类型
+    //表达式返回类型
+    //隐式类型转换
+    //强制类型转换
+
     class CustomTypeConverter : ITypeConverter
     {
         public  int priority
         {
             get { return -1; }
         }
-        public bool GetCppTypeName(out string name)
+        public bool GetCppTypeName(IConverter Converter, Metadata.DB_Type type, out string name)
         {
-            name = "UE_Int32";
+            switch (type.name)
+            {
+                case "int32":
+                    name = "UE_Int32";
+                    break;
+                case "Object":
+                    name = "UObject";
+                    break;
+                default:
+                    name = "";
+                    return false;
+            }
             return true;
         }
         public bool SupportType(IConverter Converter, Metadata.DB_Type type)
@@ -22,6 +42,7 @@ namespace CppConverter
             switch(type.name)
             {
                 case "int32":
+                case "Object":
                     return true;
             }
 
@@ -39,6 +60,14 @@ namespace CppConverter
         }
         public bool ConvertMethodExp(IConverter Converter, Metadata.DB_Type type, Metadata.Expression.MethodExp me, out string exp_string)
         {
+            if(type.name == "Object")
+            {
+                if(me.Name == "ToString")
+                {
+                    exp_string = string.Format("Object::ToString({1})", Converter.ExpressionToString(me.Caller));
+                    return true;
+                }
+            }
             exp_string = "";
             return false;
 
