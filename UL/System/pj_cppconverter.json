@@ -1,0 +1,30 @@
+{
+  "export_dir": "E:\\Git\\GIT_Projects\\UL\\UL\\CppApp",
+  "type_settings": [
+    {
+      "name": "System.Boolean",
+      "ext_header": "Boolean_ExtHeader.h"
+    },
+    {
+      "name": "System.Int32",
+      "ext_header": "Int32_ExtHeader.h",
+      "ext_cpp": "Int32_ExtCpp.h"
+    },
+    {
+      "name": "System.String",
+      "ext_header": "String_ExtHeader.h"
+    },
+    {
+      "name": "System.Console",
+      "ext_cpp": "Console_ExtCpp.h"
+    },
+    {
+      "name": "System.Object",
+      "ext_cpp": "Object_ExtCpp.h"
+    }
+  ],
+
+  "export_namespace": [ "HelloWorld" ],
+  "export_type": [],
+  "ref_namespace": []
+}
