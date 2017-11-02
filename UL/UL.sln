@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CppConverter", "CppConverte
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppApp", "CppApp\CppApp.vcxproj", "{1DA12301-D547-4F40-A1AE-D7A598D215C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System", "System\System.csproj", "{3807D92A-23AE-4497-A583-95180B036544}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lib.System", "System\Lib.System.csproj", "{3807D92A-23AE-4497-A583-95180B036544}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

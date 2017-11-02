@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>System</RootNamespace>
-    <AssemblyName>System</AssemblyName>
+    <AssemblyName>Lib.System</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -45,8 +45,8 @@
     <Compile Include="Int16.cs" />
     <Compile Include="Int32.cs" />
     <Compile Include="Int64.cs" />
-    <Compile Include="Int8.cs" />
     <Compile Include="Object.cs" />
+    <Compile Include="SByte.cs" />
     <Compile Include="Single.cs" />
     <Compile Include="String.cs" />
     <Compile Include="Type.cs" />

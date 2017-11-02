@@ -2,7 +2,8 @@
 	"name":"pj",
 	"dirs":
 	[
-		"."
+    ".",
+    "Exception"
 	],
 	"ref_namespace":
 	[

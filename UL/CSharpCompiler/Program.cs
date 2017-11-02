@@ -435,6 +435,10 @@ namespace CSharpCompiler
         {
             switch (kw)
             {
+                case "char":
+                    return "Char";
+                case "sbyte":
+                    return "SByte";
                 case "int":
                     return "Int32";
                 case "string":
@@ -442,7 +446,7 @@ namespace CSharpCompiler
                 case "short":
                     return "Int16";
                 case "byte":
-                    return "Int8";
+                    return "Byte";
                 case "float":
                     return "Single";
                 case "double":
@@ -1495,12 +1499,52 @@ namespace CSharpCompiler
             {
                 return ExportStatement(node as ReturnStatementSyntax);
             }
+            else if(node is TryStatementSyntax)
+            {
+                return ExportStatement(node as TryStatementSyntax);
+            }
+            else if(node is ThrowStatementSyntax)
+            {
+                return ExportStatement(node as ThrowStatementSyntax);
+            }
             else
             {
                 Console.Error.WriteLine("error:Unsopproted StatementSyntax" + node);
             }
             return null;
         }
+
+        static Metadata.DB_StatementSyntax ExportStatement(TryStatementSyntax bs)
+        {
+            Metadata.DB_TryStatementSyntax ss = new Metadata.DB_TryStatementSyntax();
+            ss.Block = ExportStatement(bs.Block) as Metadata.DB_BlockSyntax;
+            if(bs.Catches!=null)
+            {
+                ss.Catches = new List<Metadata.CatchClauseSyntax>();
+                foreach (var s in bs.Catches)
+                {
+                    Metadata.CatchClauseSyntax ccs = new Metadata.CatchClauseSyntax();
+                    ccs.Type = GetTypeSyntax(s.Declaration.Type);
+                    ccs.Identifier = s.Declaration.Identifier.Text;
+                    ccs.Block = ExportStatement(s.Block) as Metadata.DB_BlockSyntax;
+                    ss.Catches.Add(ccs);
+                }
+            }
+            if(bs.Finally!=null)
+            {
+                ss.Finally = new Metadata.FinallyClauseSyntax();
+                ss.Finally.Block = ExportStatement(bs.Finally.Block) as Metadata.DB_BlockSyntax;
+            }
+            return ss;
+        }
+
+        static Metadata.DB_StatementSyntax ExportStatement(ThrowStatementSyntax bs)
+        {
+            Metadata.DB_ThrowStatementSyntax ss = new Metadata.DB_ThrowStatementSyntax();
+            ss.Expression = ExportExp(bs.Expression);
+            return ss;
+        }
+
         static Metadata.DB_StatementSyntax ExportStatement(BlockSyntax bs)
         {
             Metadata.DB_BlockSyntax db_bs = new Metadata.DB_BlockSyntax();
@@ -1671,6 +1715,10 @@ namespace CSharpCompiler
             else if(es is BaseExpressionSyntax)
             {
                 return ExportExp(es as BaseExpressionSyntax);
+            }
+            else if(es is ThrowExpressionSyntax)
+            {
+                return ExportExp(es as ThrowExpressionSyntax);
             }
             else
             {
@@ -1886,6 +1934,12 @@ namespace CSharpCompiler
         {
             Metadata.Expression.ThisExp exp = new Metadata.Expression.ThisExp();
             return exp;
+        }
+        static Metadata.Expression.Exp ExportExp(ThrowExpressionSyntax es)
+        {
+            Metadata.Expression.ThrowExp throwExp = new Metadata.Expression.ThrowExp();
+            throwExp.exp = ExportExp(es.Expression);
+            return throwExp;
         }
     }
 }

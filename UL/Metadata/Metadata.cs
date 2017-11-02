@@ -530,6 +530,36 @@ namespace Metadata
         public Expression.Exp exp;
     }
 
+
+    [JsonConverter(typeof(JsonConverterType<DB_ThrowStatementSyntax>))]
+    public class DB_ThrowStatementSyntax : DB_StatementSyntax
+    {
+        public Expression.Exp Expression;
+    }
+
+    [JsonConverter(typeof(JsonConverterType<DB_TryStatementSyntax>))]
+    public class DB_TryStatementSyntax : DB_StatementSyntax
+    {
+        public DB_BlockSyntax Block;
+        public List<CatchClauseSyntax> Catches;
+        public FinallyClauseSyntax Finally;
+    }
+
+
+    [JsonConverter(typeof(JsonConverterType<CatchClauseSyntax>))]
+    public class CatchClauseSyntax: DB_Syntax
+    {
+        public Expression.TypeSyntax Type;
+        public string Identifier;
+        public DB_BlockSyntax Block;
+    }
+    [JsonConverter(typeof(JsonConverterType<FinallyClauseSyntax>))]
+    public class FinallyClauseSyntax: DB_Syntax
+    {
+        public DB_BlockSyntax Block;
+    }
+
+
     namespace Expression
     {
         [JsonConverter(typeof(JsonConverterType<Exp>))]
@@ -592,6 +622,16 @@ namespace Metadata
             //调用的参数
             public List<Exp> Args = new List<Exp>();
         }
+
+        //Throw表达式
+        [JsonConverter(typeof(JsonConverterType<ThrowExp>))]
+        public class ThrowExp : Exp
+        {
+            public Exp exp;
+        }
+        
+
+
         [JsonConverter(typeof(JsonConverterType<TypeSyntax>))]
         public abstract class TypeSyntax : Exp
         {

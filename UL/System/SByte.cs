@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace System
 {
-    public struct UInt64
+    public struct SByte
     {
-        public const UInt64 MaxValue = 0xFFFFFFFFFFFFFFFF;
-        public const UInt64 MinValue = 0;
+        public const SByte MaxValue = 127;
+        public const SByte MinValue = -128;
 
 
-        public extern static UInt64 Parse(string value);
+        public extern static SByte Parse(string value);
 
         public extern override string ToString();
 
-        public static bool TryParse(string value, out UInt64 v)
+        public static bool TryParse(string value, out SByte v)
         {
             try
             {
