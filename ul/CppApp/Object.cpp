@@ -1,0 +1,6 @@
+#include "stdafx.h"
+#include "Object.h"
+#include "Type.h"
+#include "Boolean.h"
+#include "String.h"
+#include "Object_ExtCpp.h"

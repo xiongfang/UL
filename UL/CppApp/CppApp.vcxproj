@@ -151,7 +151,8 @@
     <ClInclude Include="Boolean.h" />
     <ClInclude Include="Boolean_ExtHeader.h" />
     <ClInclude Include="Console.h" />
-    <ClInclude Include="Console_ExtCpp.h" />
+    <ClInclude Include="Double.h" />
+    <ClInclude Include="Exception.h" />
     <ClInclude Include="IComparable.h" />
     <ClInclude Include="Int32.h" />
     <ClInclude Include="Int32_ExtCpp.h" />
@@ -159,22 +160,19 @@
     <ClInclude Include="MemberTypes.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Object_ExtCpp.h" />
-    <ClInclude Include="Program.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="String_ExtHeader.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TestGeneric.h" />
-    <ClInclude Include="TestInt.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Boolean.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CppApp.cpp" />
+    <ClCompile Include="Exception.cpp" />
     <ClCompile Include="IComparable.cpp" />
     <ClCompile Include="Int32.cpp" />
     <ClCompile Include="Object.cpp" />
-    <ClCompile Include="Program.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -182,7 +180,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="String.cpp" />
-    <ClCompile Include="TestInt.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace System
+﻿namespace System
 {
     public struct Single
     {
@@ -30,5 +24,11 @@ namespace System
                 return false;
             }
         }
+
+
+        public virtual Boolean op_Equals(Single b);
+        public virtual Boolean op_Small(Single b);
+        public virtual Single op_Assign(Single b);
+        public virtual Single op_PlusPlus(Single b);
     }
 }

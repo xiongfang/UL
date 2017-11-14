@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace System
+﻿namespace System
 {
     public struct UInt32
     {
@@ -29,5 +23,11 @@ namespace System
                 return false;
             }
         }
+
+
+        public virtual Boolean op_Equals(UInt32 b);
+        public virtual Boolean op_Small(UInt32 b);
+        public virtual UInt32 op_Assign(UInt32 b);
+        public virtual UInt32 op_PlusPlus(UInt32 b);
     }
 }

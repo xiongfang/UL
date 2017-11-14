@@ -1,5 +1,5 @@
 {
-  "export_dir": "E:\\Git\\GIT_Projects\\UL\\UL\\CppApp",
+  "export_dir": "F:\\Git\\UL\\UL\\CppApp",
   "type_settings": [
     {
       "name": "System.Boolean",
@@ -24,7 +24,9 @@
     }
   ],
 
-  "export_namespace": [ "HelloWorld" ],
+  "export_namespace": [ "System" ],
   "export_type": [],
-  "ref_namespace": []
+  "ref_namespace": [],
+  "precompile_header":"stdafx.h"
+
 }

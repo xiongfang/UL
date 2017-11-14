@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace System
+﻿namespace System
 {
     public struct Int32
     {
@@ -29,5 +23,11 @@ namespace System
                 return false;
             }
         }
+
+
+        public virtual Boolean op_Equals(Int32 b);
+        public virtual Boolean op_Small(Int32 b);
+        public virtual Int32 op_Assign(Int32 b);
+        public virtual Int32 op_PlusPlus(Int32 b);
     }
 }

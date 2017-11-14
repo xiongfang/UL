@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace System
+﻿namespace System
 {
     public struct SByte
     {
@@ -29,5 +23,11 @@ namespace System
                 return false;
             }
         }
+
+
+        public virtual Boolean op_Equals(SByte b);
+        public virtual Boolean op_Small(SByte b);
+        public virtual SByte op_Assign(SByte b);
+        public virtual SByte op_PlusPlus(SByte b);
     }
 }

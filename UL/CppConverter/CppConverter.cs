@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 namespace CppConverter
 {
    
-    
-
     class CppConverter : IConverter
     {
 
@@ -18,7 +16,7 @@ namespace CppConverter
         Dictionary<string, TypeConfig> configs = new Dictionary<string, TypeConfig>();
         SortedDictionary<int, ITypeConverter> Converters = new SortedDictionary<int, ITypeConverter>();
 
-        DefaultTypeConverter DefaultConverter;
+        IDefaultTypeConverter DefaultConverter;
 
         public Metadata.Model GetModel()
         {
@@ -43,9 +41,10 @@ namespace CppConverter
             return null;
         }
 
+        public IDefaultTypeConverter DefaultTypeConverter { get { return DefaultConverter; } }
+
         public Project GetProject() { return project; }
 
-        public string ExpressionToString(Metadata.Expression.Exp exp) { return DefaultConverter.ExpressionToString(exp); }
 
         public CppConverter()
         {

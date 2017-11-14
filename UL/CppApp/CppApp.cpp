@@ -3,11 +3,10 @@
 
 #include "stdafx.h"
 #include "Console.h"
-#include "Program.h"
+
 
 int main()
 {
-	HelloWorld::Program::Main();
     return 0;
 }
 

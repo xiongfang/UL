@@ -152,11 +152,17 @@ namespace Metadata
                     return GetType("System.Int64");
                 }
 
-                //bool b_v;
-                //if(bool.TryParse(e.value,out b_v))
-                //{
-                //    return GetType("System.Boolean");
-                //}
+                bool b_v;
+                if (bool.TryParse(e.value, out b_v))
+                {
+                    return GetType("System.Boolean");
+                }
+
+
+                if (e.value == "null")
+                {
+                    return GetType("System.Object");
+                }
 
                 return GetType("System.String");
             }

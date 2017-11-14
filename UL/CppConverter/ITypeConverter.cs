@@ -33,9 +33,19 @@ namespace CppConverter
         TypeConfig GetTypeConfig(Metadata.DB_Type type);
         Project GetProject();
 
-        string ExpressionToString(Metadata.Expression.Exp es);
+        
         ITypeConverter GetTypeConverter(Metadata.DB_Type type);
+
+        IDefaultTypeConverter DefaultTypeConverter { get; }
     }
+
+    interface IDefaultTypeConverter
+    {
+        void ConvertType(Metadata.DB_Type type);
+
+        string ExpressionToString(Metadata.Expression.Exp es);
+    }
+
     interface ITypeConverter
     {
         int priority { get; }

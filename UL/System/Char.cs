@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace System
+﻿namespace System
 {
     public struct Char
     {
@@ -29,5 +23,10 @@ namespace System
                 return false;
             }
         }
+
+        public virtual Boolean op_Equals(Char b);
+        public virtual Boolean op_Small(Char b);
+        public virtual Char op_Assign(Char b);
+        public virtual Char op_PlusPlus(Char b);
     }
 }

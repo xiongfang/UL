@@ -1845,6 +1845,18 @@ namespace CSharpCompiler
             {
                 db_les.Name = "op_Small";
             }
+            else if(es.OperatorToken.Text == "==")
+            {
+                db_les.Name = "op_Equals";
+            }
+            else if (es.OperatorToken.Text == ">")
+            {
+                db_les.Name = "op_Greater";
+            }
+            else
+            {
+                Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
+            }
             db_les.Caller = ExportExp(es.Left);
             //db_les.Caller = op_Token;
             db_les.Args.Add(ExportExp(es.Right));
