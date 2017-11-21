@@ -22,11 +22,7 @@ namespace System{
 		public:
 		static System::Boolean TryParse(Ref<System::String>  value,System::Char  v);
 		public:
-		virtual System::Boolean op_Equals(System::Char  b);
-		public:
 		virtual System::Boolean op_Small(System::Char  b);
-		public:
-		virtual System::Char op_Assign(System::Char  b);
 		public:
 		virtual System::Char op_PlusPlus(System::Char  b);
 	};

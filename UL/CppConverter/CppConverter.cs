@@ -164,7 +164,7 @@ namespace CppConverter
                     {
                         result.Add(m.field_type);
                     }
-                    else if (m.member_type == (int)Metadata.MemberTypes.Method || m.member_type == (int)Metadata.MemberTypes.Constructor)
+                    else if (m.member_type == (int)Metadata.MemberTypes.Method)
                     {
                         if (m.method_ret_type is Metadata.Expression.GenericNameSyntax)
                             result.Add(m.method_ret_type);

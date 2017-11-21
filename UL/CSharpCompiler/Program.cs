@@ -1416,7 +1416,8 @@ namespace CSharpCompiler
                     dB_Member.name = f.Identifier.Text;
                     dB_Member.is_static = ContainModifier(f.Modifiers, "static");
                     dB_Member.declaring_type = type.static_full_name;
-                    dB_Member.member_type = (int)Metadata.MemberTypes.Constructor;
+                    dB_Member.member_type = (int)Metadata.MemberTypes.Method;
+                    dB_Member.method_is_constructor = true;
                     dB_Member.modifier = GetModifier(type,f.Modifiers);
 
                     dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
@@ -1828,44 +1829,21 @@ namespace CSharpCompiler
 
         static Metadata.Expression.Exp ExportExp(AssignmentExpressionSyntax es)
         {
-            Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
-            //Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
-            //op_Equals.Name = "op_Equals";
-            //op_Equals.Caller = ExportExp(es.Left);
-            db_les.Caller = ExportExp(es.Left);
-            db_les.Name = "op_Assign";
-            db_les.Args.Add(ExportExp(es.Right));
+            Metadata.Expression.AssignmentExpressionSyntax db_les = new Metadata.Expression.AssignmentExpressionSyntax();
+            db_les.Left = ExportExp(es.Left);
+            db_les.Right = ExportExp(es.Right);
             return db_les;
         }
         static Metadata.Expression.Exp ExportExp(BinaryExpressionSyntax es)
         {
-            Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
-            //Metadata.Expression.FieldExp op_Token = new Metadata.Expression.FieldExp();
-            if(es.OperatorToken.Text == "<")
-            {
-                db_les.Name = "op_Small";
-            }
-            else if(es.OperatorToken.Text == "==")
-            {
-                db_les.Name = "op_Equals";
-            }
-            else if (es.OperatorToken.Text == ">")
-            {
-                db_les.Name = "op_Greater";
-            }
-            else
-            {
-                Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
-            }
-            db_les.Caller = ExportExp(es.Left);
-            //db_les.Caller = op_Token;
-            db_les.Args.Add(ExportExp(es.Right));
+            Metadata.Expression.BinaryExpressionSyntax db_les = new Metadata.Expression.BinaryExpressionSyntax();
+            db_les.Left = ExportExp(es.Left);
+            db_les.Right = ExportExp(es.Right);
+            db_les.OperatorToken = es.OperatorToken.Text;
             return db_les;
         }
         static Metadata.Expression.Exp ExportExp(PostfixUnaryExpressionSyntax es)
         {
-            
-
             //Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
             
             //db_les.Caller = ExportExp(es.Operand);

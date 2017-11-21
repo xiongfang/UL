@@ -22,11 +22,7 @@ namespace System{
 		public:
 		static System::Boolean TryParse(Ref<System::String>  value,System::Int32  v);
 		public:
-		virtual System::Boolean op_Equals(System::Int32  b);
-		public:
 		virtual System::Boolean op_Small(System::Int32  b);
-		public:
-		virtual System::Int32 op_Assign(System::Int32  b);
 		public:
 		virtual System::Int32 op_PlusPlus(System::Int32  b);
 	#include "Int32_ExtHeader.h"

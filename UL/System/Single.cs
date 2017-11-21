@@ -26,9 +26,7 @@
         }
 
 
-        public virtual Boolean op_Equals(Single b);
         public virtual Boolean op_Small(Single b);
-        public virtual Single op_Assign(Single b);
         public virtual Single op_PlusPlus(Single b);
     }
 }

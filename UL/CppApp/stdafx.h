@@ -20,10 +20,26 @@ class Ref
 public:
 	Ref(T* ptr) { this->v = ptr; }
 	Ref() { v = nullptr; }
+	Ref(const Ref<T>& copy)
+	{ 
+		v = copy.v;
+	}
 	T* operator->()
 	{
 		return v;
 	}
 
 	T* Get() { return v; }
+
+	operator T*()
+	{
+		return Get();
+	}
+
+	Ref<T>& operator=(const Ref<T>& other)
+	{
+		v = other.v;
+		return this;
+	}
 };
+

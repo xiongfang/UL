@@ -69,6 +69,54 @@
     <ClInclude Include="Exception.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Type.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="UInt16.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="UInt32.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="UInt64.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ArgumentNullException.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Attribute.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Byte.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Char.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Console_ExtCpp.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FormatException.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ICustomFormater.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="IFormatProvider.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Int16.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Int64.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SByte.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Single.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -96,6 +144,57 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Exception.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Type.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="UInt16.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="UInt32.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="UInt64.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ArgumentNullException.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Array.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Attribute.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Byte.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Char.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Double.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FormatException.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ICustomFormater.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="IFormatProvider.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Int16.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Int64.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SByte.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Single.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

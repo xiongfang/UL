@@ -147,32 +147,61 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ArgumentNullException.h" />
     <ClInclude Include="Array.h" />
+    <ClInclude Include="Attribute.h" />
     <ClInclude Include="Boolean.h" />
     <ClInclude Include="Boolean_ExtHeader.h" />
+    <ClInclude Include="Byte.h" />
+    <ClInclude Include="Char.h" />
     <ClInclude Include="Console.h" />
+    <ClInclude Include="Console_ExtCpp.h" />
     <ClInclude Include="Double.h" />
     <ClInclude Include="Exception.h" />
+    <ClInclude Include="FormatException.h" />
     <ClInclude Include="IComparable.h" />
+    <ClInclude Include="ICustomFormater.h" />
+    <ClInclude Include="IFormatProvider.h" />
+    <ClInclude Include="Int16.h" />
     <ClInclude Include="Int32.h" />
     <ClInclude Include="Int32_ExtCpp.h" />
     <ClInclude Include="Int32_ExtHeader.h" />
+    <ClInclude Include="Int64.h" />
     <ClInclude Include="MemberTypes.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Object_ExtCpp.h" />
+    <ClInclude Include="SByte.h" />
+    <ClInclude Include="Single.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="String_ExtHeader.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Type.h" />
+    <ClInclude Include="UInt16.h" />
+    <ClInclude Include="UInt32.h" />
+    <ClInclude Include="UInt64.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ArgumentNullException.cpp" />
+    <ClCompile Include="Array.cpp" />
+    <ClCompile Include="Attribute.cpp" />
     <ClCompile Include="Boolean.cpp" />
+    <ClCompile Include="Byte.cpp" />
+    <ClCompile Include="Char.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CppApp.cpp" />
+    <ClCompile Include="Double.cpp" />
     <ClCompile Include="Exception.cpp" />
+    <ClCompile Include="FormatException.cpp" />
     <ClCompile Include="IComparable.cpp" />
+    <ClCompile Include="ICustomFormater.cpp" />
+    <ClCompile Include="IFormatProvider.cpp" />
+    <ClCompile Include="Int16.cpp" />
     <ClCompile Include="Int32.cpp" />
+    <ClCompile Include="Int64.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="SByte.cpp" />
+    <ClCompile Include="Single.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -180,6 +209,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="String.cpp" />
+    <ClCompile Include="Type.cpp" />
+    <ClCompile Include="UInt16.cpp" />
+    <ClCompile Include="UInt32.cpp" />
+    <ClCompile Include="UInt64.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

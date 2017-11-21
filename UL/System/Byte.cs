@@ -25,9 +25,7 @@
         }
 
 
-        public virtual Boolean op_Equals(Byte b);
         public virtual Boolean op_Small(Byte b);
-        public virtual Byte op_Assign(Byte b);
         public virtual Byte op_PlusPlus(Byte b);
     }
 }

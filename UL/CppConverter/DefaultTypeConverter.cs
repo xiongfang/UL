@@ -416,7 +416,7 @@ namespace CppConverter
                 //else
                     AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
             }
-            else if (member.member_type == (int)Metadata.MemberTypes.Method || member.member_type == (int)Metadata.MemberTypes.Constructor)
+            else if (member.member_type == (int)Metadata.MemberTypes.Method)
             {
                 Model.EnterMethod(member);
 
@@ -440,7 +440,7 @@ namespace CppConverter
                     sb.Append("virtual ");
                 }
 
-                if (member.member_type == (int)Metadata.MemberTypes.Method)
+                if (!member.method_is_constructor)
                     sb.Append(string.Format("{1} {2}", "", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), member.name));
                 else
                     sb.Append(string.Format("{0}", member.name));
@@ -449,7 +449,9 @@ namespace CppConverter
                 {
                     for (int i = 0; i < member.method_args.Length; i++)
                     {
-                        sb.Append(string.Format("{0} {1} {2}", GetCppTypeWrapName(Model.GetType(member.method_args[i].type)), member.method_args[i].is_ref ? "&" : "", member.method_args[i].name));
+                        Metadata.DB_Type arg_Type = Model.GetType(member.method_args[i].type);
+                        //string typeName = GetCppTypeName(arg_Type);
+                        sb.Append(string.Format("{0} {1} {2}", GetCppTypeWrapName(arg_Type), member.method_args[i].is_ref ? "&" : "", member.method_args[i].name));
                         if (i < member.method_args.Length - 1)
                             sb.Append(",");
                     }
@@ -494,13 +496,13 @@ namespace CppConverter
 
                 }
             }
-            else if (member.member_type == (int)Metadata.MemberTypes.Method || member.member_type == (int)Metadata.MemberTypes.Constructor)
+            else if (member.member_type == (int)Metadata.MemberTypes.Method)
             {
                 Model.EnterMethod(member);
                 Metadata.DB_Type declare_type = Model.GetType(member.declaring_type);
                 if (!declare_type.is_generic_type_definition && member.method_body != null)
                 {
-                    if (member.member_type == (int)Metadata.MemberTypes.Method)
+                    if (!member.method_is_constructor)
                         sb.Append(string.Format("{0} {1}::{2}", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
                     else
                         sb.Append(string.Format("{1}::{2}", "", GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
@@ -734,6 +736,14 @@ namespace CppConverter
             {
                 return ExpressionToString((Metadata.Expression.BaseExp)es);
             }
+            else if(es is Metadata.Expression.AssignmentExpressionSyntax)
+            {
+                return ExpressionToString((Metadata.Expression.AssignmentExpressionSyntax)es);
+            }
+            else if (es is Metadata.Expression.BinaryExpressionSyntax)
+            {
+                return ExpressionToString((Metadata.Expression.BinaryExpressionSyntax)es);
+            }
             else
             {
                 Console.Error.WriteLine("不支持的表达式 " + es.GetType().Name);
@@ -849,7 +859,9 @@ namespace CppConverter
             {
                 for (int i = 0; i < es.Args.Count; i++)
                 {
+                    //实际参数类型
                     Metadata.DB_Type arg_type = args[i];
+                    //实际参数是this
                     if (es.Args[i] is Metadata.Expression.ThisExp)
                     {
                         if (arg_type.is_value_type)
@@ -858,7 +870,7 @@ namespace CppConverter
                         }
                     }
 
-
+                    //形式参数类型
                     Metadata.DB_Type me_argType = Model.GetType(method.method_args[i].type);
                     if (me_argType.is_class && arg_type.is_class &&  arg_type.GetRefType() != me_argType.GetRefType())
                     {
@@ -886,7 +898,7 @@ namespace CppConverter
             if (!string.IsNullOrEmpty(es.value))
             {
                 if (es.value.Length > 0 && es.value[0] == '"')
-                    return "(new System::String(" + es.value + "))";
+                    return "Ref<System::String>(new System::String(" + es.value + "))";
             }
             return es.value;
         }
@@ -1027,6 +1039,22 @@ namespace CppConverter
         string ExpressionToString(Metadata.Expression.ThisExp exp)
         {
             return "this";
+        }
+        string ExpressionToString(Metadata.Expression.AssignmentExpressionSyntax exp)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append(ExpressionToString(exp.Left));
+            stringBuilder.Append(" = ");
+            stringBuilder.Append(ExpressionToString(exp.Right));
+            return stringBuilder.ToString();
+        }
+        string ExpressionToString(Metadata.Expression.BinaryExpressionSyntax exp)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append(ExpressionToString(exp.Left));
+            stringBuilder.Append(string.Format(" {0} ", exp.OperatorToken));
+            stringBuilder.Append(ExpressionToString(exp.Right));
+            return stringBuilder.ToString();
         }
     }
 }

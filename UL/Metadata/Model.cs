@@ -382,7 +382,7 @@ namespace Metadata
             visitor.VisitType(type);
             foreach(var m in type.members)
             {
-                if(m.Value.member_type == (int)MemberTypes.Method || m.Value.member_type == (int)MemberTypes.Constructor)
+                if(m.Value.member_type == (int)MemberTypes.Method)
                 {
                     EnterMethod(m.Value);
                 }
@@ -394,7 +394,7 @@ namespace Metadata
                         VisitStatement(type, visitor, m.Value, m.Value.method_body);
                     }
                 }
-                if (m.Value.member_type == (int)MemberTypes.Method || m.Value.member_type == (int)MemberTypes.Constructor)
+                if (m.Value.member_type == (int)MemberTypes.Method)
                 {
                     LeaveMethod();
                 }
@@ -483,6 +483,18 @@ namespace Metadata
                 VisitExp(type, visitor, method, statement, ss.Condition);
                 VisitStatement(type, visitor, method, ss.Statement);
             }
+            else if(statement is DB_TryStatementSyntax)
+            {
+                DB_TryStatementSyntax ss = statement as DB_TryStatementSyntax;
+                VisitStatement(type, visitor, method, ss.Block);
+                foreach(var c in ss.Catches)
+                {
+                    VisitExp(type, visitor, method, statement, c.Type);
+                    VisitStatement(type, visitor, method, c.Block);
+                }
+                if(ss.Finally!=null)
+                   VisitStatement(type, visitor, method, ss.Finally.Block);
+            }
         }
 
         void VisitExp(DB_Type type, ITypeVisitor visitor, DB_Member method, DB_StatementSyntax statement,Expression.Exp exp)
@@ -556,7 +568,7 @@ namespace Metadata
                 {
                     result.Add(m.field_type);
                 }
-                else if (m.member_type == (int)Metadata.MemberTypes.Method || m.member_type == (int)Metadata.MemberTypes.Constructor)
+                else if (m.member_type == (int)Metadata.MemberTypes.Method)
                 {
                     if (!m.method_ret_type.IsVoid)
                         result.Add(m.method_ret_type);
@@ -604,41 +616,54 @@ namespace Metadata
         }
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.Exp exp)
         {
-            if(exp is Expression.IndifierExp)
+            if (exp is Expression.IndifierExp)
             {
                 Expression.IndifierExp e = exp as Expression.IndifierExp;
                 DB_Type vt = model.GetIndifierInfo(e.Name).type;
                 typeRef.Add(vt.GetRefType());
             }
-            else if(exp is Expression.FieldExp)
+            else if (exp is Expression.FieldExp)
             {
                 Expression.FieldExp e = exp as Expression.FieldExp;
                 DB_Type caller = model.GetExpType(e.Caller);
                 typeRef.Add(caller.GetRefType());
                 typeRef.Add(caller.members[e.Name].typeName);
             }
-            else if(exp is Expression.ObjectCreateExp)
+            else if (exp is Expression.ObjectCreateExp)
             {
                 Expression.ObjectCreateExp e = exp as Expression.ObjectCreateExp;
                 typeRef.Add(e.Type);
             }
-            else if(exp is Expression.ConstExp)
+            else if (exp is Expression.ConstExp)
             {
                 Expression.ConstExp e = exp as Expression.ConstExp;
                 typeRef.Add(model.GetExpType(e).GetRefType());
             }
-            else if(exp is Expression.MethodExp)
+            else if (exp is Expression.MethodExp)
             {
                 Expression.MethodExp e = exp as Expression.MethodExp;
                 DB_Type caller = model.GetExpType(e.Caller);
                 typeRef.Add(caller.GetRefType());
                 List<DB_Type> argTypes = new List<DB_Type>();
-                foreach(var a in e.Args)
+                foreach (var a in e.Args)
                 {
                     argTypes.Add(model.GetExpType(a));
                 }
-                typeRef.Add(caller.FindMethod(e.Name, argTypes,this.model).method_ret_type);
+                typeRef.Add(caller.FindMethod(e.Name, argTypes, this.model).method_ret_type);
             }
+            else if (exp is Expression.BaseExp)
+            {
+                typeRef.Add(type.base_type);
+            }
+            else if (exp is Expression.ThisExp)
+            {
+                typeRef.Add(type.GetRefType());
+            }
+            else if (exp is Expression.TypeSyntax)
+            {
+                typeRef.Add(exp as Expression.TypeSyntax);
+            }
+
         }
     }
 }

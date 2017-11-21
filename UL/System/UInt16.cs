@@ -24,9 +24,7 @@
             }
         }
 
-        public virtual Boolean op_Equals(UInt16 b);
         public virtual Boolean op_Small(UInt16 b);
-        public virtual UInt16 op_Assign(UInt16 b);
         public virtual UInt16 op_PlusPlus(UInt16 b);
     }
 }

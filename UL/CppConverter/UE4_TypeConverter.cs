@@ -450,7 +450,7 @@ namespace CppConverter
                 else
                     AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
             }
-            else if (member.member_type == (int)Metadata.MemberTypes.Method || member.member_type == (int)Metadata.MemberTypes.Constructor)
+            else if (member.member_type == (int)Metadata.MemberTypes.Method)
             {
                 Model.EnterMethod(member);
                
@@ -528,7 +528,7 @@ namespace CppConverter
 
                 }
             }
-            else if (member.member_type == (int)Metadata.MemberTypes.Method || member.member_type == (int)Metadata.MemberTypes.Constructor)
+            else if (member.member_type == (int)Metadata.MemberTypes.Method )
             {
                 Model.EnterMethod(member);
                 Metadata.DB_Type declare_type = Model.GetType(member.declaring_type);

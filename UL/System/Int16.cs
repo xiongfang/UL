@@ -24,9 +24,7 @@
             }
         }
 
-        public virtual Boolean op_Equals(Int16 b);
         public virtual Boolean op_Small(Int16 b);
-        public virtual Int16 op_Assign(Int16 b);
         public virtual Int16 op_PlusPlus(Int16 b);
     }
 }

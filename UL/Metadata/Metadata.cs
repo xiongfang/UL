@@ -154,7 +154,7 @@ namespace Metadata
         {
             foreach(var m in members.Values)
             {
-                if (m.name != name || (m.member_type != (int)MemberTypes.Method && m.member_type != (int)MemberTypes.Constructor))
+                if (m.name != name || (m.member_type != (int)MemberTypes.Method))
                     continue;
 
                 if(m.method_args.Length == typeParameters.Count)
@@ -256,6 +256,7 @@ namespace Metadata
         public bool method_virtual;
         public bool method_abstract;
         public bool method_override;
+        public bool method_is_constructor;
         //********************************************/
 
         //签名，一个类唯一
@@ -267,7 +268,7 @@ namespace Metadata
                 {
                     return name;
                 }
-                else if(member_type == (int)MemberTypes.Method || member_type == (int)MemberTypes.Constructor)
+                else if(member_type == (int)MemberTypes.Method)
                 {
                     StringBuilder sb = new StringBuilder(name);
 
@@ -566,6 +567,21 @@ namespace Metadata
         public class Exp : DB_Syntax
         {
         }
+
+        [JsonConverter(typeof(JsonConverterType<AssignmentExpressionSyntax>))]
+        public class AssignmentExpressionSyntax : Exp
+        {
+            public Expression.Exp Left;
+            public Expression.Exp Right;
+        }
+        [JsonConverter(typeof(JsonConverterType<BinaryExpressionSyntax>))]
+        public class BinaryExpressionSyntax : Exp
+        {
+            public Expression.Exp Left;
+            public string OperatorToken;
+            public Expression.Exp Right;
+        }
+
         [JsonConverter(typeof(JsonConverterType<BaseExp>))]
         public class BaseExp : Exp
         {
@@ -943,7 +959,7 @@ namespace Metadata
         //
         // 摘要:
         //     指定该成员是一个构造函数
-        Constructor = 1,
+        //Constructor = 1,
         //
         // 摘要:
         //     指定该成员是一个事件。
@@ -1062,7 +1078,7 @@ namespace Metadata
             //}
 
             {
-                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer,method_generic_parameter_definitions,method_virtual,method_override,method_abstract,attributes) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?,?,?,?,?,?);",
+                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer,method_generic_parameter_definitions,method_virtual,method_override,method_abstract,attributes,method_is_constructor) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?,?,?,?,?,?,?);",
                 member.declaring_type, member.identifier, member.name, member.comments, member.modifier, member.is_static, member.member_type, member.ext);
 
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
@@ -1078,6 +1094,7 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("9", member.method_override);
                 cmd.Parameters.AddWithValue("10", member.method_abstract);
                 cmd.Parameters.AddWithValue("11", WriteObject(member.attributes));
+                cmd.Parameters.AddWithValue("12", member.method_is_constructor);
                 cmd.ExecuteNonQuery();
             }
 
@@ -1171,6 +1188,7 @@ namespace Metadata
                     member.method_override = (bool)reader["method_override"];
                     member.method_abstract = (bool)reader["method_abstract"];
                     member.attributes = ReadObject<List<DB_AttributeSyntax>>((string)reader["attributes"]);
+                    member.method_is_constructor = (bool)reader["method_is_constructor"];
                     results.Add(member.identifier, member);
                 }
             }

@@ -40,7 +40,7 @@ void System::Console::Write(System::Byte  value)
 }
 void System::Console::WriteLine()
 {
-	Write((new System::String("\r\n")));
+	Write(Ref<System::String>(new System::String("\r\n")));
 }
 void System::Console::WriteLine(System::Char  value)
 {

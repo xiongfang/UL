@@ -24,10 +24,7 @@
             }
         }
 
-
-        public virtual Boolean op_Equals(Int64 b);
         public virtual Boolean op_Small(Int64 b);
-        public virtual Int64 op_Assign(Int64 b);
         public virtual Int64 op_PlusPlus(Int64 b);
     }
 }

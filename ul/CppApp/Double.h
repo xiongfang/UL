@@ -14,11 +14,7 @@ namespace System{
 		public:
 		static 		System::Double MinValue;
 		public:
-		virtual System::Boolean op_Equals(System::Double  b);
-		public:
 		virtual System::Boolean op_Small(System::Double  b);
-		public:
-		virtual System::Double op_Assign(System::Double  b);
 		public:
 		virtual System::Double op_PlusPlus(System::Double  b);
 	};

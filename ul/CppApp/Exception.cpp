@@ -4,9 +4,9 @@
 #include "String.h"
 System::Exception::Exception(Ref<System::String>  msg)
 {
-	_msg->op_Assign(Ref<System::Object>(msg.Get()));
+	_msg = msg;
 }
 System::Exception::Exception()
 {
-	_msg->op_Assign(Ref<System::Object>((new System::String("")).Get()));
+	_msg = Ref<System::String>(new System::String(""));
 }

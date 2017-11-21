@@ -24,11 +24,7 @@ namespace System{
 		public:
 		static System::Boolean TryParse(Ref<System::String>  value,System::Single  v);
 		public:
-		virtual System::Boolean op_Equals(System::Single  b);
-		public:
 		virtual System::Boolean op_Small(System::Single  b);
-		public:
-		virtual System::Single op_Assign(System::Single  b);
 		public:
 		virtual System::Single op_PlusPlus(System::Single  b);
 	};

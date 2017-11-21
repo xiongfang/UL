@@ -36,5 +36,7 @@
                 return false;
             }
         }
+
+        public virtual Boolean op_Assign(Boolean b);
     }
 }

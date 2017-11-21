@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "String.h"
 #include "Boolean.h"
+#include "Exception.h"
 System::Single System::Single::Epsilon=1.4e-45f;
 System::Single System::Single::MaxValue=3.40282347e38f;
 System::Single System::Single::MinValue=-3.402823e38f;
@@ -10,12 +11,12 @@ System::Boolean System::Single::TryParse(Ref<System::String>  value,System::Sing
 {
 	try
 	{
-		v.op_Assign(Parse(value));
+		v = Parse(value);
 		return true;
 	}
 	catch(System::Exception e)
 	{
-		v.op_Assign(0);
+		v = 0;
 		return false;
 	}
 }

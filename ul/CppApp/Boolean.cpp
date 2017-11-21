@@ -2,17 +2,18 @@
 #include "Boolean.h"
 #include "Object.h"
 #include "String.h"
+#include "Exception.h"
 Ref<System::String> System::Boolean::FalseString;
 Ref<System::String> System::Boolean::TrueString;
 System::Boolean System::Boolean::Parse(Ref<System::String>  value)
 {
-	if(value->op_Equals(nullptr))
+	if(value == nullptr)
 	{
 	}
-	if(value->op_Equals(Ref<System::Object>(TrueString.Get())))
+	if(value == TrueString)
 	return true;
 	else
-	if(value->op_Equals(Ref<System::Object>(FalseString.Get())))
+	if(value == FalseString)
 	return false;
 	else
 	{
@@ -22,12 +23,12 @@ System::Boolean System::Boolean::TryParse(Ref<System::String>  value,System::Boo
 {
 	try
 	{
-		v.op_Assign(Parse(value));
+		v = Parse(value);
 		return true;
 	}
 	catch(System::Exception e)
 	{
-		v.op_Assign(false);
+		v = false;
 		return false;
 	}
 }

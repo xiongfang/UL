@@ -25,9 +25,7 @@
         }
 
 
-        public virtual Boolean op_Equals(UInt64 b);
         public virtual Boolean op_Small(UInt64 b);
-        public virtual UInt64 op_Assign(UInt64 b);
         public virtual UInt64 op_PlusPlus(UInt64 b);
     }
 }

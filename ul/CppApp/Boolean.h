@@ -14,6 +14,8 @@ namespace System{
 		Ref<System::String> ToString();
 		public:
 		static System::Boolean TryParse(Ref<System::String>  value,System::Boolean  v);
+		public:
+		virtual System::Boolean op_Assign(System::Boolean  b);
 	#include "Boolean_ExtHeader.h"
 	};
 }

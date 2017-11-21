@@ -3,18 +3,19 @@
 #include "Object.h"
 #include "String.h"
 #include "Boolean.h"
+#include "Exception.h"
 System::Int64 System::Int64::MaxValue=0x7FFFFFFFFFFFFFFF;
 System::Int64 System::Int64::MinValue=0x8000000000000000;
 System::Boolean System::Int64::TryParse(Ref<System::String>  value,System::Int64  v)
 {
 	try
 	{
-		v.op_Assign(Parse(value));
+		v = Parse(value);
 		return true;
 	}
 	catch(System::Exception e)
 	{
-		v.op_Assign(0);
+		v = 0;
 		return false;
 	}
 }

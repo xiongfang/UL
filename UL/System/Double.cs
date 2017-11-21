@@ -6,10 +6,7 @@
         public const double MaxValue = 1.79769313486231e308;
         public const double MinValue = -1.79769313486231e308;
 
-
-        public virtual Boolean op_Equals(Double b);
         public virtual Boolean op_Small(Double b);
-        public virtual Double op_Assign(Double b);
         public virtual Double op_PlusPlus(Double b);
     }
 }
