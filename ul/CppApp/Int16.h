@@ -20,7 +20,7 @@ namespace System{
 		public:
 		Ref<System::String> ToString();
 		public:
-		static System::Boolean TryParse(Ref<System::String>  value,System::Int16  v);
+		static System::Boolean TryParse(Ref<System::String>  value,System::Int16 & v);
 	#include "Int16_ExtHeader.h"
 	};
 }

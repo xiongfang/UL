@@ -20,7 +20,7 @@ namespace System{
 		public:
 		Ref<System::String> ToString();
 		public:
-		static System::Boolean TryParse(Ref<System::String>  value,System::UInt32  v);
+		static System::Boolean TryParse(Ref<System::String>  value,System::UInt32 & v);
 	#include "UInt32_ExtHeader.h"
 	};
 }

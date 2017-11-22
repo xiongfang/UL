@@ -6,7 +6,7 @@
 #include "Exception.h"
 System::SByte System::SByte::MaxValue=127;
 System::SByte System::SByte::MinValue=-128;
-System::Boolean System::SByte::TryParse(Ref<System::String>  value,System::SByte  v)
+System::Boolean System::SByte::TryParse(Ref<System::String>  value,System::SByte & v)
 {
 	try
 	{

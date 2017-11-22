@@ -23,7 +23,7 @@ System::Boolean System::Boolean::Parse(Ref<System::String>  value)
 			throw new System::FormatException(value);
 		}
 }
-System::Boolean System::Boolean::TryParse(Ref<System::String>  value,System::Boolean  v)
+System::Boolean System::Boolean::TryParse(Ref<System::String>  value,System::Boolean & v)
 {
 	try
 	{

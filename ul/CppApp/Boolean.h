@@ -13,7 +13,7 @@ namespace System{
 		public:
 		Ref<System::String> ToString();
 		public:
-		static System::Boolean TryParse(Ref<System::String>  value,System::Boolean  v);
+		static System::Boolean TryParse(Ref<System::String>  value,System::Boolean & v);
 	#include "Boolean_ExtHeader.h"
 	};
 }

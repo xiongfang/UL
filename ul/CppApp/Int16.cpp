@@ -6,7 +6,7 @@
 #include "Exception.h"
 System::Int16 System::Int16::MaxValue=0x7FFF;
 System::Int16 System::Int16::MinValue=0x8000;
-System::Boolean System::Int16::TryParse(Ref<System::String>  value,System::Int16  v)
+System::Boolean System::Int16::TryParse(Ref<System::String>  value,System::Int16 & v)
 {
 	try
 	{

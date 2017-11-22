@@ -20,7 +20,7 @@ namespace System{
 		public:
 		Ref<System::String> ToString();
 		public:
-		static System::Boolean TryParse(Ref<System::String>  value,System::SByte  v);
+		static System::Boolean TryParse(Ref<System::String>  value,System::SByte & v);
 	#include "SByte_ExtHeader.h"
 	};
 }

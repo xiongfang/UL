@@ -20,7 +20,7 @@ namespace System{
 		public:
 		Ref<System::String> ToString();
 		public:
-		static System::Boolean TryParse(Ref<System::String>  value,System::Char  v);
+		static System::Boolean TryParse(Ref<System::String>  value,System::Char & v);
 	#include "Char_ExtHeader.h"
 	};
 }

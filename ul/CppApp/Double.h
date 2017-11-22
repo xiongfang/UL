@@ -22,7 +22,7 @@ namespace System{
 		public:
 		Ref<System::String> ToString();
 		public:
-		static System::Boolean TryParse(Ref<System::String>  value,System::Double  v);
+		static System::Boolean TryParse(Ref<System::String>  value,System::Double & v);
 	#include "Double_ExtHeader.h"
 	};
 }

@@ -455,7 +455,7 @@ namespace CppConverter
                     {
                         Metadata.DB_Type arg_Type = Model.GetType(member.method_args[i].type);
                         //string typeName = GetCppTypeName(arg_Type);
-                        sb.Append(string.Format("{0} {1} {2}", GetCppTypeWrapName(arg_Type), member.method_args[i].is_ref ? "&" : "", member.method_args[i].name));
+                        sb.Append(string.Format("{0} {1} {2}", GetCppTypeWrapName(arg_Type), (member.method_args[i].is_ref || member.method_args[i].is_out) ? "&" : "", member.method_args[i].name));
                         if (i < member.method_args.Length - 1)
                             sb.Append(",");
                     }
@@ -515,7 +515,7 @@ namespace CppConverter
                     {
                         for (int i = 0; i < member.method_args.Length; i++)
                         {
-                            sb.Append(string.Format("{0} {1} {2}", GetCppTypeWrapName(Model.GetType(member.method_args[i].type)), member.method_args[i].is_ref ? "&" : "", member.method_args[i].name));
+                            sb.Append(string.Format("{0} {1} {2}", GetCppTypeWrapName(Model.GetType(member.method_args[i].type)), (member.method_args[i].is_ref || member.method_args[i].is_out) ? "&" : "", member.method_args[i].name));
                             if (i < member.method_args.Length - 1)
                                 sb.Append(",");
                         }

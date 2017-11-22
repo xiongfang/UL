@@ -7,7 +7,7 @@
 System::Double System::Double::Epsilon=4.94065645841247e-324;
 System::Double System::Double::MaxValue=1.79769313486231e308;
 System::Double System::Double::MinValue=-1.79769313486231e308;
-System::Boolean System::Double::TryParse(Ref<System::String>  value,System::Double  v)
+System::Boolean System::Double::TryParse(Ref<System::String>  value,System::Double & v)
 {
 	try
 	{

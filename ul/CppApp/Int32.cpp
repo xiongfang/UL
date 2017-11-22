@@ -7,7 +7,7 @@
 #include "Int32_ExtCpp.h"
 System::Int32 System::Int32::MaxValue=0x7FFFFFFF;
 System::Int32 System::Int32::MinValue=0x80000000;
-System::Boolean System::Int32::TryParse(Ref<System::String>  value,System::Int32  v)
+System::Boolean System::Int32::TryParse(Ref<System::String>  value,System::Int32 & v)
 {
 	try
 	{
