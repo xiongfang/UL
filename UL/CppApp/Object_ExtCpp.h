@@ -15,3 +15,8 @@ Boolean Object::Equals(Ref<System::Object>  v)
 {
 	return v.Get() == this;
 }
+
+Ref<System::Type> Object::GetType()
+{
+	return nullptr;
+}

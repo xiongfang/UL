@@ -1344,6 +1344,7 @@ namespace CSharpCompiler
                         dB_Member.method_args[i].type = GetTypeSyntax(f.ParameterList.Parameters[i].Type);
                         dB_Member.method_args[i].is_out = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "out");
                         dB_Member.method_args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
+                        dB_Member.method_args[i].is_params = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "params");
                     }
 
                     if(f.TypeParameterList != null)
@@ -1844,35 +1845,36 @@ namespace CSharpCompiler
         }
         static Metadata.Expression.Exp ExportExp(PostfixUnaryExpressionSyntax es)
         {
-            //Metadata.Expression.FieldExp op_Equals = new Metadata.Expression.FieldExp();
+
+            Metadata.Expression.PostfixUnaryExpressionSyntax ss= new Metadata.Expression.PostfixUnaryExpressionSyntax();
+            ss.Operand = ExportExp(es.Operand);
+            ss.OperatorToken = es.OperatorToken.Text;
+            return ss;
+            //Metadata.Expression.MethodExp db_Add = new Metadata.Expression.MethodExp();
+            //if (es.OperatorToken.Text == "++")
+            //{
+            //    db_Add.Name = "op_PlusPlus";
+            //}
+            //else if(es.OperatorToken.Text == "--")
+            //{
+            //    db_Add.Name = "op_SubSub";
+            //}
+            //else
+            //{
+            //    Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
+            //}
+            //db_Add.Caller = ExportExp(es.Operand);
+
+
             
-            //db_les.Caller = ExportExp(es.Operand);
+            ////db_Add.Caller = op_Token;
+            //db_Add.Args.Add(new Metadata.Expression.ConstExp() { value = "1" });
 
-            Metadata.Expression.MethodExp db_Add = new Metadata.Expression.MethodExp();
-            if (es.OperatorToken.Text == "++")
-            {
-                db_Add.Name = "op_PlusPlus";
-            }
-            else if(es.OperatorToken.Text == "--")
-            {
-                db_Add.Name = "op_SubSub";
-            }
-            else
-            {
-                Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
-            }
-            db_Add.Caller = ExportExp(es.Operand);
-
-
-            
-            //db_Add.Caller = op_Token;
-            db_Add.Args.Add(new Metadata.Expression.ConstExp() { value = "1" });
-
-            Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
-            db_les.Caller = db_Add;
-            db_les.Name = "op_Assign";
-            db_les.Args.Add(db_Add);
-            return db_les;
+            //Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
+            //db_les.Caller = db_Add;
+            //db_les.Name = "op_Assign";
+            //db_les.Args.Add(db_Add);
+            //return db_les;
         }
 
         static Metadata.Expression.Exp ExportExp(ArrayCreationExpressionSyntax es)
@@ -1893,25 +1895,29 @@ namespace CSharpCompiler
         }
         static Metadata.Expression.Exp ExportExp(PrefixUnaryExpressionSyntax es)
         {
-            if(es.Operand is LiteralExpressionSyntax)
-            {
-                Metadata.Expression.ConstExp exp = ExportExp(es.Operand) as Metadata.Expression.ConstExp;
-                if(es.OperatorToken.Text == "-")
-                    exp.value = "-" + exp.value;
-                else
-                    Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
-                return exp;
-            }
+            Metadata.Expression.PrefixUnaryExpressionSyntax ss = new Metadata.Expression.PrefixUnaryExpressionSyntax();
+            ss.Operand = ExportExp(es.Operand);
+            ss.OperatorToken = es.OperatorToken.Text;
+            return ss;
+            //if(es.Operand is LiteralExpressionSyntax)
+            //{
+            //    Metadata.Expression.ConstExp exp = ExportExp(es.Operand) as Metadata.Expression.ConstExp;
+            //    if(es.OperatorToken.Text == "-")
+            //        exp.value = "-" + exp.value;
+            //    else
+            //        Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
+            //    return exp;
+            //}
 
-            {
-                Metadata.Expression.MethodExp exp = new Metadata.Expression.MethodExp();
-                if (es.OperatorToken.Text == "-")
-                    exp.Name = "op_Invert";
-                else
-                    Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
-                exp.Caller = ExportExp(es.Operand);
-                return exp;
-            }
+            //{
+            //    Metadata.Expression.MethodExp exp = new Metadata.Expression.MethodExp();
+            //    if (es.OperatorToken.Text == "-")
+            //        exp.Name = "op_Invert";
+            //    else
+            //        Console.Error.WriteLine("无法识别的操作符 " + es.OperatorToken.Text);
+            //    exp.Caller = ExportExp(es.Operand);
+            //    return exp;
+            //}
         }
 
         static Metadata.Expression.Exp ExportExp(BaseExpressionSyntax es)

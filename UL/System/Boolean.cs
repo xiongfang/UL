@@ -7,36 +7,34 @@
 
         public static bool Parse(string value)
         {
-            if(value == null)
+            if (value == null)
             {
                 throw new ArgumentNullException();
             }
             if (value == TrueString)
                 return true;
-            else if(value == FalseString)
+            else if (value == FalseString)
                 return false;
             else
             {
                 throw new FormatException(value);
             }
-        } 
+        }
 
         public extern override string ToString();
 
-        public static bool TryParse(string value,out bool v)
+        public static bool TryParse(string value, out bool v)
         {
             try
             {
-                v =  Parse(value);
+                v = Parse(value);
                 return true;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 v = false;
                 return false;
             }
         }
-
-        public virtual Boolean op_Assign(Boolean b);
     }
 }

@@ -10,6 +10,10 @@
 #include "Double.h"
 #include "Byte.h"
 #include "Console_ExtCpp.h"
+void System::Console::Write(Ref<System::Object>  value)
+{
+	Write(value->ToString());
+}
 void System::Console::Write(System::Char  value)
 {
 	Write(value.ToString());
@@ -75,5 +79,15 @@ void System::Console::WriteLine(System::Double  value)
 void System::Console::WriteLine(System::Byte  value)
 {
 	Write(value.ToString());
+	WriteLine();
+}
+void System::Console::WriteLine(Ref<System::String>  value)
+{
+	Write(value);
+	WriteLine();
+}
+void System::Console::WriteLine(Ref<System::Object>  value)
+{
+	Write(value->ToString());
 	WriteLine();
 }

@@ -38,6 +38,8 @@ namespace System{
 		public:
 		static void Write(Ref<System::String>  value);
 		public:
+		static void Write(Ref<System::Object>  value);
+		public:
 		static void Write(System::Char  value);
 		public:
 		static void Write(System::Boolean  value);
@@ -67,5 +69,9 @@ namespace System{
 		static void WriteLine(System::Double  value);
 		public:
 		static void WriteLine(System::Byte  value);
+		public:
+		static void WriteLine(Ref<System::String>  value);
+		public:
+		static void WriteLine(Ref<System::Object>  value);
 	};
 }

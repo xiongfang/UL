@@ -23,8 +23,5 @@
                 return false;
             }
         }
-
-        public virtual Boolean op_Small(Int64 b);
-        public virtual Int64 op_PlusPlus(Int64 b);
     }
 }

@@ -154,25 +154,46 @@ namespace Metadata
         {
             foreach(var m in members.Values)
             {
-                if (m.name != name || (m.member_type != (int)MemberTypes.Method))
+                if (m.name != name || m.member_type != (int)MemberTypes.Method)
                     continue;
 
-                if(m.method_args.Length == typeParameters.Count)
+                if (m.method_args.Length == 0 && typeParameters.Count==0)
+                    return m;
+
+                int arg_index = 0;  //形式参数索引
+                int real_arg_index = 0; //实际参数索引
+                bool all_arg_type_same = true;
+                for (; real_arg_index< typeParameters.Count; real_arg_index++)
                 {
-                    if (m.method_args.Length == 0)
-                        return m;
-                    bool all_arg_type_same = true;
-                    for(int i=0;i< m.method_args.Length;i++)
+                    if (model.GetType(m.method_args[arg_index].type).IsAssignableFrom(typeParameters[real_arg_index], model))
                     {
-                        if (!model.GetType( m.method_args[i].type).IsAssignableFrom(typeParameters[i],model))
-                        {
-                            all_arg_type_same = false;
-                            break;
-                        }
+                        if(!m.method_args[arg_index].is_params)
+                            arg_index++;
+                        continue;
                     }
-                    if(all_arg_type_same)
-                        return m;
+                    all_arg_type_same = false;
+                    break;
                 }
+
+                if(all_arg_type_same)
+                    return m;
+
+                //if (m.method_args.Length == typeParameters.Count)
+                //{
+                //    if (m.method_args.Length == 0)
+                //        return m;
+                //    bool all_arg_type_same = true;
+                //    for(int i=0;i< m.method_args.Length;i++)
+                //    {
+                //        if (!model.GetType( m.method_args[i].type).IsAssignableFrom(typeParameters[i],model))
+                //        {
+                //            all_arg_type_same = false;
+                //            break;
+                //        }
+                //    }
+                //    if(all_arg_type_same)
+                //        return m;
+                //}
             }
 
             //查找父类
@@ -243,6 +264,7 @@ namespace Metadata
             public string name;
             public bool is_ref;
             public bool is_out;
+            public bool is_params;
             public string default_value = "";
         }
         public Argument[] method_args;
@@ -580,6 +602,18 @@ namespace Metadata
             public Expression.Exp Left;
             public string OperatorToken;
             public Expression.Exp Right;
+        }
+        [JsonConverter(typeof(JsonConverterType<PrefixUnaryExpressionSyntax>))]
+        public class PrefixUnaryExpressionSyntax:Exp
+        {
+            public string OperatorToken;
+            public Expression.Exp Operand;
+        }
+        [JsonConverter(typeof(JsonConverterType<PostfixUnaryExpressionSyntax>))]
+        public class PostfixUnaryExpressionSyntax:Exp
+        {
+            public string OperatorToken;
+            public Expression.Exp Operand;
         }
 
         [JsonConverter(typeof(JsonConverterType<BaseExp>))]

@@ -23,9 +23,5 @@
                 return false;
             }
         }
-
-
-        public virtual Boolean op_Small(SByte b);
-        public virtual SByte op_PlusPlus(SByte b);
     }
 }

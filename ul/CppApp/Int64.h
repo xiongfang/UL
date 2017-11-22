@@ -21,9 +21,6 @@ namespace System{
 		Ref<System::String> ToString();
 		public:
 		static System::Boolean TryParse(Ref<System::String>  value,System::Int64  v);
-		public:
-		virtual System::Boolean op_Small(System::Int64  b);
-		public:
-		virtual System::Int64 op_PlusPlus(System::Int64  b);
+	#include "Int64_ExtHeader.h"
 	};
 }

@@ -23,9 +23,6 @@ namespace System{
 		Ref<System::String> ToString();
 		public:
 		static System::Boolean TryParse(Ref<System::String>  value,System::Single  v);
-		public:
-		virtual System::Boolean op_Small(System::Single  b);
-		public:
-		virtual System::Single op_PlusPlus(System::Single  b);
+	#include "Single_ExtHeader.h"
 	};
 }

@@ -5,6 +5,8 @@ public:
 		_v = new char[size];
 		sprintf_s(_v, size, "%s", c);
 	}
+	String(const wchar_t* c);
+
 	~String() { delete[] _v; }
 private:
 	char* _v;

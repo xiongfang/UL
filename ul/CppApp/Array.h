@@ -6,7 +6,7 @@ struct Int32;
 }
 namespace System{
 	template<class T>
-:public System::Object
+	class Array:public System::Object
 	{
 		public:
 		Array(System::Int32  len)

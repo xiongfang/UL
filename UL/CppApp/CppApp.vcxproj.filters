@@ -117,6 +117,36 @@
     <ClInclude Include="Single.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Byte_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Char_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Double_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Int16_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Int64_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Single_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="UInt16_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="UInt32_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="UInt64_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SByte_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -161,9 +191,6 @@
     <ClCompile Include="ArgumentNullException.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Array.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Attribute.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -195,6 +222,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Single.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="System.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform_Windows.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

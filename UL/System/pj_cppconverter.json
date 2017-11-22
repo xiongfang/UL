@@ -6,9 +6,51 @@
       "ext_header": "Boolean_ExtHeader.h"
     },
     {
+      "name": "System.Byte",
+      "ext_header": "Byte_ExtHeader.h"
+    },
+    {
+      "name": "System.SByte",
+      "ext_header": "SByte_ExtHeader.h"
+    },
+    {
+      "name": "System.Char",
+      "ext_header": "Char_ExtHeader.h"
+    },
+    {
+      "name": "System.Double",
+      "ext_header": "Double_ExtHeader.h"
+    },
+    {
+      "name": "System.Single",
+      "ext_header": "Single_ExtHeader.h"
+    },
+    {
+      "name": "System.Int16",
+      "ext_header": "Int16_ExtHeader.h"
+    },
+
+    {
       "name": "System.Int32",
       "ext_header": "Int32_ExtHeader.h",
       "ext_cpp": "Int32_ExtCpp.h"
+    },
+    {
+      "name": "System.Int64",
+      "ext_header": "Int64_ExtHeader.h"
+    },
+    {
+      "name": "System.UInt16",
+      "ext_header": "UInt16_ExtHeader.h"
+    },
+
+    {
+      "name": "System.UInt32",
+      "ext_header": "UInt32_ExtHeader.h"
+    },
+    {
+      "name": "System.UInt64",
+      "ext_header": "UInt64_ExtHeader.h"
     },
     {
       "name": "System.String",

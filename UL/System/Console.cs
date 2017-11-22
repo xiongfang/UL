@@ -4,6 +4,10 @@
     {
         public extern static void Write(string value);
 
+        public static void Write(object value)
+        {
+            Write(value.ToString());
+        }
         public static void Write(char value)
         {
             Write(value.ToString());
@@ -79,6 +83,16 @@
         }
 
         public static void WriteLine(byte value)
+        {
+            Write(value.ToString());
+            WriteLine();
+        }
+        public static void WriteLine(string value)
+        {
+            Write(value);
+            WriteLine();
+        }
+        public static void WriteLine(object value)
         {
             Write(value.ToString());
             WriteLine();

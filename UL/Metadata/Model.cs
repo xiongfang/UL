@@ -495,6 +495,23 @@ namespace Metadata
                 if(ss.Finally!=null)
                    VisitStatement(type, visitor, method, ss.Finally.Block);
             }
+            else if(statement is DB_ThrowStatementSyntax)
+            {
+                DB_ThrowStatementSyntax ss = statement as DB_ThrowStatementSyntax;
+                VisitExp(type, visitor, method,ss , ss.Expression);
+            }
+            else if(statement is DB_ReturnStatementSyntax)
+            {
+                DB_ReturnStatementSyntax ss = statement as DB_ReturnStatementSyntax;
+                if(ss.Expression!=null)
+                {
+                    VisitExp(type, visitor, method, ss, ss.Expression);
+                }
+            }
+            else
+            {
+                throw new NotSupportedException("不支持的语句 "+ statement.JsonType);
+            }
         }
 
         void VisitExp(DB_Type type, ITypeVisitor visitor, DB_Member method, DB_StatementSyntax statement,Expression.Exp exp)

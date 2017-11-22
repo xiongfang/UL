@@ -23,8 +23,5 @@
                 return false;
             }
         }
-
-        public virtual Boolean op_Small(Char b);
-        public virtual Char op_PlusPlus(Char b);
     }
 }

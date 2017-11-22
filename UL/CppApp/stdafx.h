@@ -39,7 +39,7 @@ public:
 	Ref<T>& operator=(const Ref<T>& other)
 	{
 		v = other.v;
-		return this;
+		return *this;
 	}
 };
 

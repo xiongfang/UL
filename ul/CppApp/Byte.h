@@ -21,9 +21,6 @@ namespace System{
 		Ref<System::String> ToString();
 		public:
 		static System::Boolean TryParse(Ref<System::String>  value,System::Byte  v);
-		public:
-		virtual System::Boolean op_Small(System::Byte  b);
-		public:
-		virtual System::Byte op_PlusPlus(System::Byte  b);
+	#include "Byte_ExtHeader.h"
 	};
 }

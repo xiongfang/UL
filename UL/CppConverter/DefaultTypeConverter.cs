@@ -130,7 +130,8 @@ namespace CppConverter
                             }
                             sb.AppendLine(">");
                         }
-                        else if (type.is_value_type)
+
+                        if (type.is_value_type)
                         {
                             Append(string.Format("struct {0}", type.name));
                         }
@@ -211,16 +212,16 @@ namespace CppConverter
             }
 
         }
-        public void ConvertTypeCpp(Metadata.DB_Type type)
+        public bool ConvertTypeCpp(Metadata.DB_Type type)
         {
-            Model.EnterType(type);
-            //StringBuilder sb = new StringBuilder();
             //cpp文件
             {
                 sb.Clear();
                 Project cfg = Converter.GetProject();
                 if (!type.is_enum && !type.is_generic_type_definition)
                 {
+                    Model.EnterType(type);
+
                     if (!string.IsNullOrEmpty(cfg.precompile_header))
                     {
                         sb.AppendLine(string.Format("#include \"{0}\"", cfg.precompile_header));
@@ -268,12 +269,15 @@ namespace CppConverter
                         ConvertMemberCpp(m);
                     }
 
-                    //sb.AppendLine("}");
-                    //System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString());
+                    Model.LeaveType();
+
+                    return true;
                 }
-                Model.LeaveType();
-                //return sb.ToString();
+                
+                
             }
+
+            return false;
         }
 
         public string GetTypeHeader(Metadata.DB_Type type)
@@ -318,10 +322,10 @@ namespace CppConverter
 
 
                 sb.Clear();
-                ConvertTypeCpp(type);
-                //sb.Append(ConvertTypeCpp(type));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString());
-
+                if(ConvertTypeCpp(type))
+                {
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString());
+                }
             }
         }
 
@@ -570,6 +574,10 @@ namespace CppConverter
             {
                 ConvertStatement((Metadata.DB_TryStatementSyntax)ss);
             }
+            else if (ss is Metadata.DB_ThrowStatementSyntax)
+            {
+                ConvertStatement((Metadata.DB_ThrowStatementSyntax)ss);
+            }
             else
             {
                 Console.Error.WriteLine("不支持的语句 " + ss.GetType().ToString());
@@ -590,14 +598,30 @@ namespace CppConverter
             AppendLine("}");
         }
 
+        void CheckEnter(Metadata.DB_StatementSyntax ss)
+        {
+            if (!(ss is Metadata.DB_BlockSyntax))
+                depth++;
+        }
+        void CheckOut(Metadata.DB_StatementSyntax ss)
+        {
+            if (!(ss is Metadata.DB_BlockSyntax))
+                depth--;
+        }
+
         void ConvertStatement(Metadata.DB_IfStatementSyntax bs)
         {
             AppendLine("if(" + ExpressionToString(bs.Condition) + ")");
+            CheckEnter(bs.Statement);
             ConvertStatement(bs.Statement);
+            CheckOut(bs.Statement);
+
             if (bs.Else != null)
             {
                 AppendLine("else");
+                CheckEnter(bs.Else);
                 ConvertStatement(bs.Else);
+                CheckOut(bs.Else);
             }
         }
 
@@ -706,6 +730,13 @@ namespace CppConverter
             }
         }
 
+        void ConvertStatement(Metadata.DB_ThrowStatementSyntax ss)
+        {
+            Append("throw ");
+            sb.Append(ExpressionToString(ss.Expression));
+            sb.AppendLine(";");
+        }
+
         public string ExpressionToString(Metadata.Expression.Exp es)
         {
             if (es is Metadata.Expression.ConstExp)
@@ -743,6 +774,14 @@ namespace CppConverter
             else if (es is Metadata.Expression.BinaryExpressionSyntax)
             {
                 return ExpressionToString((Metadata.Expression.BinaryExpressionSyntax)es);
+            }
+            else if (es is Metadata.Expression.PrefixUnaryExpressionSyntax)
+            {
+                return ExpressionToString((Metadata.Expression.PrefixUnaryExpressionSyntax)es);
+            }
+            else if (es is Metadata.Expression.PostfixUnaryExpressionSyntax)
+            {
+                return ExpressionToString((Metadata.Expression.PostfixUnaryExpressionSyntax)es);
             }
             else
             {
@@ -1054,6 +1093,21 @@ namespace CppConverter
             stringBuilder.Append(ExpressionToString(exp.Left));
             stringBuilder.Append(string.Format(" {0} ", exp.OperatorToken));
             stringBuilder.Append(ExpressionToString(exp.Right));
+            return stringBuilder.ToString();
+        }
+
+        string ExpressionToString(Metadata.Expression.PostfixUnaryExpressionSyntax exp)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append(ExpressionToString(exp.Operand));
+            stringBuilder.Append(exp.OperatorToken);
+            return stringBuilder.ToString();
+        }
+        string ExpressionToString(Metadata.Expression.PrefixUnaryExpressionSyntax exp)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append(exp.OperatorToken);
+            stringBuilder.Append(ExpressionToString(exp.Operand));
             return stringBuilder.ToString();
         }
     }

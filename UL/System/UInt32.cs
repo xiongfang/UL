@@ -23,9 +23,5 @@
                 return false;
             }
         }
-
-
-        public virtual Boolean op_Small(UInt32 b);
-        public virtual UInt32 op_PlusPlus(UInt32 b);
     }
 }

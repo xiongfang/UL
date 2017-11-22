@@ -3,7 +3,7 @@
     public struct Single
     {
         public const float Epsilon = 1.4e-45f;
-        public const float MaxValue = 3.40282347e38f;
+        public const float MaxValue = 3.40282346e38f; //主意这里改变了值，原始值是 3.40282347e38f，因为C++常量太大不能编译;
         public const float MinValue = -3.402823e38f;
 
 
@@ -24,9 +24,5 @@
                 return false;
             }
         }
-
-
-        public virtual Boolean op_Small(Single b);
-        public virtual Single op_PlusPlus(Single b);
     }
 }

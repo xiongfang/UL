@@ -23,9 +23,5 @@
                 return false;
             }
         }
-
-
-        public virtual Boolean op_Small(Byte b);
-        public virtual Byte op_PlusPlus(Byte b);
     }
 }
