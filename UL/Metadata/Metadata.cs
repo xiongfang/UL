@@ -280,6 +280,7 @@ namespace Metadata
         public bool method_override;
         public bool method_is_constructor;
         public bool method_is_operator;
+        public bool method_is_conversion_operator;
         //********************************************/
 
         //签名，一个类唯一

@@ -1063,7 +1063,13 @@ namespace CSharpCompiler
                 {
                     ExportOperator(f, type);
                 }
+                var conversion_operatorNodes = c.ChildNodes().OfType<ConversionOperatorDeclarationSyntax>();
+                foreach (var f in conversion_operatorNodes)
+                {
+                    ExportConversionOperator(f, type);
+                }
 
+                
 
                 Model.Instance.LeaveType();
                 //Console.WriteLine();
@@ -1466,12 +1472,6 @@ namespace CSharpCompiler
         {
             if (step == ECompilerStet.ScanMember)
             {
-                //Console.WriteLine("\tIdentifier:" + f.Identifier);
-                //Console.WriteLine("\tModifiers:" + f.Modifiers);
-                //Console.WriteLine("\tReturnType:" + f.ReturnType);
-                //TypeInfo ti = GetTypeInfo(f.ReturnType);
-
-
 
                 Metadata.DB_Member dB_Member = new Metadata.DB_Member();
                 dB_Member.name = f.OperatorToken.Text;
@@ -1524,7 +1524,62 @@ namespace CSharpCompiler
             }
         }
 
+        static void ExportConversionOperator(ConversionOperatorDeclarationSyntax f, Metadata.DB_Type type)
+        {
+            if (step == ECompilerStet.ScanMember)
+            {
 
+                Metadata.DB_Member dB_Member = new Metadata.DB_Member();
+                
+                dB_Member.is_static = ContainModifier(f.Modifiers, "static");
+                dB_Member.method_is_conversion_operator = true;
+                dB_Member.declaring_type = type.static_full_name;
+                dB_Member.member_type = (int)Metadata.MemberTypes.Method;
+                dB_Member.modifier = GetModifier(type, f.Modifiers);
+                dB_Member.method_virtual = ContainModifier(f.Modifiers, "virtual");
+                dB_Member.method_override = ContainModifier(f.Modifiers, "override");
+                dB_Member.method_abstract = ContainModifier(f.Modifiers, "abstract");
+                dB_Member.method_args = new Metadata.DB_Member.Argument[f.ParameterList.Parameters.Count];
+                for (int i = 0; i < f.ParameterList.Parameters.Count; i++)
+                {
+                    dB_Member.method_args[i] = new Metadata.DB_Member.Argument();
+                    dB_Member.method_args[i].name = f.ParameterList.Parameters[i].Identifier.Text;
+                    dB_Member.method_args[i].type = GetTypeSyntax(f.ParameterList.Parameters[i].Type);
+                    dB_Member.method_args[i].is_out = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "out");
+                    dB_Member.method_args[i].is_ref = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "ref");
+                    dB_Member.method_args[i].is_params = ContainModifier(f.ParameterList.Parameters[i].Modifiers, "params");
+                }
+
+                //属性
+                dB_Member.attributes = ExportAttributes(f.AttributeLists);
+
+                Model.Instance.EnterMethod(dB_Member);
+
+                Metadata.Expression.TypeSyntax retType = GetTypeSyntax(f.Type);
+                if (retType != null)
+                    dB_Member.method_ret_type = retType;
+                else
+                    dB_Member.method_ret_type = Metadata.Expression.TypeSyntax.Void;
+                dB_Member.name = dB_Member.method_ret_type.Name;
+
+                Model.AddMember(type.static_full_name, dB_Member);
+                MemberMap[f] = dB_Member;
+                //Console.WriteLine();
+
+                Model.Instance.LeaveMethod();
+            }
+            else if (step == ECompilerStet.Compile)
+            {
+                Metadata.DB_Member dB_Member = MemberMap[f];
+                Model.Instance.EnterMethod(dB_Member);
+                if (f.Body != null)
+                    if (!ingore_method_body)
+                    {
+                        dB_Member.method_body = ExportBody(f.Body);
+                    }
+                Model.Instance.LeaveMethod();
+            }
+        }
 
         static Metadata.DB_BlockSyntax ExportBody(BlockSyntax bs)
         {
