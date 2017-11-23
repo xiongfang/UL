@@ -32,6 +32,12 @@ int main()
 		System::Console::WriteLine(k2);
 	}
 
+	System::Console::WriteLine(k2+k);
+	k2++;
+	System::Console::WriteLine(k2);
+	System::Console::WriteLine(++k2);
+	System::Console::WriteLine(k2++);
+	System::Console::WriteLine(k2);
     return 0;
 }
 

@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "String.h"
 #include "Boolean.h"
+#include "Int32.h"
 #include "Exception.h"
 System::Int64 System::Int64::MaxValue=0x7FFFFFFFFFFFFFFF;
 System::Int64 System::Int64::MinValue=0x8000000000000000;

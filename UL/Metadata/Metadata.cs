@@ -279,6 +279,7 @@ namespace Metadata
         public bool method_abstract;
         public bool method_override;
         public bool method_is_constructor;
+        public bool method_is_operator;
         //********************************************/
 
         //签名，一个类唯一

@@ -173,6 +173,7 @@
     <ClInclude Include="Int64.h" />
     <ClInclude Include="Int64_ExtHeader.h" />
     <ClInclude Include="MemberTypes.h" />
+    <ClInclude Include="Number.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Object_ExtCpp.h" />
     <ClInclude Include="SByte.h" />

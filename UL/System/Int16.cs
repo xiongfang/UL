@@ -23,5 +23,16 @@
                 return false;
             }
         }
+
+        public extern static Int16 operator +(Int16 a, Int16 b);
+        public extern static Int16 operator -(Int16 a, Int16 b);
+        public extern static Int16 operator *(Int16 a, Int16 b);
+        public extern static Int16 operator /(Int16 a, Int16 b);
+        public extern static Int16 operator %(Int16 a, Int16 b);
+        public extern static Int16 operator &(Int16 a, Int16 b);
+        public extern static Int16 operator |(Int16 a, Int16 b);
+        public extern static Int16 operator ~(Int16 a);
+        public extern static Int16 operator <<(Int16 a, int b);
+        public extern static Int16 operator >>(Int16 a, int b);
     }
 }

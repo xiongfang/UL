@@ -8,6 +8,10 @@ namespace System
 {
 struct Boolean;
 }
+namespace System
+{
+struct Int32;
+}
 namespace System{
 	struct Int16:public System::Object
 	{
@@ -21,6 +25,26 @@ namespace System{
 		Ref<System::String> ToString();
 		public:
 		static System::Boolean TryParse(Ref<System::String>  value,System::Int16 & v);
+		public:
+		static System::Int16 +(System::Int16  a,System::Int16  b);
+		public:
+		static System::Int16 -(System::Int16  a,System::Int16  b);
+		public:
+		static System::Int16 *(System::Int16  a,System::Int16  b);
+		public:
+		static System::Int16 /(System::Int16  a,System::Int16  b);
+		public:
+		static System::Int16 %(System::Int16  a,System::Int16  b);
+		public:
+		static System::Int16 &(System::Int16  a,System::Int16  b);
+		public:
+		static System::Int16 |(System::Int16  a,System::Int16  b);
+		public:
+		static System::Int16 ~(System::Int16  a);
+		public:
+		static System::Int16 <<(System::Int16  a,System::Int32  b);
+		public:
+		static System::Int16 >>(System::Int16  a,System::Int32  b);
 	#include "Int16_ExtHeader.h"
 	};
 }
