@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 namespace System
 {
 class Type;
@@ -23,5 +23,6 @@ namespace System{
 		static System::Boolean op_Equality(Ref<System::Object>  a,Ref<System::Object>  b);
 		public:
 		static System::Boolean op_Inequality(Ref<System::Object>  a,Ref<System::Object>  b);
+	#include "Object_ExtHeader.h"
 	};
 }

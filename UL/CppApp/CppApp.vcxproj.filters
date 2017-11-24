@@ -153,6 +153,9 @@
     <ClInclude Include="Test.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Object_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

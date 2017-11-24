@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Object.h"
 #include "Type.h"
 #include "Boolean.h"

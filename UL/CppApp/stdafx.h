@@ -19,13 +19,40 @@ class Ref
 public:
 	T* v;
 public:
-	Ref(T* ptr) { this->v = ptr; }
+	Ref(T* ptr) 
+	{ 
+		this->v = ptr; 
+		if (v != nullptr)
+		{
+			v->AddRef();
+		}
+	}
 	template<typename R>
-	Ref(Ref<R>& c) { this->v = c.v; }
-	Ref() { v = nullptr; }
+	Ref(Ref<R>& c) 
+	{ 
+		this->v = c.v; 
+		if(v!=nullptr)
+			v->AddRef();
+	}
+	Ref() 
+	{ 
+		v = nullptr;
+	}
 	Ref(const Ref<T>& copy)
 	{ 
 		v = copy.v;
+		if (v != nullptr)
+		{
+			v->AddRef();
+		}
+	}
+	~Ref()
+	{
+		if (v != nullptr)
+		{
+			v->Release();
+			v = nullptr;
+		}
 	}
 	T* operator->()
 	{
@@ -42,6 +69,10 @@ public:
 	Ref<T>& operator=(const Ref<T>& other)
 	{
 		v = other.v;
+		if (v != nullptr)
+		{
+			v->AddRef();
+		}
 		return *this;
 	}
 

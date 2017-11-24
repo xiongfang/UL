@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "SByte.h"
 #include "Object.h"
 #include "String.h"

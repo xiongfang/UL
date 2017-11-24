@@ -7,7 +7,10 @@ public:
 	}
 	String(const wchar_t* c);
 
-	~String() { delete[] _v; }
+	~String() { 
+		delete[] _v; 
+		
+	}
 private:
 	char* _v;
 public:

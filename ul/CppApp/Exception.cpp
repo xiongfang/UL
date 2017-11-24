@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Exception.h"
 #include "Object.h"
 #include "String.h"
@@ -8,5 +8,5 @@ System::Exception::Exception(Ref<System::String>  msg)
 }
 System::Exception::Exception()
 {
-	_msg = Ref<System::String>(new System::String(""));
+	_msg = Ref<System::String>(new System::String(_T("")));
 }

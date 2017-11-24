@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Char.h"
 #include "Object.h"
 #include "String.h"

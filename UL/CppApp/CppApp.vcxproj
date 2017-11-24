@@ -176,6 +176,7 @@
     <ClInclude Include="Number.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Object_ExtCpp.h" />
+    <ClInclude Include="Object_ExtHeader.h" />
     <ClInclude Include="SByte.h" />
     <ClInclude Include="SByte_ExtHeader.h" />
     <ClInclude Include="Single.h" />

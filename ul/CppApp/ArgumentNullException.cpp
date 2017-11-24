@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "ArgumentNullException.h"
 #include "Exception.h"
 #include "String.h"

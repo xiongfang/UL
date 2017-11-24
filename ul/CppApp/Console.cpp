@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Console.h"
 #include "Object.h"
 #include "String.h"
@@ -44,7 +44,7 @@ void System::Console::Write(System::Byte  value)
 }
 void System::Console::WriteLine()
 {
-	Write(Ref<System::String>(new System::String("\r\n")));
+	Write(Ref<System::String>(new System::String(_T("\r\n"))));
 }
 void System::Console::WriteLine(System::Char  value)
 {

@@ -306,14 +306,14 @@ namespace CppConverter
                 if (tc.ConvertTypeHeader(Converter, type, out content))
                 {
                     sb.Append(content);
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString());
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString(),Encoding.UTF8);
                 }
 
                 sb.Clear();
                 if (tc.ConvertTypeCpp(Converter, type, out content))
                 {
                     sb.Append(content);
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString());
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString(), Encoding.UTF8);
                 }
             }
             else
@@ -321,13 +321,13 @@ namespace CppConverter
                 sb.Clear();
                 ConvertTypeHeader(type);
                 //sb.Append(ConvertTypeHeader(type));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString());
+                System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString(), Encoding.UTF8);
 
 
                 sb.Clear();
                 if(ConvertTypeCpp(type))
                 {
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString());
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString(), Encoding.UTF8);
                 }
             }
         }
@@ -995,7 +995,7 @@ namespace CppConverter
             if (!string.IsNullOrEmpty(es.value))
             {
                 if (es.value.Length > 0 && es.value[0] == '"')
-                    return "Ref<System::String>(new System::String(" + es.value + "))";
+                    return "Ref<System::String>(new System::String(_T(" + es.value + ")))";
             }
             return es.value;
         }

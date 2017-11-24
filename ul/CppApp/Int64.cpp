@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Int64.h"
 #include "Object.h"
 #include "String.h"
