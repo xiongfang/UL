@@ -839,7 +839,7 @@ namespace CppConverter
             }
             else if(es is Metadata.Expression.ParenthesizedExpressionSyntax)
             {
-                return ExpressionToString(((Metadata.Expression.ParenthesizedExpressionSyntax)es).exp);
+                return ExpressionToString(((Metadata.Expression.ParenthesizedExpressionSyntax)es));
             }
             else
             {
@@ -1210,6 +1210,15 @@ namespace CppConverter
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.Append(exp.OperatorToken);
             stringBuilder.Append(ExpressionToString(exp.Operand));
+            return stringBuilder.ToString();
+        }
+
+        string ExpressionToString(Metadata.Expression.ParenthesizedExpressionSyntax exp)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append("(");
+            stringBuilder.Append(ExpressionToString(exp.exp));
+            stringBuilder.Append(")");
             return stringBuilder.ToString();
         }
     }
