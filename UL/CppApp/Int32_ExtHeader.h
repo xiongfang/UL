@@ -1,4 +1,4 @@
-//int _v;
+int _v;
 public:
 	Int32()
 	{

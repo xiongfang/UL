@@ -47,6 +47,7 @@ namespace CppConverter
 
         public void ConvertTypeHeader(Metadata.DB_Type type)
         {
+            Model.EnterNamespace(type._namespace);
             Model.EnterType(type);
             //头文件
             {
@@ -208,6 +209,7 @@ namespace CppConverter
 
                 //System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString());
                 Model.LeaveType();
+                Model.LeaveNamespace();
                 //return sb.ToString();
             }
 
@@ -220,6 +222,7 @@ namespace CppConverter
                 Project cfg = Converter.GetProject();
                 if (!type.is_enum && !type.is_generic_type_definition)
                 {
+                    Model.EnterNamespace(type._namespace);
                     Model.EnterType(type);
 
                     if (!string.IsNullOrEmpty(cfg.precompile_header))
@@ -270,7 +273,7 @@ namespace CppConverter
                     }
 
                     Model.LeaveType();
-
+                    Model.LeaveNamespace();
                     return true;
                 }
                 
@@ -401,6 +404,40 @@ namespace CppConverter
             return "";
         }
 
+        string GetOperatorFuncName(string token)
+        {
+            switch(token)
+            {
+                case "+":
+                    return "op_Addition";
+                case "-":
+                    return "op_Substraction";
+                    case "*":
+                    return "op_Multiply";
+                case "/":
+                    return "op_Division";
+                case "%":
+                    return "op_Modulus";
+                case "&":
+                    return "op_BitwiseAnd";
+                case "|":
+                    return "op_BitwiseOr";
+                case "~":
+                    return "op_OnesComplement";
+                case "<<":
+                    return "op_LeftShift";
+                case ">>":
+                    return "op_RightShift";
+                case "==":
+                    return "op_Equality";
+                case "!=":
+                    return "op_Inequality";
+                default:
+                    Console.Error.WriteLine("未知的操作符 " + token);
+                    return token;
+            }
+        }
+
         void ConvertMemberHeader(Metadata.DB_Member member)
         {
             Metadata.DB_Type member_type = Model.GetType(member.typeName);
@@ -445,9 +482,19 @@ namespace CppConverter
                 }
 
                 if (!member.method_is_constructor)
-                    sb.Append(string.Format("{1} {2}", "", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), member.name));
+                {
+                    string method_name = member.name;
+                    if (member.method_is_operator)
+                    {
+                        method_name = GetOperatorFuncName(member.name);
+                    }
+                    sb.Append(string.Format("{1} {2}", "", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), method_name));
+                }
                 else
+                {
                     sb.Append(string.Format("{0}", member.name));
+                }
+                    
                 sb.Append("(");
                 if (member.method_args != null)
                 {
@@ -507,7 +554,14 @@ namespace CppConverter
                 if (!declare_type.is_generic_type_definition && member.method_body != null)
                 {
                     if (!member.method_is_constructor)
-                        sb.Append(string.Format("{0} {1}::{2}", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
+                    {
+                        string method_name = member.name;
+                        if (member.method_is_operator)
+                        {
+                            method_name = GetOperatorFuncName(member.name);
+                        }
+                        sb.Append(string.Format("{0} {1}::{2}", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), GetCppTypeName(Model.GetType(member.declaring_type)), method_name));
+                    }
                     else
                         sb.Append(string.Format("{1}::{2}", "", GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
                     sb.Append("(");
@@ -782,6 +836,10 @@ namespace CppConverter
             else if (es is Metadata.Expression.PostfixUnaryExpressionSyntax)
             {
                 return ExpressionToString((Metadata.Expression.PostfixUnaryExpressionSyntax)es);
+            }
+            else if(es is Metadata.Expression.ParenthesizedExpressionSyntax)
+            {
+                return ExpressionToString(((Metadata.Expression.ParenthesizedExpressionSyntax)es).exp);
             }
             else
             {
@@ -1067,10 +1125,12 @@ namespace CppConverter
                 //{
                 //    return content;
                 //}
-                if (tc.GetCppTypeName(out content))
+                if (tc!= null && tc.GetCppTypeName(out content))
                 {
                     return content;
                 }
+
+                return GetCppTypeName(info.type);
             }
             return es.Name;
         }
@@ -1082,17 +1142,59 @@ namespace CppConverter
         string ExpressionToString(Metadata.Expression.AssignmentExpressionSyntax exp)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(ExpressionToString(exp.Left));
-            stringBuilder.Append(" = ");
-            stringBuilder.Append(ExpressionToString(exp.Right));
+            
+            if(exp.OperatorToken=="=")
+            {
+                stringBuilder.Append(ExpressionToString(exp.Left));
+                stringBuilder.Append(" = ");
+                stringBuilder.Append(ExpressionToString(exp.Right));
+            }
+            else
+            {
+                string token = exp.OperatorToken.Replace("=", "");
+                Metadata.Expression.BinaryExpressionSyntax binaryExpressionSyntax = new Metadata.Expression.BinaryExpressionSyntax();
+                binaryExpressionSyntax.Left = exp.Left;
+                binaryExpressionSyntax.Right = exp.Right;
+                binaryExpressionSyntax.OperatorToken = token;
+                stringBuilder.Append(ExpressionToString(exp.Left));
+                stringBuilder.Append(" = ");
+                stringBuilder.Append(ExpressionToString(binaryExpressionSyntax));
+
+                //Console.Error.WriteLine("无法解析的操作符 " + exp.OperatorToken);
+            }
+
             return stringBuilder.ToString();
         }
         string ExpressionToString(Metadata.Expression.BinaryExpressionSyntax exp)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(ExpressionToString(exp.Left));
-            stringBuilder.Append(string.Format(" {0} ", exp.OperatorToken));
-            stringBuilder.Append(ExpressionToString(exp.Right));
+            
+            Metadata.DB_Type left_type = Model.GetExpType(exp.Left);
+            Metadata.DB_Type right_type = Model.GetExpType(exp.Right);
+            List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+            argTypes.Add(left_type);
+            argTypes.Add(right_type);
+            Metadata.DB_Member method = left_type.FindMethod(exp.OperatorToken, argTypes, Model);
+
+            stringBuilder.Append(string.Format("{0}::{1}(",GetCppTypeName(left_type), GetOperatorFuncName( exp.OperatorToken)));
+            if(left_type.is_class && method.method_args[0].type != left_type.GetRefType())
+            {
+                stringBuilder.Append(string.Format("Ref<{0}>({1})", GetCppTypeName(Model.GetType(method.method_args[0].type)), ExpressionToString(exp.Left)));
+            }
+            else
+            {
+                stringBuilder.Append(ExpressionToString(exp.Left));
+            }
+            stringBuilder.Append(",");
+            if (right_type.is_class && method.method_args[1].type != right_type.GetRefType())
+            {
+                stringBuilder.Append(string.Format("Ref<{0}>({1})", GetCppTypeName(Model.GetType(method.method_args[1].type)), ExpressionToString(exp.Right)));
+            }
+            else
+            {
+                stringBuilder.Append(ExpressionToString(exp.Right));
+            }
+            stringBuilder.Append(")");
             return stringBuilder.ToString();
         }
 

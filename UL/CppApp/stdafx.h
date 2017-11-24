@@ -16,9 +16,12 @@
 template<typename T>
 class Ref
 {
+public:
 	T* v;
 public:
 	Ref(T* ptr) { this->v = ptr; }
+	template<typename R>
+	Ref(Ref<R>& c) { this->v = c.v; }
 	Ref() { v = nullptr; }
 	Ref(const Ref<T>& copy)
 	{ 
@@ -40,6 +43,11 @@ public:
 	{
 		v = other.v;
 		return *this;
+	}
+
+	bool IsNull()
+	{
+		return v == nullptr;
 	}
 };
 

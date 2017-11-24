@@ -7,5 +7,11 @@
         public virtual bool Equals(object v);
 
         public virtual string ToString();
+
+        public static bool operator==(Object a, Object b);
+        public static bool operator !=(Object a, Object b)
+        {
+            return !(a == b);
+        }
     }
 }

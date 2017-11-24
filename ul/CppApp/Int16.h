@@ -26,25 +26,25 @@ namespace System{
 		public:
 		static System::Boolean TryParse(Ref<System::String>  value,System::Int16 & v);
 		public:
-		static System::Int16 +(System::Int16  a,System::Int16  b);
+		static System::Int16 op_Addition(System::Int16  a,System::Int16  b);
 		public:
-		static System::Int16 -(System::Int16  a,System::Int16  b);
+		static System::Int16 op_Substraction(System::Int16  a,System::Int16  b);
 		public:
-		static System::Int16 *(System::Int16  a,System::Int16  b);
+		static System::Int16 op_Multiply(System::Int16  a,System::Int16  b);
 		public:
-		static System::Int16 /(System::Int16  a,System::Int16  b);
+		static System::Int16 op_Division(System::Int16  a,System::Int16  b);
 		public:
-		static System::Int16 %(System::Int16  a,System::Int16  b);
+		static System::Int16 op_Modulus(System::Int16  a,System::Int16  b);
 		public:
-		static System::Int16 &(System::Int16  a,System::Int16  b);
+		static System::Int16 op_BitwiseAnd(System::Int16  a,System::Int16  b);
 		public:
-		static System::Int16 |(System::Int16  a,System::Int16  b);
+		static System::Int16 op_BitwiseOr(System::Int16  a,System::Int16  b);
 		public:
-		static System::Int16 ~(System::Int16  a);
+		static System::Int16 op_OnesComplement(System::Int16  a);
 		public:
-		static System::Int16 <<(System::Int16  a,System::Int32  b);
+		static System::Int16 op_LeftShift(System::Int16  a,System::Int32  b);
 		public:
-		static System::Int16 >>(System::Int16  a,System::Int32  b);
+		static System::Int16 op_RightShift(System::Int16  a,System::Int32  b);
 	#include "Int16_ExtHeader.h"
 	};
 }

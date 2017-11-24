@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "String.h"
 #include "Boolean.h"
+#include "Int64.h"
 #include "Exception.h"
 #include "Int32_ExtCpp.h"
 System::Int32 System::Int32::MaxValue=0x7FFFFFFF;

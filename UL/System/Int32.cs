@@ -34,7 +34,8 @@
         public extern static Int32 operator ~(Int32 a);
         public extern static Int32 operator <<(Int32 a, int b);
         public extern static Int32 operator >>(Int32 a, int b);
-
+        public extern static Int32 operator ==(Int32 a, Int32 b);
+        public extern static Int32 operator !=(Int32 a, Int32 b);
         public static implicit operator Int64(Int32 v);
     }
 }

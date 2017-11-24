@@ -9,14 +9,14 @@ Ref<System::String> System::Boolean::FalseString;
 Ref<System::String> System::Boolean::TrueString;
 System::Boolean System::Boolean::Parse(Ref<System::String>  value)
 {
-	if(value == nullptr)
+	if(System::String::op_Equality(Ref<System::Object>(value),nullptr))
 	{
 		throw new System::ArgumentNullException();
 	}
-	if(value == TrueString)
+	if(System::String::op_Equality(Ref<System::Object>(value),Ref<System::Object>(TrueString)))
 		return true;
 	else
-		if(value == FalseString)
+		if(System::String::op_Equality(Ref<System::Object>(value),Ref<System::Object>(FalseString)))
 			return false;
 		else
 		{

@@ -49,6 +49,7 @@
     <Compile Include="SByte.cs" />
     <Compile Include="Single.cs" />
     <Compile Include="String.cs" />
+    <Compile Include="Test.cs" />
     <Compile Include="Type.cs" />
     <Compile Include="UInt16.cs" />
     <Compile Include="UInt32.cs" />

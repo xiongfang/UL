@@ -8,36 +8,13 @@
 #include "Single.h"
 #include "Int32.h"
 #include "Boolean.h"
+#include "Test.h"
 
 using namespace System;
 
 int main()
 {
-	Char v = _T('你');
-	String hv = "你好";
-	System::Console::WriteLine(Ref<String>(&hv));
-
-	System::Console::WriteLine(v);
-
-	System::Console::WriteLine(Ref<System::String>(new System::String("hello world!")));
-
-
-	Int32 k = 7;
-	System::Console::WriteLine(k);
-
-	String stringInt = "666";
-	Int32 k2;
-	if (Int32::TryParse(&stringInt,k2))
-	{
-		System::Console::WriteLine(k2);
-	}
-
-	System::Console::WriteLine(k2+k);
-	k2++;
-	System::Console::WriteLine(k2);
-	System::Console::WriteLine(++k2);
-	System::Console::WriteLine(k2++);
-	System::Console::WriteLine(k2);
+	Test::Run();
     return 0;
 }
 

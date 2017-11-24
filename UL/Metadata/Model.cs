@@ -64,6 +64,10 @@ namespace Metadata
 
         public void EnterType(Metadata.DB_Type type)
         {
+            if(string.IsNullOrEmpty(outNamespace))
+            {
+                Console.Error.WriteLine("未指定外部命名空间");
+            }
             currentType = type;
         }
         public void LeaveType()
@@ -548,6 +552,11 @@ namespace Metadata
                 {
                     VisitExp(type, visitor, method, statement, a);
                 }
+            }
+            else if( exp is Expression.ParenthesizedExpressionSyntax)
+            {
+                Expression.ParenthesizedExpressionSyntax e = exp as Expression.ParenthesizedExpressionSyntax;
+                VisitExp(type, visitor, method, statement, e.exp);
             }
 
         }

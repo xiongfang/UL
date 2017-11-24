@@ -157,8 +157,14 @@ namespace Metadata
                 if (m.name != name || m.member_type != (int)MemberTypes.Method)
                     continue;
 
-                if (m.method_args.Length == 0 && typeParameters.Count==0)
-                    return m;
+                if (m.method_args.Length == 0)
+                {
+                    if (typeParameters.Count == 0)
+                        return m;
+                    else
+                        continue;
+                }
+
 
                 int arg_index = 0;  //形式参数索引
                 int real_arg_index = 0; //实际参数索引
@@ -596,6 +602,7 @@ namespace Metadata
         public class AssignmentExpressionSyntax : Exp
         {
             public Expression.Exp Left;
+            public string OperatorToken;
             public Expression.Exp Right;
         }
         [JsonConverter(typeof(JsonConverterType<BinaryExpressionSyntax>))]
@@ -611,8 +618,13 @@ namespace Metadata
             public string OperatorToken;
             public Expression.Exp Operand;
         }
+        [JsonConverter(typeof(JsonConverterType<ParenthesizedExpressionSyntax>))]
+        public class ParenthesizedExpressionSyntax:Exp
+        {
+            public Expression.Exp exp;
+        }
         [JsonConverter(typeof(JsonConverterType<PostfixUnaryExpressionSyntax>))]
-        public class PostfixUnaryExpressionSyntax:Exp
+        public class PostfixUnaryExpressionSyntax : Exp
         {
             public string OperatorToken;
             public Expression.Exp Operand;
@@ -1114,7 +1126,7 @@ namespace Metadata
             //}
 
             {
-                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer,method_generic_parameter_definitions,method_virtual,method_override,method_abstract,attributes,method_is_constructor) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?,?,?,?,?,?,?);",
+                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer,method_generic_parameter_definitions,method_virtual,method_override,method_abstract,attributes,method_is_constructor,method_is_operator,method_is_conversion_operator) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
                 member.declaring_type, member.identifier, member.name, member.comments, member.modifier, member.is_static, member.member_type, member.ext);
 
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
@@ -1131,6 +1143,8 @@ namespace Metadata
                 cmd.Parameters.AddWithValue("10", member.method_abstract);
                 cmd.Parameters.AddWithValue("11", WriteObject(member.attributes));
                 cmd.Parameters.AddWithValue("12", member.method_is_constructor);
+                cmd.Parameters.AddWithValue("13", member.method_is_operator);
+                cmd.Parameters.AddWithValue("14", member.method_is_conversion_operator);
                 cmd.ExecuteNonQuery();
             }
 
@@ -1225,6 +1239,8 @@ namespace Metadata
                     member.method_abstract = (bool)reader["method_abstract"];
                     member.attributes = ReadObject<List<DB_AttributeSyntax>>((string)reader["attributes"]);
                     member.method_is_constructor = (bool)reader["method_is_constructor"];
+                    member.method_is_operator = (bool)reader["method_is_operator"];
+                    member.method_is_conversion_operator = (bool)reader["method_is_conversion_operator"];
                     results.Add(member.identifier, member);
                 }
             }

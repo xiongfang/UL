@@ -20,3 +20,8 @@ Ref<System::Type> Object::GetType()
 {
 	return nullptr;
 }
+
+System::Boolean System::Object::op_Equality(Ref<System::Object>  a, Ref<System::Object>  b)
+{
+	return a.v == b.v;
+}

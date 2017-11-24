@@ -1097,6 +1097,17 @@ namespace CSharpCompiler
                     ExportMethod(f, type);
                 }
 
+                var operatorNodes = c.ChildNodes().OfType<OperatorDeclarationSyntax>();
+                foreach (var f in operatorNodes)
+                {
+                    ExportOperator(f, type);
+                }
+                var conversion_operatorNodes = c.ChildNodes().OfType<ConversionOperatorDeclarationSyntax>();
+                foreach (var f in conversion_operatorNodes)
+                {
+                    ExportConversionOperator(f, type);
+                }
+
                 Model.Instance.LeaveType();
             }
         }
@@ -1256,6 +1267,18 @@ namespace CSharpCompiler
                 {
                     ExportMethod(f, type);
                 }
+
+                var operatorNodes = c.ChildNodes().OfType<OperatorDeclarationSyntax>();
+                foreach (var f in operatorNodes)
+                {
+                    ExportOperator(f, type);
+                }
+                var conversion_operatorNodes = c.ChildNodes().OfType<ConversionOperatorDeclarationSyntax>();
+                foreach (var f in conversion_operatorNodes)
+                {
+                    ExportConversionOperator(f, type);
+                }
+
                 Model.Instance.LeaveType();
                 //Console.WriteLine();
             }
@@ -1280,6 +1303,18 @@ namespace CSharpCompiler
                 foreach (var f in funcNodes)
                 {
                     ExportMethod(f, type);
+                }
+
+
+                var operatorNodes = c.ChildNodes().OfType<OperatorDeclarationSyntax>();
+                foreach (var f in operatorNodes)
+                {
+                    ExportOperator(f, type);
+                }
+                var conversion_operatorNodes = c.ChildNodes().OfType<ConversionOperatorDeclarationSyntax>();
+                foreach (var f in conversion_operatorNodes)
+                {
+                    ExportConversionOperator(f, type);
                 }
 
                 Model.Instance.LeaveType();
@@ -1851,6 +1886,10 @@ namespace CSharpCompiler
             {
                 return ExportExp(es as ThrowExpressionSyntax);
             }
+            else if(es is ParenthesizedExpressionSyntax)
+            {
+                return ExportExp(es as ParenthesizedExpressionSyntax);
+            }
             else
             {
                 Console.Error.WriteLine(string.Format("error:不支持的表达式 {0} {1}" , es.GetType().Name,es.ToString()));
@@ -1961,6 +2000,7 @@ namespace CSharpCompiler
         {
             Metadata.Expression.AssignmentExpressionSyntax db_les = new Metadata.Expression.AssignmentExpressionSyntax();
             db_les.Left = ExportExp(es.Left);
+            db_les.OperatorToken = es.OperatorToken.Text;
             db_les.Right = ExportExp(es.Right);
             return db_les;
         }
@@ -2065,6 +2105,13 @@ namespace CSharpCompiler
             Metadata.Expression.ThrowExp throwExp = new Metadata.Expression.ThrowExp();
             throwExp.exp = ExportExp(es.Expression);
             return throwExp;
+        }
+
+        static Metadata.Expression.Exp ExportExp(ParenthesizedExpressionSyntax es)
+        {
+            Metadata.Expression.ParenthesizedExpressionSyntax exp = new Metadata.Expression.ParenthesizedExpressionSyntax();
+            exp.exp = ExportExp(es.Expression);
+            return exp;
         }
     }
 }
