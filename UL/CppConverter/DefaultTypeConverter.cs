@@ -686,20 +686,22 @@ namespace CppConverter
 
         void ConvertStatement(Metadata.DB_LocalDeclarationStatementSyntax bs)
         {
-            Metadata.DB_Type type = Model.GetType(bs.Declaration.Type);
-            if (type.is_class)
-                Append("Ref<" + GetCppTypeName(type) + "> ");
-            else
-                Append(GetCppTypeName(type) + " ");
-            for (int i = 0; i < bs.Declaration.Variables.Count; i++)
-            {
-                sb.Append(ExpressionToString(bs.Declaration.Variables[i]));
-                if (i < bs.Declaration.Variables.Count - 2)
-                {
-                    sb.Append(",");
-                }
-                Model.AddLocal(bs.Declaration.Variables[i].Identifier, Model.GetType(bs.Declaration.Type));
-            }
+            //Metadata.DB_Type type = Model.GetType(bs.Declaration.Type);
+            //if (type.is_class)
+            //    Append("Ref<" + GetCppTypeName(type) + "> ");
+            //else
+            //    Append(GetCppTypeName(type) + " ");
+
+            sb.Append(ExpressionToString(bs.Declaration));
+            //for (int i = 0; i < bs.Declaration.Variables.Count; i++)
+            //{
+            //    sb.Append(ExpressionToString(bs.Declaration.Variables[i]));
+            //    if (i < bs.Declaration.Variables.Count - 2)
+            //    {
+            //        sb.Append(",");
+            //    }
+            //    Model.AddLocal(bs.Declaration.Variables[i].Identifier, Model.GetType(bs.Declaration.Type));
+            //}
             sb.AppendLine(";");
         }
         void ConvertStatement(Metadata.DB_ForStatementSyntax bs)
@@ -870,6 +872,33 @@ namespace CppConverter
 
         //    return ExpSB.ToString();
         //}
+
+        string GetExpConversion(Metadata.DB_Type left_type,Metadata.DB_Type right_type,Metadata.Expression.Exp right)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            if (left_type.GetRefType() != right_type.GetRefType() && !left_type.IsAssignableFrom(right_type, Model))
+            {
+                //查看是否有隐式转换的方法
+                List<Metadata.DB_Type> args = new List<Metadata.DB_Type>();
+                args.Add(right_type);
+                Metadata.DB_Member operatorMethod = right_type.FindMethod(left_type.name, args, Model);
+                if (operatorMethod != null && operatorMethod.method_is_conversion_operator)
+                {
+                    stringBuilder.Append(string.Format("{0}::{1}({2})", GetCppTypeName(right_type), operatorMethod.name, ExpressionToString(right)));
+                }
+                else
+                {
+                    stringBuilder.Append(ExpressionToString(right));
+                    Console.Error.WriteLine("类型不能转换 " + stringBuilder.ToString());
+                }
+            }
+            else
+                stringBuilder.Append(ExpressionToString(right));
+
+            return stringBuilder.ToString();
+        }
+
+
         string ExpressionToString(Metadata.Expression.MethodExp es)
         {
             ITypeConverter tc = Converter.GetTypeConverter(Model.currentType);
@@ -967,15 +996,20 @@ namespace CppConverter
                         }
                     }
 
+                    
                     //形式参数类型
                     Metadata.DB_Type me_argType = Model.GetType(method.method_args[i].type);
+
+                    string ArgString = GetExpConversion(me_argType, arg_type, es.Args[i]);
+
+
                     if (me_argType.is_class && arg_type.is_class &&  arg_type.GetRefType() != me_argType.GetRefType())
                     {
-                        stringBuilder.Append(string.Format("Ref<{1}>({0}.Get())", ExpressionToString(es.Args[i]),GetCppTypeName(me_argType)));
+                        stringBuilder.Append(string.Format("Ref<{1}>({0}.Get())", ArgString, GetCppTypeName(me_argType)));
                     }
                     else
                     {
-                        stringBuilder.Append(ExpressionToString(es.Args[i]));
+                        stringBuilder.Append(ArgString);
                     }
 
                     if (i < es.Args.Count - 2)
@@ -1086,28 +1120,46 @@ namespace CppConverter
             return GetCppTypeName(Model.GetType(Model.currentType.base_type));
         }
 
-        string ExpressionToString(Metadata.VariableDeclaratorSyntax es)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(es.Identifier);
-            if (es.Initializer != null)
-            {
-                stringBuilder.Append("=");
-                stringBuilder.Append(ExpressionToString(es.Initializer));
-            }
+        //string ExpressionToString(Metadata.VariableDeclaratorSyntax es)
+        //{
+        //    StringBuilder stringBuilder = new StringBuilder();
+        //    stringBuilder.Append(es.Identifier);
+        //    if (es.Initializer != null)
+        //    {
+        //        stringBuilder.Append("=");
+        //        stringBuilder.Append(ExpressionToString(es.Initializer));
+        //    }
 
-            return stringBuilder.ToString();
-        }
+        //    return stringBuilder.ToString();
+        //}
 
         string ExpressionToString(Metadata.VariableDeclarationSyntax es)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(GetCppTypeName(Model.GetType(es.Type)));
-            stringBuilder.Append(" ");
+
+            Metadata.DB_Type type = Model.GetType(es.Type);
+            if (type.is_class)
+                Append("Ref<" + GetCppTypeName(type) + "> ");
+            else
+                Append(GetCppTypeName(type) + " ");
+
+            //stringBuilder.Append(GetCppTypeName(Model.GetType(es.Type)));
+            //stringBuilder.Append(" ");
             for (int i = 0; i < es.Variables.Count; i++)
             {
                 Model.AddLocal(es.Variables[i].Identifier, Model.GetType(es.Type));
-                stringBuilder.Append(ExpressionToString(es.Variables[i]));
+                {
+                    Metadata.VariableDeclaratorSyntax esVar = es.Variables[i];
+                    stringBuilder.Append(esVar.Identifier);
+                    if (esVar.Initializer != null)
+                    {
+                        Metadata.DB_Type right_type = Model.GetExpType(esVar.Initializer);
+
+                        stringBuilder.Append(" = ");
+                        string ArgString = GetExpConversion(type, right_type, esVar.Initializer);
+                        stringBuilder.Append(ArgString);
+                    }
+                }
                 if (i < es.Variables.Count - 1)
                     stringBuilder.Append(",");
             }
@@ -1145,9 +1197,14 @@ namespace CppConverter
             
             if(exp.OperatorToken=="=")
             {
+                Metadata.DB_Type left_type = Model.GetExpType(exp.Left);
+                Metadata.DB_Type right_type = Model.GetExpType(exp.Right);
+
                 stringBuilder.Append(ExpressionToString(exp.Left));
                 stringBuilder.Append(" = ");
-                stringBuilder.Append(ExpressionToString(exp.Right));
+
+                string ArgString = GetExpConversion(left_type, right_type, exp.Right);
+                stringBuilder.Append(ArgString);
             }
             else
             {
@@ -1162,6 +1219,8 @@ namespace CppConverter
 
                 //Console.Error.WriteLine("无法解析的操作符 " + exp.OperatorToken);
             }
+
+            Console.WriteLine(stringBuilder.ToString());
 
             return stringBuilder.ToString();
         }

@@ -45,6 +45,10 @@ namespace System{
 		static System::Int64 op_LeftShift(System::Int64  a,System::Int32  b);
 		public:
 		static System::Int64 op_RightShift(System::Int64  a,System::Int32  b);
+		public:
+		static System::Int64 op_Equality(System::Int64  a,System::Int64  b);
+		public:
+		static System::Int64 op_Inequality(System::Int64  a,System::Int64  b);
 	#include "Int64_ExtHeader.h"
 	};
 }

@@ -16,6 +16,9 @@ namespace System
             Console.WriteLine(a);
             a += 7;
             Console.WriteLine(a);
+
+            Int64 b = a;
+            Console.WriteLine(b);
         }
 
         static void TestString()

@@ -214,6 +214,18 @@ namespace Metadata
                 return currentType;
             }
 
+            if(exp is Metadata.Expression.BinaryExpressionSyntax)
+            {
+                Metadata.Expression.BinaryExpressionSyntax me = exp as Metadata.Expression.BinaryExpressionSyntax;
+                //Metadata.Expression.FieldExp e = me.Caller as Metadata.Expression.FieldExp;
+                Metadata.DB_Type caller_type = GetExpType(me.Left);
+                List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                argTypes.Add(GetExpType(me.Right));
+                
+                Metadata.DB_Member member = caller_type.FindMethod(me.OperatorToken, argTypes, this);
+                return GetType(member.typeName);
+            }
+
             return null;
         }
 

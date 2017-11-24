@@ -34,5 +34,7 @@
         public extern static Int64 operator ~(Int64 a);
         public extern static Int64 operator <<(Int64 a, int b);
         public extern static Int64 operator >>(Int64 a, int b);
+        public extern static Int64 operator ==(Int64 a, Int64 b);
+        public extern static Int64 operator !=(Int64 a, Int64 b);
     }
 }

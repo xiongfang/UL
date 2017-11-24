@@ -16,7 +16,7 @@ System::Boolean System::Int64::TryParse(Ref<System::String>  value,System::Int64
 	}
 	catch(System::Exception e)
 	{
-		v = 0;
+		v = System::Int32::Int64(0);
 		return false;
 	}
 }
