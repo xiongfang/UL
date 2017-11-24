@@ -4,6 +4,7 @@
 #include "String.h"
 #include "Boolean.h"
 #include "Int32.h"
+#include "Int64.h"
 #include "Exception.h"
 System::Int16 System::Int16::MaxValue=0x7FFF;
 System::Int16 System::Int16::MinValue=0x8000;

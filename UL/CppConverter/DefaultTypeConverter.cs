@@ -1234,8 +1234,21 @@ namespace CppConverter
             argTypes.Add(left_type);
             argTypes.Add(right_type);
             Metadata.DB_Member method = left_type.FindMethod(exp.OperatorToken, argTypes, Model);
-
-            stringBuilder.Append(string.Format("{0}::{1}(",GetCppTypeName(left_type), GetOperatorFuncName( exp.OperatorToken)));
+            if(method != null)
+            {
+                stringBuilder.Append(string.Format("{0}::{1}(", GetCppTypeName(left_type), GetOperatorFuncName(exp.OperatorToken)));
+            }
+            else
+            {
+                method = right_type.FindMethod(exp.OperatorToken, argTypes, Model);
+                if(method == null)
+                {
+                    Console.Error.WriteLine("操作符没有重载的方法 " + exp.ToString());
+                    return stringBuilder.ToString();
+                }
+                stringBuilder.Append(string.Format("{0}::{1}(", GetCppTypeName(left_type), GetOperatorFuncName(exp.OperatorToken)));
+            }
+            
             if(left_type.is_class && method.method_args[0].type != left_type.GetRefType())
             {
                 stringBuilder.Append(string.Format("Ref<{0}>({1})", GetCppTypeName(Model.GetType(method.method_args[0].type)), ExpressionToString(exp.Left)));

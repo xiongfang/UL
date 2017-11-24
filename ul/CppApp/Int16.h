@@ -12,6 +12,10 @@ namespace System
 {
 struct Int32;
 }
+namespace System
+{
+struct Int64;
+}
 namespace System{
 	struct Int16:public System::Object
 	{
@@ -45,6 +49,14 @@ namespace System{
 		static System::Int16 op_LeftShift(System::Int16  a,System::Int32  b);
 		public:
 		static System::Int16 op_RightShift(System::Int16  a,System::Int32  b);
+		public:
+		static System::Int16 op_Equality(System::Int16  a,System::Int16  b);
+		public:
+		static System::Int16 op_Inequality(System::Int16  a,System::Int16  b);
+		public:
+		static System::Int64 Int64(System::Int16  v);
+		public:
+		static System::Int32 Int32(System::Int16  v);
 	#include "Int16_ExtHeader.h"
 	};
 }
