@@ -19,6 +19,11 @@ namespace System
 
             Int64 b = a;
             Console.WriteLine(b);
+
+            Console.WriteLine(a-5);
+            Console.WriteLine(a % 5);
+            Console.WriteLine(a ++);
+            Console.WriteLine(++a);
         }
 
         static void TestString()

@@ -15,7 +15,7 @@ System::Boolean System::Char::TryParse(Ref<System::String>  value,System::Char &
 	}
 	catch(System::Exception e)
 	{
-		v = 0;
+		v = _T('\0');
 		return false;
 	}
 }

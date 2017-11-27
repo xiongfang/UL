@@ -36,5 +36,7 @@
                 return false;
             }
         }
+
+        public extern static Boolean operator !(Boolean a);
     }
 }

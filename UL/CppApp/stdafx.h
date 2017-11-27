@@ -82,3 +82,23 @@ public:
 	}
 };
 
+class Helper
+{
+public:
+
+	template<typename T>
+	static T op_Increment(T& a)
+	{
+		T temp = a;
+		a = T::op_Increment(a);
+		return temp;
+	}
+
+	template<typename T>
+	static T op_Decrement(T& a)
+	{
+		T temp = a;
+		a = T::op_Decrement(a);
+		return temp;
+	}
+};

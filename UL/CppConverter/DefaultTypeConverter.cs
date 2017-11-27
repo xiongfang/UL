@@ -412,7 +412,7 @@ namespace CppConverter
                     return "op_Addition";
                 case "-":
                     return "op_Substraction";
-                    case "*":
+                case "*":
                     return "op_Multiply";
                 case "/":
                     return "op_Division";
@@ -432,6 +432,16 @@ namespace CppConverter
                     return "op_Equality";
                 case "!=":
                     return "op_Inequality";
+                case ">":
+                    return "op_GreaterThen";
+                case "<":
+                    return "op_LessThen";
+                case "++":
+                    return "op_Increment";
+                case "--":
+                    return "op_Decrement";
+                case "!":
+                    return "op_LogicNot";
                 default:
                     Console.Error.WriteLine("未知的操作符 " + token);
                     return token;
@@ -1030,6 +1040,8 @@ namespace CppConverter
             {
                 if (es.value.Length > 0 && es.value[0] == '"')
                     return "Ref<System::String>(new System::String(_T(" + es.value + ")))";
+                else if(es.value.StartsWith("'"))
+                    return "_T(" + es.value + ")";
             }
             return es.value;
         }
@@ -1220,7 +1232,7 @@ namespace CppConverter
                 //Console.Error.WriteLine("无法解析的操作符 " + exp.OperatorToken);
             }
 
-            Console.WriteLine(stringBuilder.ToString());
+            //Console.WriteLine(stringBuilder.ToString());
 
             return stringBuilder.ToString();
         }
@@ -1273,15 +1285,42 @@ namespace CppConverter
         string ExpressionToString(Metadata.Expression.PostfixUnaryExpressionSyntax exp)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(ExpressionToString(exp.Operand));
-            stringBuilder.Append(exp.OperatorToken);
+
+            if (exp.Operand is Metadata.Expression.ConstExp)
+            {
+                stringBuilder.Append(ExpressionToString(exp.Operand));
+                stringBuilder.Append(exp.OperatorToken);
+            }
+            else
+            {
+                string funcName = GetOperatorFuncName(exp.OperatorToken);
+                Metadata.DB_Type caller = Model.GetExpType(exp.Operand);
+                Metadata.DB_Member func = caller.FindMethod(exp.OperatorToken, new List<Metadata.DB_Type>() { caller }, Model);
+
+                stringBuilder.Append(string.Format("Helper::{0}<{1}>({2})", funcName, GetCppTypeName(caller), ExpressionToString(exp.Operand)));
+
+            }
+
             return stringBuilder.ToString();
         }
         string ExpressionToString(Metadata.Expression.PrefixUnaryExpressionSyntax exp)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(exp.OperatorToken);
-            stringBuilder.Append(ExpressionToString(exp.Operand));
+
+            if (exp.Operand is Metadata.Expression.ConstExp)
+            {
+                stringBuilder.Append(exp.OperatorToken);
+                stringBuilder.Append(ExpressionToString(exp.Operand));
+            }
+            else
+            {
+                string funcName = GetOperatorFuncName(exp.OperatorToken);
+                Metadata.DB_Type caller = Model.GetExpType(exp.Operand);
+                Metadata.DB_Member func = caller.FindMethod(exp.OperatorToken, new List<Metadata.DB_Type>() { caller }, Model);
+
+                stringBuilder.Append(string.Format("{0}::{1}({2})", GetCppTypeName(caller), funcName, ExpressionToString(exp.Operand)));
+            }
+
             return stringBuilder.ToString();
         }
 

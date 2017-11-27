@@ -19,7 +19,7 @@
             }
             catch (Exception e)
             {
-                v = 0;
+                v = '\0';
                 return false;
             }
         }

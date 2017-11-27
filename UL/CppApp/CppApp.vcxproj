@@ -198,6 +198,8 @@
     <ClCompile Include="ArgumentNullException.cpp" />
     <ClCompile Include="Attribute.cpp" />
     <ClCompile Include="Boolean.cpp" />
+    <ClCompile Include="Boolean_ExtCpp.cpp" />
+    <ClCompile Include="Int16_ExtCpp.cpp" />
     <ClCompile Include="Platform_Windows.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="Byte.cpp" />

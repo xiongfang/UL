@@ -19,6 +19,10 @@ void System::Test::TestInt()
 	System::Console::WriteLine(a);
 	System::Int64 b = System::Int32::Int64(a);
 	System::Console::WriteLine(b);
+	System::Console::WriteLine(System::Int32::op_Substraction(a,5));
+	System::Console::WriteLine(System::Int32::op_Modulus(a,5));
+	System::Console::WriteLine(Helper::op_Increment<System::Int32>(a));
+	System::Console::WriteLine(System::Int32::op_Increment(a));
 }
 void System::Test::TestString()
 {

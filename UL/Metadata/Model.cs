@@ -144,6 +144,7 @@ namespace Metadata
             if (exp is Metadata.Expression.ConstExp)
             {
                 Metadata.Expression.ConstExp e = exp as Metadata.Expression.ConstExp;
+
                 int int_v;
                 if (int.TryParse(e.value, out int_v))
                 {
@@ -162,10 +163,26 @@ namespace Metadata
                     return GetType("System.Boolean");
                 }
 
+                float single_v;
+                if (float.TryParse(e.value, out single_v))
+                {
+                    return GetType("System.Single");
+                }
+
+                double double_v;
+                if (double.TryParse(e.value, out double_v))
+                {
+                    return GetType("System.Double");
+                }
 
                 if (e.value == "null")
                 {
                     return GetType("System.Object");
+                }
+
+                if(e.value.StartsWith("'"))
+                {
+                    return GetType("System.Char");
                 }
 
                 return GetType("System.String");
@@ -217,7 +234,6 @@ namespace Metadata
             if(exp is Metadata.Expression.BinaryExpressionSyntax)
             {
                 Metadata.Expression.BinaryExpressionSyntax me = exp as Metadata.Expression.BinaryExpressionSyntax;
-                //Metadata.Expression.FieldExp e = me.Caller as Metadata.Expression.FieldExp;
                 Metadata.DB_Type caller_type = GetExpType(me.Left);
                 List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
                 argTypes.Add(GetExpType(me.Right));
@@ -226,6 +242,35 @@ namespace Metadata
                 return GetType(member.typeName);
             }
 
+            if(exp is Metadata.Expression.PostfixUnaryExpressionSyntax)
+            {
+                Metadata.Expression.PostfixUnaryExpressionSyntax me = exp as Metadata.Expression.PostfixUnaryExpressionSyntax;
+                Metadata.DB_Type caller_type = GetExpType(me.Operand);
+                List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                argTypes.Add(caller_type);
+
+                Metadata.DB_Member member = caller_type.FindMethod(me.OperatorToken, argTypes, this);
+                return GetType(member.typeName);
+            }
+
+            if (exp is Metadata.Expression.PrefixUnaryExpressionSyntax)
+            {
+                Metadata.Expression.PrefixUnaryExpressionSyntax me = exp as Metadata.Expression.PrefixUnaryExpressionSyntax;
+                Metadata.DB_Type caller_type = GetExpType(me.Operand);
+                List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                argTypes.Add(caller_type);
+
+                Metadata.DB_Member member = caller_type.FindMethod(me.OperatorToken, argTypes, this);
+                return GetType(member.typeName);
+            }
+
+            if(exp is Metadata.Expression.ParenthesizedExpressionSyntax)
+            {
+                Metadata.Expression.ParenthesizedExpressionSyntax pes = exp as Metadata.Expression.ParenthesizedExpressionSyntax;
+                return GetExpType(pes.exp);
+            }
+
+            Console.Error.WriteLine("无法确定表达式类型 "+exp.JsonType);
             return null;
         }
 

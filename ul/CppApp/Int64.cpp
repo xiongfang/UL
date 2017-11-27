@@ -4,6 +4,14 @@
 #include "String.h"
 #include "Boolean.h"
 #include "Int32.h"
+#include "Int16.h"
+#include "Single.h"
+#include "Double.h"
+#include "Byte.h"
+#include "SByte.h"
+#include "UInt16.h"
+#include "UInt32.h"
+#include "UInt64.h"
 #include "Exception.h"
 System::Int64 System::Int64::MaxValue=0x7FFFFFFFFFFFFFFF;
 System::Int64 System::Int64::MinValue=0x8000000000000000;

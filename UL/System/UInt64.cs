@@ -23,5 +23,32 @@
                 return false;
             }
         }
+
+        public extern static UInt64 operator +(UInt64 a, UInt64 b);
+        public extern static UInt64 operator -(UInt64 a, UInt64 b);
+        public extern static UInt64 operator *(UInt64 a, UInt64 b);
+        public extern static UInt64 operator /(UInt64 a, UInt64 b);
+        public extern static UInt64 operator %(UInt64 a, UInt64 b);
+        public extern static UInt64 operator &(UInt64 a, UInt64 b);
+        public extern static UInt64 operator |(UInt64 a, UInt64 b);
+        public extern static bool operator >(UInt64 a, UInt64 b);
+        public extern static bool operator <(UInt64 a, UInt64 b);
+        public extern static UInt64 operator ~(UInt64 a);
+        public extern static UInt64 operator <<(UInt64 a, int b);
+        public extern static UInt64 operator >>(UInt64 a, int b);
+        public extern static bool operator ==(UInt64 a, UInt64 b);
+        public extern static bool operator !=(UInt64 a, UInt64 b);
+        public extern static UInt64 operator ++(UInt64 a);
+        public extern static UInt64 operator --(UInt64 a);
+
+        public static explicit operator Int64(UInt64 v);
+        public static explicit operator Int32(UInt64 v);
+        public static explicit operator Single(UInt64 v);
+        public static explicit operator Double(UInt64 v);
+        public static explicit operator Byte(UInt64 v);
+        public static explicit operator SByte(UInt64 v);
+        public static explicit operator UInt16(UInt64 v);
+        public static explicit operator UInt32(UInt64 v);
+        public static explicit operator Int16(UInt64 v);
     }
 }
