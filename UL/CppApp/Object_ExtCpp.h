@@ -1,4 +1,7 @@
 using namespace System;
+
+HandleManager<Object> Object::Mgr;
+
 Ref<String> Object::ToString()
 {
 	
