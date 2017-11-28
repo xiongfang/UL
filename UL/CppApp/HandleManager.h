@@ -23,17 +23,17 @@ public:
 		value = v.value;
 	}
 
-	unsigned int Magic()
+	unsigned int Magic()const
 	{
 		return value >> 32;
 	}
 
-	unsigned int ID()
+	unsigned int ID()const
 	{
 		return value & 0xffffffff;
 	}
 
-	unsigned int Index()
+	unsigned int Index()const
 	{
 		return ID() - 1;
 	}
@@ -89,7 +89,7 @@ public:
 		return h;
 	}
 
-	T* Release(Handle h)
+	T* Release(const Handle& h)
 	{
 		if (!IsValid(h))
 			return nullptr;
@@ -102,7 +102,7 @@ public:
 		return v;
 	}
 
-	bool IsValid(Handle h)
+	bool IsValid(const Handle& h)
 	{
 		if (h.ID() > 0 && h.ID() <= Objects.size())
 		{
@@ -115,7 +115,7 @@ public:
 		return false;
 	}
 
-	T* Get(Handle h)
+	T* Get(const Handle& h)
 	{
 		if (!IsValid(h))
 			return nullptr;
