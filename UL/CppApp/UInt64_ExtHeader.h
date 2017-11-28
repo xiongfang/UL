@@ -1,8 +1,9 @@
+typedef unsigned long long ValueType;
 private:
-	unsigned long long _v;
+	ValueType _v;
 public:
 	UInt64() { _v = 0; }
-	UInt64(unsigned long long v)
+	UInt64(ValueType v)
 	{
 		_v = v;
 	}

@@ -404,14 +404,14 @@ namespace CppConverter
             return "";
         }
 
-        string GetOperatorFuncName(string token)
+        string GetOperatorFuncName(string token,int arg_count=1)
         {
             switch(token)
             {
                 case "+":
-                    return "op_Addition";
+                    return arg_count==2?"op_Addition":"op_UnaryPlus";
                 case "-":
-                    return "op_Substraction";
+                    return arg_count == 2 ? "op_Substraction": "op_UnaryNegation";
                 case "*":
                     return "op_Multiply";
                 case "/":
@@ -496,7 +496,7 @@ namespace CppConverter
                     string method_name = member.name;
                     if (member.method_is_operator)
                     {
-                        method_name = GetOperatorFuncName(member.name);
+                        method_name = GetOperatorFuncName(member.name, member.method_args.Length);
                     }
                     sb.Append(string.Format("{1} {2}", "", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), method_name));
                 }
@@ -568,7 +568,7 @@ namespace CppConverter
                         string method_name = member.name;
                         if (member.method_is_operator)
                         {
-                            method_name = GetOperatorFuncName(member.name);
+                            method_name = GetOperatorFuncName(member.name,member.method_args.Length);
                         }
                         sb.Append(string.Format("{0} {1}::{2}", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), GetCppTypeName(Model.GetType(member.declaring_type)), method_name));
                     }
@@ -1248,7 +1248,7 @@ namespace CppConverter
             Metadata.DB_Member method = left_type.FindMethod(exp.OperatorToken, argTypes, Model);
             if(method != null)
             {
-                stringBuilder.Append(string.Format("{0}::{1}(", GetCppTypeName(left_type), GetOperatorFuncName(exp.OperatorToken)));
+                stringBuilder.Append(string.Format("{0}::{1}(", GetCppTypeName(left_type), GetOperatorFuncName(exp.OperatorToken,argTypes.Count)));
             }
             else
             {
@@ -1258,7 +1258,7 @@ namespace CppConverter
                     Console.Error.WriteLine("操作符没有重载的方法 " + exp.ToString());
                     return stringBuilder.ToString();
                 }
-                stringBuilder.Append(string.Format("{0}::{1}(", GetCppTypeName(left_type), GetOperatorFuncName(exp.OperatorToken)));
+                stringBuilder.Append(string.Format("{0}::{1}(", GetCppTypeName(left_type), GetOperatorFuncName(exp.OperatorToken, argTypes.Count)));
             }
             
             if(left_type.is_class && method.method_args[0].type != left_type.GetRefType())
@@ -1293,11 +1293,14 @@ namespace CppConverter
             }
             else
             {
-                string funcName = GetOperatorFuncName(exp.OperatorToken);
+                string funcName = GetOperatorFuncName(exp.OperatorToken,1);
                 Metadata.DB_Type caller = Model.GetExpType(exp.Operand);
                 Metadata.DB_Member func = caller.FindMethod(exp.OperatorToken, new List<Metadata.DB_Type>() { caller }, Model);
 
-                stringBuilder.Append(string.Format("Helper::{0}<{1}>({2})", funcName, GetCppTypeName(caller), ExpressionToString(exp.Operand)));
+                if(exp.OperatorToken == "++" || exp.OperatorToken == "--")
+                    stringBuilder.Append(string.Format("PostfixUnaryHelper::{0}<{1}>({2})", funcName, GetCppTypeName(caller), ExpressionToString(exp.Operand)));
+                else
+                    stringBuilder.Append(string.Format("{0}::{1}({2})", GetCppTypeName(caller), funcName, ExpressionToString(exp.Operand)));
 
             }
 
@@ -1314,11 +1317,15 @@ namespace CppConverter
             }
             else
             {
-                string funcName = GetOperatorFuncName(exp.OperatorToken);
+                string funcName = GetOperatorFuncName(exp.OperatorToken,1);
                 Metadata.DB_Type caller = Model.GetExpType(exp.Operand);
                 Metadata.DB_Member func = caller.FindMethod(exp.OperatorToken, new List<Metadata.DB_Type>() { caller }, Model);
 
-                stringBuilder.Append(string.Format("{0}::{1}({2})", GetCppTypeName(caller), funcName, ExpressionToString(exp.Operand)));
+                if (exp.OperatorToken == "++" || exp.OperatorToken == "--")
+                    stringBuilder.Append(string.Format("PrefixUnaryHelper::{0}<{1}>({2})", funcName, GetCppTypeName(caller), ExpressionToString(exp.Operand)));
+                else
+                    stringBuilder.Append(string.Format("{0}::{1}({2})", GetCppTypeName(caller), funcName, ExpressionToString(exp.Operand)));
+
             }
 
             return stringBuilder.ToString();

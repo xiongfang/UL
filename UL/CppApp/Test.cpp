@@ -21,8 +21,9 @@ void System::Test::TestInt()
 	System::Console::WriteLine(b);
 	System::Console::WriteLine(System::Int32::op_Substraction(a,5));
 	System::Console::WriteLine(System::Int32::op_Modulus(a,5));
-	System::Console::WriteLine(Helper::op_Increment<System::Int32>(a));
-	System::Console::WriteLine(System::Int32::op_Increment(a));
+	System::Console::WriteLine(PostfixUnaryHelper::op_Increment<System::Int32>(a));
+	System::Console::WriteLine(PrefixUnaryHelper::op_Increment<System::Int32>(a));
+	System::Console::WriteLine(System::Int32::op_UnaryNegation(a));
 }
 void System::Test::TestString()
 {

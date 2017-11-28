@@ -1,7 +1,10 @@
-int _v;
+
+public:
+	typedef int ValueType;
+	ValueType _v;
 public:
 	Byte() { _v = 0; }
-	Byte(int v)
+	Byte(ValueType v)
 	{
 		_v = v;
 	}

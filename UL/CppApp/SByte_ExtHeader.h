@@ -1,8 +1,9 @@
+typedef signed char ValueType;
 private:
-	signed char _v;
+	ValueType _v;
 public:
 	SByte() { _v = 0; }
-	SByte(signed char v)
+	SByte(ValueType v)
 	{
 		_v = v;
 	}

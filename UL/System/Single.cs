@@ -29,18 +29,20 @@
         public extern static Single operator -(Single a, Single b);
         public extern static Single operator *(Single a, Single b);
         public extern static Single operator /(Single a, Single b);
-        public extern static Single operator %(Single a, Single b);
-        public extern static Single operator &(Single a, Single b);
-        public extern static Single operator |(Single a, Single b);
+       // public extern static Single operator %(Single a, Single b);
+        //public extern static Single operator &(Single a, Single b);
+        //public extern static Single operator |(Single a, Single b);
         public extern static bool operator >(Single a, Single b);
         public extern static bool operator <(Single a, Single b);
         public extern static Single operator ~(Single a);
-        public extern static Single operator <<(Single a, int b);
-        public extern static Single operator >>(Single a, int b);
+        //public extern static Single operator <<(Single a, int b);
+        //public extern static Single operator >>(Single a, int b);
         public extern static bool operator ==(Single a, Single b);
         public extern static bool operator !=(Single a, Single b);
         public extern static Single operator ++(Single a);
         public extern static Single operator --(Single a);
+        public extern static Single operator +(Single a);
+        public extern static Single operator -(Single a);
 
         public static implicit operator Int64(Single v);
         public static explicit operator Int32(Single v);

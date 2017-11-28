@@ -1,8 +1,9 @@
+typedef unsigned short ValueType;
 private:
-unsigned short _v;
+	ValueType _v;
 public:
 	UInt16() { _v = 0; }
-	UInt16(unsigned short v)
+	UInt16(ValueType v)
 	{
 		_v = v;
 	}

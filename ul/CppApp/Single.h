@@ -10,11 +10,11 @@ struct Boolean;
 }
 namespace System
 {
-struct Int32;
+struct Int64;
 }
 namespace System
 {
-struct Int64;
+struct Int32;
 }
 namespace System
 {
@@ -68,21 +68,11 @@ namespace System{
 		public:
 		static System::Single op_Division(System::Single  a,System::Single  b);
 		public:
-		static System::Single op_Modulus(System::Single  a,System::Single  b);
-		public:
-		static System::Single op_BitwiseAnd(System::Single  a,System::Single  b);
-		public:
-		static System::Single op_BitwiseOr(System::Single  a,System::Single  b);
-		public:
 		static System::Boolean op_GreaterThen(System::Single  a,System::Single  b);
 		public:
 		static System::Boolean op_LessThen(System::Single  a,System::Single  b);
 		public:
 		static System::Single op_OnesComplement(System::Single  a);
-		public:
-		static System::Single op_LeftShift(System::Single  a,System::Int32  b);
-		public:
-		static System::Single op_RightShift(System::Single  a,System::Int32  b);
 		public:
 		static System::Boolean op_Equality(System::Single  a,System::Single  b);
 		public:
@@ -91,6 +81,10 @@ namespace System{
 		static System::Single op_Increment(System::Single  a);
 		public:
 		static System::Single op_Decrement(System::Single  a);
+		public:
+		static System::Single op_UnaryPlus(System::Single  a);
+		public:
+		static System::Single op_UnaryNegation(System::Single  a);
 		public:
 		static System::Int64 Int64(System::Single  v);
 		public:

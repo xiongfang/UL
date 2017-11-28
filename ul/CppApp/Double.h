@@ -10,11 +10,11 @@ struct Boolean;
 }
 namespace System
 {
-struct Int32;
+struct Int64;
 }
 namespace System
 {
-struct Int64;
+struct Int32;
 }
 namespace System
 {
@@ -68,21 +68,9 @@ namespace System{
 		public:
 		static System::Double op_Division(System::Double  a,System::Double  b);
 		public:
-		static System::Double op_Modulus(System::Double  a,System::Double  b);
-		public:
-		static System::Double op_BitwiseAnd(System::Double  a,System::Double  b);
-		public:
-		static System::Double op_BitwiseOr(System::Double  a,System::Double  b);
-		public:
 		static System::Boolean op_GreaterThen(System::Double  a,System::Double  b);
 		public:
 		static System::Boolean op_LessThen(System::Double  a,System::Double  b);
-		public:
-		static System::Double op_OnesComplement(System::Double  a);
-		public:
-		static System::Double op_LeftShift(System::Double  a,System::Int32  b);
-		public:
-		static System::Double op_RightShift(System::Double  a,System::Int32  b);
 		public:
 		static System::Boolean op_Equality(System::Double  a,System::Double  b);
 		public:
@@ -91,6 +79,10 @@ namespace System{
 		static System::Double op_Increment(System::Double  a);
 		public:
 		static System::Double op_Decrement(System::Double  a);
+		public:
+		static System::Double op_UnaryPlus(System::Double  a);
+		public:
+		static System::Double op_UnaryNegation(System::Double  a);
 		public:
 		static System::Int64 Int64(System::Double  v);
 		public:

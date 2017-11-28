@@ -1,8 +1,9 @@
+typedef float ValueType;
 private:
-float _v;
+	ValueType _v;
 public:
 	Single() { _v = 0; }
-	Single(float v)
+	Single(ValueType v)
 	{
 		_v = v;
 	}

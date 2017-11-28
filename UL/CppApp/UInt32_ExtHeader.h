@@ -1,8 +1,9 @@
+typedef unsigned int ValueType;
 private:
-	unsigned int _v;
+	ValueType _v;
 public:
 	UInt32() { _v = 0; }
-	UInt32(unsigned short v)
+	UInt32(ValueType v)
 	{
 		_v = v;
 	}

@@ -82,7 +82,7 @@ public:
 	}
 };
 
-class Helper
+class PostfixUnaryHelper
 {
 public:
 
@@ -100,5 +100,24 @@ public:
 		T temp = a;
 		a = T::op_Decrement(a);
 		return temp;
+	}
+};
+
+class PrefixUnaryHelper
+{
+public:
+
+	template<typename T>
+	static T op_Increment(T& a)
+	{
+		a = T::op_Increment(a);
+		return a;
+	}
+
+	template<typename T>
+	static T op_Decrement(T& a)
+	{
+		a = T::op_Decrement(a);
+		return a;
 	}
 };

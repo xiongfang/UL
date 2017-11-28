@@ -199,8 +199,13 @@
     <ClCompile Include="Attribute.cpp" />
     <ClCompile Include="Boolean.cpp" />
     <ClCompile Include="Boolean_ExtCpp.cpp" />
+    <ClCompile Include="Byte_ExtCpp.cpp" />
+    <ClCompile Include="Double_ExtCpp.cpp" />
     <ClCompile Include="Int16_ExtCpp.cpp" />
+    <ClCompile Include="Int64_ExtCpp.cpp" />
     <ClCompile Include="Platform_Windows.cpp" />
+    <ClCompile Include="SByte_ExtCpp.cpp" />
+    <ClCompile Include="Single_ExtCpp.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="Byte.cpp" />
     <ClCompile Include="Char.cpp" />
@@ -228,8 +233,11 @@
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="Type.cpp" />
     <ClCompile Include="UInt16.cpp" />
+    <ClCompile Include="UInt16_ExtCpp.cpp" />
     <ClCompile Include="UInt32.cpp" />
+    <ClCompile Include="UInt32_ExtCpp.cpp" />
     <ClCompile Include="UInt64.cpp" />
+    <ClCompile Include="UInt64_ExtCpp.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

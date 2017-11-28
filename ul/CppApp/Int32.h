@@ -90,6 +90,10 @@ namespace System{
 		public:
 		static System::Int32 op_OnesComplement(System::Int32  a);
 		public:
+		static System::Int32 op_UnaryPlus(System::Int32  a);
+		public:
+		static System::Int32 op_UnaryNegation(System::Int32  a);
+		public:
 		static System::Int64 Int64(System::Int32  v);
 		public:
 		static System::Int16 Int16(System::Int32  v);

@@ -24,6 +24,7 @@ namespace System
             Console.WriteLine(a % 5);
             Console.WriteLine(a ++);
             Console.WriteLine(++a);
+            Console.WriteLine(-a);
         }
 
         static void TestString()

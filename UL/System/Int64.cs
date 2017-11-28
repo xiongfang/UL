@@ -41,6 +41,8 @@
 
         public extern static Int64 operator ++(Int64 a);
         public extern static Int64 operator --(Int64 a);
+        public extern static Int64 operator +(Int64 a);
+        public extern static Int64 operator -(Int64 a);
 
         public static explicit operator Int16(Int64 v);
         public static explicit operator Int32(Int64 v);

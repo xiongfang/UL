@@ -40,6 +40,8 @@
         public extern static bool operator !=(SByte a, SByte b);
         public extern static SByte operator ++(SByte a);
         public extern static SByte operator --(SByte a);
+        public extern static SByte operator +(SByte a);
+        public extern static SByte operator -(SByte a);
 
         public static implicit operator Int64(SByte v);
         public static implicit operator Int32(SByte v);

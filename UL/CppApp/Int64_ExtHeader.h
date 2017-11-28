@@ -1,8 +1,10 @@
+typedef long long ValueType;
 private:
-	long long _v;
+
+	ValueType _v;
 public:
 	Int64() { _v = 0; }
-	Int64(long long v)
+	Int64(ValueType v)
 	{
 		_v = v;
 	}

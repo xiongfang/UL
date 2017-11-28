@@ -90,6 +90,8 @@ namespace System{
 		public:
 		static System::UInt32 op_Decrement(System::UInt32  a);
 		public:
+		static System::UInt32 op_UnaryPlus(System::UInt32  a);
+		public:
 		static System::Int64 Int64(System::UInt32  v);
 		public:
 		static System::Int32 Int32(System::UInt32  v);

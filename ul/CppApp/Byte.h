@@ -90,6 +90,10 @@ namespace System{
 		public:
 		static System::Byte op_Decrement(System::Byte  a);
 		public:
+		static System::Byte op_UnaryPlus(System::Byte  a);
+		public:
+		static System::Byte op_UnaryNegation(System::Byte  a);
+		public:
 		static System::Int64 Int64(System::Byte  v);
 		public:
 		static System::Int32 Int32(System::Byte  v);

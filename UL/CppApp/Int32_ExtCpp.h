@@ -12,9 +12,17 @@ System::Int32 System::Int32::op_Multiply(Int32 a, Int32 b)
 {
 	return Int32(a._v * b._v);
 }
+System::Int32 System::Int32::op_Division(Int32 a, Int32 b)
+{
+	return Int32(a._v / b._v);
+}
 System::Int32 System::Int32::op_Modulus(Int32 a, Int32 b)
 {
 	return Int32(a._v % b._v);
+}
+System::Int32 System::Int32::op_BitwiseAnd(Int32 a, Int32 b)
+{
+	return Int32(a._v & b._v);
 }
 System::Int32 System::Int32::op_BitwiseOr(Int32 a, Int32 b)
 {
@@ -55,6 +63,14 @@ System::Int32 System::Int32::op_Increment(Int32 a)
 System::Int32 System::Int32::op_Decrement(Int32 a)
 {
 	return Int32(a._v -1);
+}
+System::Int32 System::Int32::op_UnaryPlus(Int32 a)
+{
+	return a;
+}
+System::Int32 System::Int32::op_UnaryNegation(Int32 a)
+{
+	return Int32(-a._v);
 }
 //------------------ÀàÐÍ×ª»»-----------------------------------
 

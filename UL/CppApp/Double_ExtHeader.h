@@ -1,8 +1,9 @@
+typedef double ValueType;
 private:
-double _v;
+	ValueType _v;
 public:
 	Double() { _v = 0; }
-	Double(double v)
+	Double(ValueType v)
 	{
 		_v = v;
 	}

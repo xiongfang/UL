@@ -1,8 +1,9 @@
+typedef short ValueType;
 private:
-	short _v;
+	ValueType _v;
 public:
 	Int16() { _v = 0; }
-	Int16(short v)
+	Int16(ValueType v)
 	{
 		_v = v;
 	}

@@ -40,6 +40,8 @@
         public extern static bool operator !=(UInt64 a, UInt64 b);
         public extern static UInt64 operator ++(UInt64 a);
         public extern static UInt64 operator --(UInt64 a);
+        public extern static UInt64 operator +(UInt64 a);
+        //public extern static UInt64 operator -(UInt64 a);
 
         public static explicit operator Int64(UInt64 v);
         public static explicit operator Int32(UInt64 v);

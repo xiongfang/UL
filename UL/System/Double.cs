@@ -28,18 +28,20 @@
         public extern static Double operator -(Double a, Double b);
         public extern static Double operator *(Double a, Double b);
         public extern static Double operator /(Double a, Double b);
-        public extern static Double operator %(Double a, Double b);
-        public extern static Double operator &(Double a, Double b);
-        public extern static Double operator |(Double a, Double b);
+        //public extern static Double operator %(Double a, Double b);
+        //public extern static Double operator &(Double a, Double b);
+        //public extern static Double operator |(Double a, Double b);
         public extern static bool operator >(Double a, Double b);
         public extern static bool operator <(Double a, Double b);
-        public extern static Double operator ~(Double a);
-        public extern static Double operator <<(Double a, int b);
-        public extern static Double operator >>(Double a, int b);
+        //public extern static Double operator ~(Double a);
+        //public extern static Double operator <<(Double a, int b);
+        //public extern static Double operator >>(Double a, int b);
         public extern static bool operator ==(Double a, Double b);
         public extern static bool operator !=(Double a, Double b);
         public extern static Double operator ++(Double a);
         public extern static Double operator --(Double a);
+        public extern static Double operator +(Double a);
+        public extern static Double operator -(Double a);
 
         public static explicit operator Int64(Double v);
         public static explicit operator Int32(Double v);

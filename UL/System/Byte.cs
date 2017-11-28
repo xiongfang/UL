@@ -40,6 +40,8 @@
         public extern static bool operator !=(Byte a, Byte b);
         public extern static Byte operator ++(Byte a);
         public extern static Byte operator --(Byte a);
+        public extern static Byte operator +(Byte a);
+        public extern static Byte operator -(Byte a);
 
         public static implicit operator Int64(Byte v);
         public static implicit operator Int32(Byte v);

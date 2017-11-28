@@ -43,8 +43,8 @@
         public extern static Int32 operator --(Int32 a);
         public extern static Int32 operator ~(Int32 a);
 
-        //public extern static Int32 operator +(Int32 a);
-        //public extern static Int32 operator -(Int32 a);
+        public extern static Int32 operator +(Int32 a);
+        public extern static Int32 operator -(Int32 a);
 
         //public extern static Int32 operator !(Int32 a);
 
