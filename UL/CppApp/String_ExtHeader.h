@@ -1,17 +1,15 @@
+private:
+	wchar_t* _v;
+	int _length;
+	String(const String& other){}
 public:
-	String(const char* c) 
-	{ 
-		int size = strlen(c) + 1;
-		_v = new char[size];
-		sprintf_s(_v, size, "%s", c);
-	}
+	String(const char* c);
 	String(const wchar_t* c);
 
 	~String() { 
 		delete[] _v; 
 		
 	}
-private:
-	char* _v;
+
 public:
-	const char* c_str() { return _v; }
+	wchar_t* c_str() { return _v; }

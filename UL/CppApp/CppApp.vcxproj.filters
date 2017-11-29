@@ -278,5 +278,8 @@
     <ClCompile Include="UInt64_ExtCpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="String_ExtCpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

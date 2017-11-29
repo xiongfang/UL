@@ -29,4 +29,5 @@ void System::Test::TestString()
 {
 	Ref<System::String> v = Ref<System::String>(new System::String(_T("你好")));
 	System::Console::WriteLine(v);
+	System::Console::WriteLine(v->get_Length());
 }

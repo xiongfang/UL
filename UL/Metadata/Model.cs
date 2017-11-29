@@ -192,7 +192,10 @@ namespace Metadata
             {
                 Metadata.Expression.FieldExp e = exp as Metadata.Expression.FieldExp;
                 Metadata.DB_Type caller_type = GetExpType(e.Caller);
-                return GetType(caller_type.FindField(e.Name,this).typeName);
+                DB_Member field = caller_type.FindField(e.Name, this);
+                if (field == null)
+                    field = caller_type.FindProperty(e.Name, this);
+                return GetType(field.typeName);
             }
 
             if (exp is Metadata.Expression.IndifierExp)
@@ -335,6 +338,12 @@ namespace Metadata
                 {
                     info.is_member = true;
                     info.type = GetType(currentType.FindField(name, this).typeName);
+                    return info;
+                }
+                if (currentType.FindProperty(name, this) != null)
+                {
+                    info.is_member = true;
+                    info.type = GetType(currentType.FindProperty(name, this).typeName);
                     return info;
                 }
                 //查找泛型
@@ -649,16 +658,20 @@ namespace Metadata
             {
                 if (m.member_type == (int)Metadata.MemberTypes.Field)
                 {
-                    result.Add(m.field_type);
+                    result.Add(m.type);
                 }
                 else if (m.member_type == (int)Metadata.MemberTypes.Method)
                 {
-                    if (!m.method_ret_type.IsVoid)
-                        result.Add(m.method_ret_type);
+                    if (!m.type.IsVoid)
+                        result.Add(m.type);
                     foreach (var a in m.method_args)
                     {
                         result.Add(a.type);
                     }
+                }
+                else if(m.member_type == (int)Metadata.MemberTypes.Property)
+                {
+                    result.Add(m.type);
                 }
             }
         }
@@ -732,7 +745,7 @@ namespace Metadata
                 {
                     argTypes.Add(model.GetExpType(a));
                 }
-                typeRef.Add(caller.FindMethod(e.Name, argTypes, this.model).method_ret_type);
+                typeRef.Add(caller.FindMethod(e.Name, argTypes, this.model).type);
             }
             else if (exp is Expression.BaseExp)
             {

@@ -150,6 +150,48 @@ namespace Metadata
             return null;
         }
 
+        public DB_Member FindProperty(string name, Model model)
+        {
+            foreach (var m in members.Values)
+            {
+                if (m.name != name || m.member_type != (int)MemberTypes.Property)
+                    continue;
+
+                return m;
+            }
+
+            //查找父类
+            if (base_type != null && !base_type.IsVoid)
+            {
+                DB_Member base_member = model.GetType(base_type).FindProperty(name, model);
+                if (base_member != null)
+                    return base_member;
+            }
+
+            return null;
+        }
+
+        public DB_Member FindMember(string name, Model model)
+        {
+            foreach (var m in members.Values)
+            {
+                if (m.name != name)
+                    continue;
+
+                return m;
+            }
+
+            //查找父类
+            if (base_type != null && !base_type.IsVoid)
+            {
+                DB_Member base_member = model.GetType(base_type).FindMember(name, model);
+                if (base_member != null)
+                    return base_member;
+            }
+
+            return null;
+        }
+
         public DB_Member FindMethod(string name,List<DB_Type> typeParameters,Model model)
         {
             foreach(var m in members.Values)
@@ -258,8 +300,9 @@ namespace Metadata
 
         public List<DB_AttributeSyntax> attributes = new List<DB_AttributeSyntax>();
 
+        public Expression.TypeSyntax type = Expression.TypeSyntax.Void;
         //*****************变量***********************/
-        public Expression.TypeSyntax field_type  = Expression.TypeSyntax.Void;
+
         public Expression.Exp field_initializer;
         //********************************************/
 
@@ -274,19 +317,164 @@ namespace Metadata
             public string default_value = "";
         }
         public Argument[] method_args;
-
-        public Expression.TypeSyntax method_ret_type = Expression.TypeSyntax.Void;
         //泛型参数
         public List<GenericParameterDefinition> method_generic_parameter_definitions = new List<GenericParameterDefinition>();
 
         public DB_BlockSyntax method_body;
 
-        public bool method_virtual;
-        public bool method_abstract;
-        public bool method_override;
-        public bool method_is_constructor;
-        public bool method_is_operator;
-        public bool method_is_conversion_operator;
+        public enum EMethodFlag
+        {
+            Virtual=1,
+            Abstract=1<<1,
+            Override=1<<2,
+            Constructor=1<<3,
+            Operator=1<<4,
+            Conversion_operator=1<<5,
+            Property_get=1<<6,
+            Property_set=1<<7
+        }
+        public EMethodFlag method_flag;
+
+        public void AddMethodFlag(EMethodFlag flag)
+        {
+            method_flag |= flag;
+        }
+        public void RemoveMethodFlag(EMethodFlag flag)
+        {
+            method_flag &= ~flag;
+        }
+
+        public bool method_virtual
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Virtual) != 0;
+            }
+            set
+            {
+                if(value)
+                    method_flag |= EMethodFlag.Virtual;
+                else
+                    method_flag &= ~EMethodFlag.Virtual;
+            }
+        }
+        public bool method_abstract
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Abstract) != 0;
+            }
+            set
+            {
+                if(value)
+                    method_flag |= EMethodFlag.Abstract;
+                else
+                    method_flag &= ~EMethodFlag.Abstract;
+            }
+        }
+        public bool method_override
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Override) != 0;
+            }
+            set
+            {
+                if (value)
+                    method_flag |= EMethodFlag.Override;
+                else
+                    method_flag &= ~EMethodFlag.Override;
+            }
+        }
+        public bool method_is_constructor
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Constructor) != 0;
+            }
+            set
+            {
+                if (value)
+                    method_flag |= EMethodFlag.Constructor;
+                else
+                    method_flag &= ~EMethodFlag.Constructor;
+            }
+        }
+        public bool method_is_operator
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Operator) != 0;
+            }
+            set
+            {
+                if (value)
+                    method_flag |= EMethodFlag.Operator;
+                else
+                    method_flag &= ~EMethodFlag.Operator;
+            }
+        }
+        public bool method_is_conversion_operator
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Conversion_operator) != 0;
+            }
+            set
+            {
+                if (value)
+                    method_flag |= EMethodFlag.Conversion_operator;
+                else
+                    method_flag &= ~EMethodFlag.Conversion_operator;
+            }
+        }
+        public bool method_is_property_get
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Property_get) != 0;
+            }
+            set
+            {
+                if (value)
+                    method_flag |= EMethodFlag.Property_get;
+                else
+                    method_flag &= ~EMethodFlag.Property_get;
+            }
+        }
+        public bool method_is_property_set
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Property_set) != 0;
+            }
+            set
+            {
+                if (value)
+                    method_flag |= EMethodFlag.Property_set;
+                else
+                    method_flag &= ~EMethodFlag.Property_set;
+            }
+        }
+        //********************************************/
+
+        //*****************属性***********************/
+
+        public string property_get
+        {
+            get
+            {
+                return "get_" + name;
+            }
+        }
+        public string property_set
+        {
+            get
+            {
+                return "set_" + name;
+            }
+        }
+
         //********************************************/
 
         //签名，一个类唯一
@@ -340,12 +528,7 @@ namespace Metadata
         {
             get
             {
-                if (member_type == (int)MemberTypes.Field)
-                    return field_type;
-                else if (member_type == (int)MemberTypes.Method)
-                    return method_ret_type;
-
-                return Expression.TypeSyntax.Void;
+                return type;
             }
         }
     }
@@ -1126,25 +1309,26 @@ namespace Metadata
             //}
 
             {
-                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,field_type,method_args,method_ret_type,method_body,`order`,field_initializer,method_generic_parameter_definitions,method_virtual,method_override,method_abstract,attributes,method_is_constructor,method_is_operator,method_is_conversion_operator) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+                string CommandText = string.Format("insert into member(declaring_type,identifier,name,comments,modifier,is_static,member_type,ext,type,method_args,method_body,`order`,field_initializer,method_generic_parameter_definitions,attributes,method_flag) values(\"{0}\",\"{1}\",\"{2}\",\"{3}\",{4},{5},\"{6}\",\"{7}\",?,?,?,?,?,?,?,?);",
                 member.declaring_type, member.identifier, member.name, member.comments, member.modifier, member.is_static, member.member_type, member.ext);
 
                 OdbcCommand cmd = new OdbcCommand(CommandText, _con, _trans);
 
-                cmd.Parameters.AddWithValue("1", WriteObject(member.field_type));
+                cmd.Parameters.AddWithValue("1", WriteObject(member.type));
                 cmd.Parameters.AddWithValue("2", WriteObject( member.method_args));
-                cmd.Parameters.AddWithValue("3", WriteObject(member.method_ret_type));
+                //cmd.Parameters.AddWithValue("3", WriteObject(member.method_ret_type));
                 cmd.Parameters.AddWithValue("4", WriteObject(member.method_body));
                 cmd.Parameters.AddWithValue("5", member.order);
                 cmd.Parameters.AddWithValue("6", WriteObject(member.field_initializer));
                 cmd.Parameters.AddWithValue("7", WriteObject(member.method_generic_parameter_definitions));
-                cmd.Parameters.AddWithValue("8", member.method_virtual);
-                cmd.Parameters.AddWithValue("9", member.method_override);
-                cmd.Parameters.AddWithValue("10", member.method_abstract);
-                cmd.Parameters.AddWithValue("11", WriteObject(member.attributes));
-                cmd.Parameters.AddWithValue("12", member.method_is_constructor);
-                cmd.Parameters.AddWithValue("13", member.method_is_operator);
-                cmd.Parameters.AddWithValue("14", member.method_is_conversion_operator);
+                //cmd.Parameters.AddWithValue("8", member.method_virtual);
+                //cmd.Parameters.AddWithValue("9", member.method_override);
+                //cmd.Parameters.AddWithValue("10", member.method_abstract);
+                cmd.Parameters.AddWithValue("8", WriteObject(member.attributes));
+                cmd.Parameters.AddWithValue("9", (int)member.method_flag);
+                //cmd.Parameters.AddWithValue("12", member.method_is_constructor);
+                //cmd.Parameters.AddWithValue("13", member.method_is_operator);
+                //cmd.Parameters.AddWithValue("14", member.method_is_conversion_operator);
                 cmd.ExecuteNonQuery();
             }
 
@@ -1223,24 +1407,24 @@ namespace Metadata
                     member.declaring_type = type;
                     member.comments = (string)reader["comments"];
                     member.ext = (string)reader["ext"];
-                    member.field_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["field_type"]);
+                    member.type = DB.ReadObject<Expression.TypeSyntax>((string)reader["type"]);
                     member.is_static = (bool)reader["is_static"];
                     member.modifier = (int)reader["modifier"];
                     member.name = (string)reader["name"];
                     member.member_type = (int)reader["member_type"];
                     member.method_args = ReadObject<DB_Member.Argument[]>((string)reader["method_args"]);
                     member.method_body = ReadObject<DB_BlockSyntax>((string)reader["method_body"]);
-                    member.method_ret_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["method_ret_type"]);
+                    //member.method_ret_type = DB.ReadObject<Expression.TypeSyntax>((string)reader["method_ret_type"]);
                     member.order = (int)reader["order"];
                     member.field_initializer = ReadObject<Expression.Exp>((string)reader["field_initializer"]);
                     member.method_generic_parameter_definitions = ReadObject<List<GenericParameterDefinition>>((string)reader["method_generic_parameter_definitions"]);
-                    member.method_virtual = (bool)reader["method_virtual"];
-                    member.method_override = (bool)reader["method_override"];
-                    member.method_abstract = (bool)reader["method_abstract"];
+                    member.method_flag = (DB_Member.EMethodFlag)reader["method_flag"];
+                    //member.method_override = (bool)reader["method_override"];
+                    //member.method_abstract = (bool)reader["method_abstract"];
                     member.attributes = ReadObject<List<DB_AttributeSyntax>>((string)reader["attributes"]);
-                    member.method_is_constructor = (bool)reader["method_is_constructor"];
-                    member.method_is_operator = (bool)reader["method_is_operator"];
-                    member.method_is_conversion_operator = (bool)reader["method_is_conversion_operator"];
+                    //member.method_is_constructor = (bool)reader["method_is_constructor"];
+                    //member.method_is_operator = (bool)reader["method_is_operator"];
+                    //member.method_is_conversion_operator = (bool)reader["method_is_conversion_operator"];
                     results.Add(member.identifier, member);
                 }
             }

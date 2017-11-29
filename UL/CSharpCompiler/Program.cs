@@ -1050,6 +1050,13 @@ namespace CSharpCompiler
                     ExportVariable(v, type);
                 }
 
+                //导出所有属性
+                var propertyNodes = c.ChildNodes().OfType<PropertyDeclarationSyntax>();
+                foreach (var v in propertyNodes)
+                {
+                    ExportProperty(v, type);
+                }
+
                 //导出所有方法
                 var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
                 foreach (var f in funcNodes)
@@ -1261,6 +1268,14 @@ namespace CSharpCompiler
                     ExportVariable(v, type);
                 }
 
+                //导出所有属性
+                var propertyNodes = c.ChildNodes().OfType<PropertyDeclarationSyntax>();
+                foreach (var v in propertyNodes)
+                {
+                    ExportProperty(v, type);
+                }
+
+
                 //导出所有方法
                 var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
                 foreach (var f in funcNodes)
@@ -1348,7 +1363,7 @@ namespace CSharpCompiler
                     dB_Member.declaring_type = type.static_full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Field;
                     dB_Member.modifier = GetModifier(type,v.Modifiers);
-                    dB_Member.field_type = v_type.GetRefType();
+                    dB_Member.type = v_type.GetRefType();
                     if(ve.Initializer!=null)
                         dB_Member.field_initializer = ExportExp(ve.Initializer.Value);
 
@@ -1360,6 +1375,91 @@ namespace CSharpCompiler
 
 
         }
+        static void ExportProperty(PropertyDeclarationSyntax v, Metadata.DB_Type type)
+        {
+            Metadata.DB_Type v_type = Model.GetType(GetTypeSyntax(v.Type));
+
+            if (v_type == null)
+            {
+                Console.Error.WriteLine("无法识别的类型 " + v);
+                return;
+            }
+
+            if (step == ECompilerStet.ScanMember)
+            {
+                Metadata.DB_Member property = new Metadata.DB_Member();
+                property.name = v.Identifier.Text;
+                property.declaring_type = type.static_full_name;
+                property.member_type = (int)Metadata.MemberTypes.Property;
+                property.is_static = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
+                property.modifier = GetModifier(type, v.Modifiers);
+                property.attributes = ExportAttributes(v.AttributeLists);
+                property.type = v_type.GetRefType();
+                foreach (var ve in v.AccessorList.Accessors)
+                {
+                    Metadata.DB_Member dB_Member = new Metadata.DB_Member();
+                    dB_Member.declaring_type = type.static_full_name;
+                    dB_Member.member_type = (int)Metadata.MemberTypes.Method;
+
+                    if (ve.Keyword.Text == "get")
+                    {
+                        dB_Member.type = v_type.GetRefType();
+                        dB_Member.name = property.property_get;
+                        dB_Member.method_is_property_get = true;
+                        dB_Member.method_args = new Metadata.DB_Member.Argument[0];
+                    }
+                    else
+                    {
+                        dB_Member.method_is_property_set = true;
+                        dB_Member.name = property.property_set;
+                        Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+                        arg.name = "value";
+                        arg.type = v_type.GetRefType();
+                        dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
+                    }
+
+                    Model.AddMember(type.static_full_name, dB_Member);
+                }
+                Model.AddMember(type.static_full_name, property);
+            }
+            else if(step == ECompilerStet.Compile)
+            {
+                Metadata.DB_Member property = new Metadata.DB_Member();
+                property.name = v.Identifier.Text;
+                property.is_static = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
+                property.modifier = GetModifier(type, v.Modifiers);
+                property.attributes = ExportAttributes(v.AttributeLists);
+                foreach (var ve in v.AccessorList.Accessors)
+                {
+                    Metadata.DB_Member dB_Member = null;
+                    if (ve.Keyword.Text == "get")
+                    {
+                        dB_Member = type.FindMethod(property.property_get, new List<Metadata.DB_Type>(), Model.Instance);
+                        Model.Instance.EnterMethod(dB_Member);
+                        if (ve.Body != null)
+                            if (!ingore_method_body)
+                            {
+                                dB_Member.method_body = ExportBody(ve.Body);
+                            }
+                        Model.Instance.LeaveMethod();
+                    }
+                    else
+                    {
+                        List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                        argTypes.Add(v_type);
+                        dB_Member = type.FindMethod(property.property_get, argTypes, Model.Instance);
+                        Model.Instance.EnterMethod(dB_Member);
+                        if (ve.Body != null)
+                            if (!ingore_method_body)
+                            {
+                                dB_Member.method_body = ExportBody(ve.Body);
+                            }
+                        Model.Instance.LeaveMethod();
+                    }
+                }
+            }
+        }
+        
 
 
         static Dictionary<BaseMethodDeclarationSyntax, Metadata.DB_Member> MemberMap = new Dictionary<BaseMethodDeclarationSyntax, Metadata.DB_Member>();
@@ -1429,9 +1529,9 @@ namespace CSharpCompiler
 
                     Metadata.Expression.TypeSyntax retType = GetTypeSyntax(f.ReturnType);
                     if (retType != null)
-                        dB_Member.method_ret_type = retType;
+                        dB_Member.type = retType;
                     else
-                        dB_Member.method_ret_type = Metadata.Expression.TypeSyntax.Void;
+                        dB_Member.type = Metadata.Expression.TypeSyntax.Void;
 
                     Model.AddMember(type.static_full_name, dB_Member);
                     MemberMap[f] = dB_Member;
@@ -1485,7 +1585,7 @@ namespace CSharpCompiler
                     //if (retType != null)
                     //    dB_Member.method_ret_type = retType.GetRefType();
                     //else
-                    dB_Member.method_ret_type = Metadata.Expression.TypeSyntax.Void;
+                    dB_Member.type = Metadata.Expression.TypeSyntax.Void;
 
                     Model.AddMember(type.static_full_name, dB_Member);
                     MemberMap[f] = dB_Member;
@@ -1536,9 +1636,9 @@ namespace CSharpCompiler
 
                 Metadata.Expression.TypeSyntax retType = GetTypeSyntax(f.ReturnType);
                 if (retType != null)
-                    dB_Member.method_ret_type = retType;
+                    dB_Member.type = retType;
                 else
-                    dB_Member.method_ret_type = Metadata.Expression.TypeSyntax.Void;
+                    dB_Member.type = Metadata.Expression.TypeSyntax.Void;
 
                 Model.AddMember(type.static_full_name, dB_Member);
                 MemberMap[f] = dB_Member;
@@ -1592,10 +1692,10 @@ namespace CSharpCompiler
 
                 Metadata.Expression.TypeSyntax retType = GetTypeSyntax(f.Type);
                 if (retType != null)
-                    dB_Member.method_ret_type = retType;
+                    dB_Member.type = retType;
                 else
-                    dB_Member.method_ret_type = Metadata.Expression.TypeSyntax.Void;
-                dB_Member.name = dB_Member.method_ret_type.Name;
+                    dB_Member.type = Metadata.Expression.TypeSyntax.Void;
+                dB_Member.name = dB_Member.type.Name;
 
                 Model.AddMember(type.static_full_name, dB_Member);
                 MemberMap[f] = dB_Member;

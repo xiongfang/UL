@@ -1,4 +1,4 @@
-private:
+public:
 wchar_t _v;
 public:
 	Char() { _v = 0; }

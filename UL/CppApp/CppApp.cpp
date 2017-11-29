@@ -9,11 +9,13 @@
 #include "Int32.h"
 #include "Boolean.h"
 #include "Test.h"
+#include <locale.h>
 
 using namespace System;
 
 int main()
 {
+	_wsetlocale(LC_ALL, L"chs");
 	Test::Run();
     return 0;
 }

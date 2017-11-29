@@ -31,6 +31,7 @@ namespace System
         {
             string v = "你好";
             Console.WriteLine(v);
+            Console.WriteLine(v.Length);
         }
     }
 }

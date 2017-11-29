@@ -465,7 +465,7 @@ namespace CppConverter
                 //if (member_type.is_class)
                 //    AppendLine(string.Format("{0}* {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
                 //else
-                    AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
+                    AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.type)), member.name));
             }
             else if (member.member_type == (int)Metadata.MemberTypes.Method)
             {
@@ -498,7 +498,7 @@ namespace CppConverter
                     {
                         method_name = GetOperatorFuncName(member.name, member.method_args.Length);
                     }
-                    sb.Append(string.Format("{1} {2}", "", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), method_name));
+                    sb.Append(string.Format("{1} {2}", "", member.type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.type)), method_name));
                 }
                 else
                 {
@@ -542,10 +542,10 @@ namespace CppConverter
                 if (member.is_static)
                 {
                     if (member_type.is_class)
-                        AppendLine("Ref<" + GetCppTypeName(Model.GetType(member.field_type)) + "> " + GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name + ";");
+                        AppendLine("Ref<" + GetCppTypeName(Model.GetType(member.type)) + "> " + GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name + ";");
                     else if (member_type.is_value_type)
                     {
-                        Append(GetCppTypeName(Model.GetType(member.field_type)) + " " + GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name);
+                        Append(GetCppTypeName(Model.GetType(member.type)) + " " + GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name);
                         if (member.field_initializer != null)
                         {
                             sb.Append("=");
@@ -570,7 +570,7 @@ namespace CppConverter
                         {
                             method_name = GetOperatorFuncName(member.name,member.method_args.Length);
                         }
-                        sb.Append(string.Format("{0} {1}::{2}", member.method_ret_type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.method_ret_type)), GetCppTypeName(Model.GetType(member.declaring_type)), method_name));
+                        sb.Append(string.Format("{0} {1}::{2}", member.type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(member.type)), GetCppTypeName(Model.GetType(member.declaring_type)), method_name));
                     }
                     else
                         sb.Append(string.Format("{1}::{2}", "", GetCppTypeName(Model.GetType(member.declaring_type)), member.name));
@@ -1045,7 +1045,7 @@ namespace CppConverter
             }
             return es.value;
         }
-        string ExpressionToString(Metadata.Expression.FieldExp es)
+        string ExpressionToString(Metadata.Expression.FieldExp es,Metadata.Expression.Exp right = null)
         {
             ITypeConverter tc = Converter.GetTypeConverter(Model.currentType);
             if (tc != null)
@@ -1105,7 +1105,24 @@ namespace CppConverter
                     }
                 }
 
-                stringBuilder.Append(es.Name);
+                bool property = false;
+                if(caller_type!=null)
+                {
+                    Metadata.DB_Member member =  caller_type.FindMember(es.Name, Model);
+                    if(member!=null)
+                    {
+                        if(member.member_type == (int)Metadata.MemberTypes.Property)
+                        {
+                            if(right == null)
+                                stringBuilder.Append(member.property_get+"()") ;
+                            else
+                                stringBuilder.Append(member.property_set +"("+ ExpressionToString(right)+")");
+                            property = true;
+                        }
+                    }
+                }
+                if(!property)
+                    stringBuilder.Append(es.Name);
                 return stringBuilder.ToString();
             }
         }
@@ -1212,11 +1229,20 @@ namespace CppConverter
                 Metadata.DB_Type left_type = Model.GetExpType(exp.Left);
                 Metadata.DB_Type right_type = Model.GetExpType(exp.Right);
 
-                stringBuilder.Append(ExpressionToString(exp.Left));
-                stringBuilder.Append(" = ");
+                if(exp.Left is Metadata.Expression.FieldExp)
+                {
+                    stringBuilder.Append( ExpressionToString(exp.Left as Metadata.Expression.FieldExp, exp.Right));
+                }
+                else
+                {
+                    stringBuilder.Append(ExpressionToString(exp.Left));
+                    stringBuilder.Append(" = ");
 
-                string ArgString = GetExpConversion(left_type, right_type, exp.Right);
-                stringBuilder.Append(ArgString);
+                    string ArgString = GetExpConversion(left_type, right_type, exp.Right);
+                    stringBuilder.Append(ArgString);
+                }
+
+
             }
             else
             {
@@ -1225,9 +1251,19 @@ namespace CppConverter
                 binaryExpressionSyntax.Left = exp.Left;
                 binaryExpressionSyntax.Right = exp.Right;
                 binaryExpressionSyntax.OperatorToken = token;
-                stringBuilder.Append(ExpressionToString(exp.Left));
-                stringBuilder.Append(" = ");
-                stringBuilder.Append(ExpressionToString(binaryExpressionSyntax));
+
+                if (exp.Left is Metadata.Expression.FieldExp)
+                {
+                    stringBuilder.Append(ExpressionToString(exp.Left as Metadata.Expression.FieldExp, binaryExpressionSyntax));
+                }
+                else
+                {
+                    stringBuilder.Append(ExpressionToString(exp.Left));
+                    stringBuilder.Append(" = ");
+                    stringBuilder.Append(ExpressionToString(binaryExpressionSyntax));
+                }
+
+
 
                 //Console.Error.WriteLine("无法解析的操作符 " + exp.OperatorToken);
             }

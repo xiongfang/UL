@@ -162,12 +162,12 @@ namespace CppConverter
                 {
                     if (m.member_type == (int)Metadata.MemberTypes.Field)
                     {
-                        result.Add(m.field_type);
+                        result.Add(m.type);
                     }
                     else if (m.member_type == (int)Metadata.MemberTypes.Method)
                     {
-                        if (m.method_ret_type is Metadata.Expression.GenericNameSyntax)
-                            result.Add(m.method_ret_type);
+                        if (m.type is Metadata.Expression.GenericNameSyntax)
+                            result.Add(m.type);
                         foreach (var a in m.method_args)
                         {
                             if (a.type is Metadata.Expression.GenericNameSyntax)
