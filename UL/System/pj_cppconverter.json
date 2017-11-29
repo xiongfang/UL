@@ -67,7 +67,7 @@
     }
   ],
 
-  "export_namespace": [ "System" ],
+  "export_namespace": [ "System","System.Reflection" ],
   "export_type": [],
   "ref_namespace": [],
   "precompile_header":"stdafx.h"

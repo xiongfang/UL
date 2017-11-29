@@ -46,6 +46,10 @@
     <Compile Include="Int32.cs" />
     <Compile Include="Int64.cs" />
     <Compile Include="Object.cs" />
+    <Compile Include="Reflection\BindingFlags.cs" />
+    <Compile Include="Reflection\MemberInfo.cs" />
+    <Compile Include="Reflection\MemberTypes.cs" />
+    <Compile Include="Reflection\TypeFilter.cs" />
     <Compile Include="SByte.cs" />
     <Compile Include="Single.cs" />
     <Compile Include="String.cs" />

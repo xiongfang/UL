@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Object.h"
 namespace System{
-	class Attribute:public System::Object
-	{
-	};
+		class Attribute:public System::Object
+		{
+		};
 }

@@ -173,6 +173,8 @@
     <ClInclude Include="Int32_ExtHeader.h" />
     <ClInclude Include="Int64.h" />
     <ClInclude Include="Int64_ExtHeader.h" />
+    <ClInclude Include="MemberFilter.h" />
+    <ClInclude Include="MemberInfo.h" />
     <ClInclude Include="MemberTypes.h" />
     <ClInclude Include="Number.h" />
     <ClInclude Include="Object.h" />
@@ -189,6 +191,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Test.h" />
     <ClInclude Include="Type.h" />
+    <ClInclude Include="TypeFilter.h" />
     <ClInclude Include="UInt16.h" />
     <ClInclude Include="UInt16_ExtHeader.h" />
     <ClInclude Include="UInt32.h" />
@@ -205,6 +208,8 @@
     <ClCompile Include="Double_ExtCpp.cpp" />
     <ClCompile Include="Int16_ExtCpp.cpp" />
     <ClCompile Include="Int64_ExtCpp.cpp" />
+    <ClCompile Include="MemberFilter.cpp" />
+    <ClCompile Include="MemberInfo.cpp" />
     <ClCompile Include="Platform_Windows.cpp" />
     <ClCompile Include="SByte_ExtCpp.cpp" />
     <ClCompile Include="Single_ExtCpp.cpp" />
@@ -235,6 +240,7 @@
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="Type.cpp" />
+    <ClCompile Include="TypeFilter.cpp" />
     <ClCompile Include="UInt16.cpp" />
     <ClCompile Include="UInt16_ExtCpp.cpp" />
     <ClCompile Include="UInt32.cpp" />

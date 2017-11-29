@@ -1,3 +1,12 @@
 ﻿#include "stdafx.h"
 #include "Type.h"
 #include "Object.h"
+#include "String.h"
+#include "Boolean.h"
+#include "Array.h"
+#include "TypeFilter.h"
+#include "MemberInfo.h"
+#include "MemberTypes.h"
+#include "BindingFlags.h"
+#include "MemberFilter.h"
+using namespace System::Reflection;

@@ -1,14 +1,16 @@
-#pragma once
+﻿#pragma once
 namespace System{
-	enum MemberTypes	{
-		Constructor,
-		Event,
-		Field,
-		Method,
-		Property,
-		TypeInfo,
-		Custom,
-		NestedType,
-		All
-	};
+	namespace Reflection{
+			enum MemberTypes			{
+				Constructor,
+				Event,
+				Field,
+				Method,
+				Property,
+				TypeInfo,
+				Custom,
+				NestedType,
+				All
+			};
+	}
 }

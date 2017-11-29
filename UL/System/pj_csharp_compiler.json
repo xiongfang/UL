@@ -3,7 +3,8 @@
 	"dirs":
 	[
     ".",
-    "Exception"
+    "Exception",
+    "Reflection"
 	],
 	"ref_namespace":
 	[

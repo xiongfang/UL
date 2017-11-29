@@ -162,6 +162,15 @@
     <ClInclude Include="Ref.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="MemberFilter.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MemberInfo.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeFilter.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -279,6 +288,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="String_ExtCpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MemberFilter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MemberInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeFilter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

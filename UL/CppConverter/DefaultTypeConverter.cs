@@ -70,8 +70,16 @@ namespace CppConverter
                         else
                         {
                             //前向声明
-                            sb.AppendLine("namespace " + depType._namespace);
-                            sb.AppendLine("{");
+                            List<string> nsList = new List<string>();
+                            nsList.AddRange(depType._namespace.Split('.'));
+                            for(int i=0;i< nsList.Count;i++)
+                            {
+                                AppendLine("namespace " + nsList[i] + "{");
+                                depth++;
+                            }
+                            //sb.AppendLine("namespace " + depType._namespace);
+                            //sb.AppendLine("{");
+                            AppendDepth();
                             if (depType.is_generic_type_definition)
                             {
                                 sb.Append("template");
@@ -91,11 +99,26 @@ namespace CppConverter
                             else
                             {
                                 if (depType.is_value_type)
-                                    sb.AppendLine("struct " + depType.name + ";");
+                                {
+                                    if (depType.is_enum)
+                                    {
+                                        sb.AppendLine("enum " + depType.name + ";");
+                                    }
+                                    else
+                                    {
+                                        sb.AppendLine("struct " + depType.name + ";");
+                                    }
+                                }
                                 else
                                     sb.AppendLine("class " + depType.name + ";");
                             }
-                            sb.AppendLine("}");
+
+                            for (int i = 0; i < nsList.Count; i++)
+                            {
+                                depth--;
+                                AppendLine("}");
+                            }
+                            //sb.AppendLine("}");
                         }
                     }
                 }
@@ -111,8 +134,16 @@ namespace CppConverter
                 //}
 
 
-                sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
+                //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
                 {
+                    List<string> nsList = new List<string>();
+                    nsList.AddRange(type._namespace.Split('.'));
+                    for (int i = 0; i < nsList.Count; i++)
+                    {
+                        AppendLine("namespace " + nsList[i] + "{");
+                        depth++;
+                    }
+
                     depth++;
                     if (type.is_enum)
                     {
@@ -203,9 +234,15 @@ namespace CppConverter
 
                     AppendLine("};");
                     depth--;
+
+                    for (int i = 0; i < nsList.Count; i++)
+                    {
+                        depth--;
+                        AppendLine("}");
+                    }
                 }
 
-                sb.AppendLine("}");
+                //sb.AppendLine("}");
 
                 //System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString());
                 Model.LeaveType();
@@ -254,7 +291,7 @@ namespace CppConverter
 
                     foreach (var us in type.usingNamespace)
                     {
-                        sb.AppendLine("using namespace " + us + ";");
+                        sb.AppendLine("using namespace " + us.Replace(".","::") + ";");
                     }
 
                     TypeConfig tc = Converter.GetTypeConfig(type);
@@ -349,7 +386,7 @@ namespace CppConverter
             {
 
                 StringBuilder sb = new StringBuilder();
-                sb.Append(type._namespace);
+                sb.Append(type._namespace.Replace(".","::"));
                 sb.Append("::");
                 sb.Append(type.name);
                 sb.Append("<");
@@ -363,13 +400,13 @@ namespace CppConverter
                 return sb.ToString();
             }
             if (type.is_interface)
-                return type._namespace + "::" + type.name;
+                return type._namespace.Replace(".", "::") + "::" + type.name;
             if (type.is_class)
-                return type._namespace + "::" + type.name;
+                return type._namespace.Replace(".", "::") + "::" + type.name;
             if (type.is_value_type)
-                return type._namespace + "::" + type.name;
+                return type._namespace.Replace(".", "::") + "::" + type.name;
             if (type.is_enum)
-                return type._namespace + "::" + type.name;
+                return type._namespace.Replace(".", "::") + "::" + type.name;
 
             return type.static_full_name;
         }

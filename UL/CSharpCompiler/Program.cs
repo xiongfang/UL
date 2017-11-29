@@ -550,13 +550,14 @@ namespace CSharpCompiler
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
                     //导出所有类
-                    var classNodes = nodes.OfType<BaseTypeDeclarationSyntax>();
+                    var classNodes = nodes.OfType<MemberDeclarationSyntax>();
                     step = ECompilerStet.ScanType;
                     foreach (var c in classNodes)
                     {
                         ExportType(c);
                     }
 
+                    Model.Instance.ClearUsing();
 
                 }
 
@@ -575,13 +576,14 @@ namespace CSharpCompiler
                     Model.Instance.StartUsing(usingList);
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
-                    var classNodes = nodes.OfType<BaseTypeDeclarationSyntax>();
+                    var classNodes = nodes.OfType<MemberDeclarationSyntax>();
 
                     step = ECompilerStet.ScanMember;
                     foreach (var c in classNodes)
                     {
                         ExportType(c);
                     }
+                    Model.Instance.ClearUsing();
                 }
 
                 foreach (var tree in treeList)
@@ -599,13 +601,14 @@ namespace CSharpCompiler
                     Model.Instance.StartUsing(usingList);
 
                     IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
-                    var classNodes = nodes.OfType<BaseTypeDeclarationSyntax>();
+                    var classNodes = nodes.OfType<MemberDeclarationSyntax>();
 
                     step = ECompilerStet.Compile;
                     foreach (var c in classNodes)
                     {
                         ExportType(c);
                     }
+                    Model.Instance.ClearUsing();
                 }
 
                 OdbcTransaction trans = con.BeginTransaction();
@@ -654,7 +657,7 @@ namespace CSharpCompiler
         //    }
         //}
 
-        static void ExportType(BaseTypeDeclarationSyntax c)
+        static void ExportType(MemberDeclarationSyntax c)
         {
             if(c is ClassDeclarationSyntax)
             {
@@ -672,6 +675,169 @@ namespace CSharpCompiler
             {
                 ExportEnum(c as EnumDeclarationSyntax);
             }
+            else if(c is DelegateDeclarationSyntax)
+            {
+                ExportDelegate(c as DelegateDeclarationSyntax);
+            }
+        }
+
+
+        static void ExportDelegate(DelegateDeclarationSyntax c)
+        {
+            if (step == ECompilerStet.ScanType)
+            {
+                Metadata.DB_Type type = new Metadata.DB_Type();
+
+                type.is_abstract = ContainModifier(c.Modifiers, "abstract");
+                type.is_interface = false;
+                type.is_value_type = false;
+                type.is_class = true;
+                bool partial = ContainModifier(c.Modifiers, "partial");
+                type.modifier = GetModifier(type, c.Modifiers);
+                type.name = c.Identifier.Text;
+
+                type.usingNamespace = new List<string>();
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    //type.usingNamespace.Add(namespaceDeclarationSyntax.Name.ToString());
+                    type.usingNamespace.AddRange(Model.Instance.usingNamespace);
+                    foreach (var ns in namespaceDeclarationSyntax.Usings)
+                    {
+                        type.usingNamespace.Add(ns.Name.ToString());
+                    }
+                    type._namespace = namespaceDeclarationSyntax.Name.ToString();
+                }
+
+
+
+                //泛型
+                if (c.TypeParameterList != null)
+                {
+                    type.is_generic_type_definition = true;
+                    foreach (var p in c.TypeParameterList.Parameters)
+                    {
+                        Metadata.GenericParameterDefinition genericParameterDefinition = new Metadata.GenericParameterDefinition();
+                        genericParameterDefinition.type_name = p.Identifier.Text;
+                        type.generic_parameter_definitions.Add(genericParameterDefinition);
+                    }
+                }
+
+                if (partial)
+                {
+                    Model.MergeCompilerType(type);
+                }
+                else
+                    Model.AddCompilerType(type);
+            }
+            else if (step == ECompilerStet.ScanMember)
+            {
+                string typeName = c.Identifier.Text;
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    Model.Instance.EnterNamespace(namespaceDeclarationSyntax.Name.ToString());
+                }
+                if (c.TypeParameterList != null)
+                {
+                    typeName += "[" + c.TypeParameterList.Parameters.Count + "]";
+                }
+
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
+
+                if (type.static_full_name != "System.Object" && type.base_type.IsVoid)
+                    type.base_type = Model.GetType("System.Object").GetRefType();
+
+                //属性
+                type.attributes = ExportAttributes(c.AttributeLists);
+
+                Model.Instance.EnterType(type);
+
+                //泛型参数
+                if (c.ConstraintClauses != null)
+                {
+                    foreach (var Constraint in c.ConstraintClauses)
+                    {
+
+                        Metadata.GenericParameterDefinition genericParameterDefinition = type.generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                        foreach (var tpc in Constraint.Constraints)
+                        {
+                            genericParameterDefinition.constraint.Add(GetTypeParameterSyntax(tpc));
+                        }
+
+                    }
+                }
+
+
+                {
+                    Metadata.DB_Member dB_Member = new Metadata.DB_Member();
+                    dB_Member.name = "Invoke";
+                    //dB_Member.is_static = ContainModifier(c.Modifiers, "static");
+                    dB_Member.declaring_type = type.static_full_name;
+                    dB_Member.member_type = (int)Metadata.MemberTypes.Method;
+                    dB_Member.modifier = GetModifier(type, c.Modifiers);
+                    dB_Member.method_virtual = ContainModifier(c.Modifiers, "virtual");
+                    dB_Member.method_override = ContainModifier(c.Modifiers, "override");
+                    dB_Member.method_abstract = ContainModifier(c.Modifiers, "abstract");
+                    dB_Member.method_args = new Metadata.DB_Member.Argument[c.ParameterList.Parameters.Count];
+                    for (int i = 0; i < c.ParameterList.Parameters.Count; i++)
+                    {
+                        dB_Member.method_args[i] = new Metadata.DB_Member.Argument();
+                        dB_Member.method_args[i].name = c.ParameterList.Parameters[i].Identifier.Text;
+                        dB_Member.method_args[i].type = GetTypeSyntax(c.ParameterList.Parameters[i].Type);
+                        dB_Member.method_args[i].is_out = ContainModifier(c.ParameterList.Parameters[i].Modifiers, "out");
+                        dB_Member.method_args[i].is_ref = ContainModifier(c.ParameterList.Parameters[i].Modifiers, "ref");
+                        dB_Member.method_args[i].is_params = ContainModifier(c.ParameterList.Parameters[i].Modifiers, "params");
+                    }
+
+                    if (c.TypeParameterList != null)
+                    {
+                        foreach (var p in c.TypeParameterList.Parameters)
+                        {
+                            Metadata.GenericParameterDefinition genericParameterDefinition = new Metadata.GenericParameterDefinition();
+                            genericParameterDefinition.type_name = p.Identifier.Text;
+                            dB_Member.method_generic_parameter_definitions.Add(genericParameterDefinition);
+                        }
+
+                        //泛型参数
+                        if (c.ConstraintClauses != null)
+                        {
+                            foreach (var Constraint in c.ConstraintClauses)
+                            {
+
+                                Metadata.GenericParameterDefinition genericParameterDefinition = dB_Member.method_generic_parameter_definitions.First((a) => { return a.type_name == Constraint.Name.Identifier.Text; });
+                                foreach (var tpc in Constraint.Constraints)
+                                {
+                                    genericParameterDefinition.constraint.Add(GetTypeParameterSyntax(tpc));
+                                }
+
+                            }
+                        }
+                    }
+
+                    //属性
+                    dB_Member.attributes = ExportAttributes(c.AttributeLists);
+
+                    Model.Instance.EnterMethod(dB_Member);
+
+                    Metadata.Expression.TypeSyntax retType = GetTypeSyntax(c.ReturnType);
+                    if (retType != null)
+                        dB_Member.type = retType;
+                    else
+                        dB_Member.type = Metadata.Expression.TypeSyntax.Void;
+
+                    Model.AddMember(type.static_full_name, dB_Member);
+                    //MemberMap[c] = dB_Member;
+                    //Console.WriteLine();
+
+                    Model.Instance.LeaveMethod();
+                }
+
+
+               
+
+                Model.Instance.LeaveType();
+            }
         }
 
         static void ExportEnum(EnumDeclarationSyntax c)
@@ -680,15 +846,11 @@ namespace CSharpCompiler
             {
                 Metadata.DB_Type type = new Metadata.DB_Type();
 
-                //bool isPublic = ContainModifier(c.Modifiers, "public");
-                //bool isProtected = ContainModifier(c.Modifiers, "protected");
-                //bool isPrivate = !isPublic && !isProtected;
                 type.is_abstract = ContainModifier(c.Modifiers, "abstract");
                 type.is_interface = false;
                 type.is_enum = true;
-                type.is_value_type = false;
-                //Console.WriteLine("Identifier:" + c.Identifier);
-                //Console.WriteLine("Modifiers:" + c.Modifiers);
+                type.is_value_type = true;
+                type.is_class = false;
                 type.modifier = GetModifier(type, c.Modifiers);
                 type.name = c.Identifier.Text;
 

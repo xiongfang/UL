@@ -288,6 +288,26 @@ namespace Metadata
             public Metadata.DB_Type type;
         }
 
+
+        public DB_Type FindTypeInNamespace(string name,string ns)
+        {
+            do
+            {
+                DB_Type type = Finder.FindType(ns + "." + name);
+                if (type != null)
+                    return type;
+                if (ns.Contains("."))
+                {
+                    ns = ns.Substring(0, ns.LastIndexOf('.'));
+                }
+                else
+                    break;
+            }
+            while (ns != null);
+
+            return null;
+        }
+
         public IndifierInfo GetIndifierInfo(string name,string name_space="")
         {
             IndifierInfo info = new IndifierInfo();
@@ -362,7 +382,7 @@ namespace Metadata
                 //当前命名空间查找
                 foreach (var nsName in currentType.usingNamespace)
                 {
-                    DB_Type type = Finder.FindType(nsName+"."+name);
+                    DB_Type type = FindTypeInNamespace(name, nsName);
                     if (type != null)
                     {
                         info.is_type = true;
@@ -375,7 +395,7 @@ namespace Metadata
             //当前命名空间查找
             if (!string.IsNullOrEmpty(outNamespace))
             {
-                DB_Type type = Finder.FindType(outNamespace + "." + name);
+                DB_Type type = FindTypeInNamespace(name, outNamespace);
                 if (type != null)
                 {
                     info.is_type = true;
@@ -385,7 +405,7 @@ namespace Metadata
             }
             foreach (var nsName in usingNamespace)
             {
-                DB_Type type = Finder.FindType(nsName + "." + name);
+                DB_Type type = FindTypeInNamespace(name, nsName);
                 if (type != null)
                 {
                     info.is_type = true;
