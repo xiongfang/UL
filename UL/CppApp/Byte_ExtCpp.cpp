@@ -1,18 +1,18 @@
 #include "stdafx.h"
-#include "Byte.h"
-#include "Object.h"
-#include "String.h"
-#include "Boolean.h"
-#include "Int32.h"
-#include "Int64.h"
-#include "Single.h"
-#include "Double.h"
-#include "Int16.h"
-#include "SByte.h"
-#include "UInt16.h"
-#include "UInt32.h"
-#include "UInt64.h"
-#include "Exception.h"
+#include "System\Byte.h"
+#include "System\ValueType.h"
+#include "System\String.h"
+#include "System\Boolean.h"
+#include "System\Int32.h"
+#include "System\Int64.h"
+#include "System\Single.h"
+#include "System\Double.h"
+#include "System\Int16.h"
+#include "System\SByte.h"
+#include "System\UInt16.h"
+#include "System\UInt32.h"
+#include "System\UInt64.h"
+#include "System\Exception.h"
 
 
 //--------------²Ù×÷·ûÖØÔØ-------------------------------------------
@@ -103,7 +103,7 @@ System::Int16 System::Byte::Int16(System::Byte  v)
 
 System::Single System::Byte::Single(System::Byte  v)
 {
-	return System::Single(v._v);
+	return System::Single((System::Single::ValueType)v._v);
 }
 System::Double System::Byte::Double(System::Byte  v)
 {

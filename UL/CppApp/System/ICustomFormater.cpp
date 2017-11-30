@@ -1,0 +1,5 @@
+﻿#include "stdafx.h"
+#include "System\ICustomFormater.h"
+#include "System\String.h"
+#include "System\Object.h"
+#include "System\IFormatProvider.h"

@@ -37,6 +37,7 @@
     <Compile Include="Char.cs" />
     <Compile Include="Console.cs" />
     <Compile Include="Double.cs" />
+    <Compile Include="Enum.cs" />
     <Compile Include="Exception\ArgumentNullException.cs" />
     <Compile Include="Exception\Exception.cs" />
     <Compile Include="Exception\FormatException.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="UInt16.cs" />
     <Compile Include="UInt32.cs" />
     <Compile Include="UInt64.cs" />
+    <Compile Include="ValueType.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

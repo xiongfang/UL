@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="System">
+      <UniqueIdentifier>{325983bf-9a06-4b04-a236-d6ab86cc5629}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Reflection">
+      <UniqueIdentifier>{c601721c-b65f-452f-a530-c6f0bda79c78}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -24,97 +30,7 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Array.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Int32.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Object.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="String.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Console.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Int32_ExtHeader.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="String_ExtHeader.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Boolean.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="Boolean_ExtHeader.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="IComparable.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="MemberTypes.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Object_ExtCpp.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Int32_ExtCpp.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Double.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Exception.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Type.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="UInt16.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="UInt32.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="UInt64.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ArgumentNullException.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Attribute.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Byte.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Char.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Console_ExtCpp.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="FormatException.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ICustomFormater.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="IFormatProvider.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Int16.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Int64.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="SByte.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Single.h">
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="Byte_ExtHeader.h">
@@ -123,16 +39,43 @@
     <ClInclude Include="Char_ExtHeader.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Console_ExtCpp.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
     <ClInclude Include="Double_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HandleManager.h">
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="Int16_ExtHeader.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Int32_ExtCpp.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Int32_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
     <ClInclude Include="Int64_ExtHeader.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Object_ExtCpp.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Object_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Ref.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SByte_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
     <ClInclude Include="Single_ExtHeader.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="String_ExtHeader.h">
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="UInt16_ExtHeader.h">
@@ -144,138 +87,150 @@
     <ClInclude Include="UInt64_ExtHeader.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="SByte_ExtHeader.h">
-      <Filter>源文件</Filter>
+    <ClInclude Include="System\ArgumentNullException.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Number.h">
-      <Filter>源文件</Filter>
+    <ClInclude Include="System\Array.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Test.h">
-      <Filter>源文件</Filter>
+    <ClInclude Include="System\Attribute.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Object_ExtHeader.h">
-      <Filter>源文件</Filter>
+    <ClInclude Include="System\Boolean.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="HandleManager.h">
-      <Filter>源文件</Filter>
+    <ClInclude Include="System\Byte.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Ref.h">
-      <Filter>源文件</Filter>
+    <ClInclude Include="System\Char.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="MemberFilter.h">
-      <Filter>源文件</Filter>
+    <ClInclude Include="System\Console.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="MemberInfo.h">
-      <Filter>源文件</Filter>
+    <ClInclude Include="System\Double.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="TypeFilter.h">
+    <ClInclude Include="System\Enum.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Exception.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\FormatException.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\IComparable.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\ICustomFormater.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\IFormatProvider.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Int16.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Int32.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Int64.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Object.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\SByte.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Single.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\String.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\t_Array.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\t_ArrayT.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Test.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\TestDel.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Type.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\UInt16.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\UInt32.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\UInt64.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\ValueType.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Reflection\BindingFlags.h">
+      <Filter>System\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Reflection\MemberFilter.h">
+      <Filter>System\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Reflection\MemberInfo.h">
+      <Filter>System\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Reflection\MemberTypes.h">
+      <Filter>System\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Reflection\TypeFilter.h">
+      <Filter>System\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="Enum_Ext.h">
       <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="CppApp.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Int32.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="String.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Console.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Boolean.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="IComparable.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Exception.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Type.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="UInt16.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="UInt32.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="UInt64.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ArgumentNullException.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Attribute.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Byte.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Char.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Double.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="FormatException.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ICustomFormater.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="IFormatProvider.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Int16.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Int64.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SByte.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Single.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="System.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Platform_Windows.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Test.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Int16_ExtCpp.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Boolean_ExtCpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Byte_ExtCpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CppApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="Double_ExtCpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Single_ExtCpp.cpp">
+    <ClCompile Include="Int16_ExtCpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Int64_ExtCpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Platform_Windows.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="SByte_ExtCpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Single_ExtCpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="String_ExtCpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="System.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="UInt16_ExtCpp.cpp">
@@ -287,16 +242,100 @@
     <ClCompile Include="UInt64_ExtCpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="String_ExtCpp.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="System\ArgumentNullException.cpp">
+      <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="MemberFilter.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="System\Array.cpp">
+      <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="MemberInfo.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="System\Attribute.cpp">
+      <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="TypeFilter.cpp">
+    <ClCompile Include="System\Boolean.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Byte.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Char.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Console.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Double.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Enum.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Exception.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\FormatException.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\IComparable.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\ICustomFormater.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\IFormatProvider.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Int16.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Int32.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Int64.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Object.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\SByte.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Single.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\String.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Test.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\TestDel.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Type.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\UInt16.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\UInt32.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\UInt64.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\ValueType.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Reflection\MemberFilter.cpp">
+      <Filter>System\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Reflection\MemberInfo.cpp">
+      <Filter>System\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Reflection\TypeFilter.cpp">
+      <Filter>System\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="Enum_Ext.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

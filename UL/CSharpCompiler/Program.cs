@@ -346,13 +346,13 @@ namespace CSharpCompiler
                 List<Metadata.Expression.TypeSyntax> parameters = new List<Metadata.Expression.TypeSyntax>();
                 parameters.Add(elementType);
                 Metadata.Expression.GenericNameSyntax gns = new Metadata.Expression.GenericNameSyntax();
-                gns.Name = "Array";
+                gns.Name = "ArrayT";
                 gns.Arguments = parameters;
                 //Metadata.Expression.QualifiedNameSyntax qns = new Metadata.Expression.QualifiedNameSyntax();
                 //qns.Left = new Metadata.Expression.IdentifierNameSyntax() { Identifier = "System" };
                 //qns.Right = gns;
                 gns.name_space = "System";
-                Metadata.DB_Type arrayType = Model.GetType("System.Array[1]");
+                //Metadata.DB_Type arrayType = Model.GetType("System.ArrayT[1]");
                 return gns;
             }
             else if (typeSyntax is IdentifierNameSyntax)
@@ -883,10 +883,6 @@ namespace CSharpCompiler
                         }
                     }
                 }
-                else
-                {
-
-                }
 
                 //Metadata.DB.SaveDBType(type, _con, _trans);
                 Model.AddCompilerType(type);
@@ -902,8 +898,7 @@ namespace CSharpCompiler
 
                 Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
 
-                //if (type.full_name != "System.Object" && type.base_type.IsVoid)
-                //    type.base_type = Model.GetType("System.Object").GetRefType();
+                type.base_type = Model.GetType("System.Enum").GetRefType();
 
                 //父类
                 if (c.BaseList != null)
@@ -1033,8 +1028,6 @@ namespace CSharpCompiler
 
                 Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
 
-                //if (type.full_name != "System.Object" && type.base_type.IsVoid)
-                //    type.base_type = Model.GetType("System.Object").GetRefType();
 
                 //父类
                 if (c.BaseList != null)
@@ -1160,8 +1153,7 @@ namespace CSharpCompiler
 
                 Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
 
-                if (type.static_full_name != "System.Object" && type.base_type.IsVoid)
-                    type.base_type = Model.GetType("System.Object").GetRefType();
+                type.base_type = Model.GetType("System.ValueType").GetRefType();
 
                 //父类
                 if (c.BaseList != null)

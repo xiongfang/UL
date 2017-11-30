@@ -1,18 +1,18 @@
 #include "stdafx.h"
-#include "Int64.h"
-#include "Object.h"
-#include "String.h"
-#include "Boolean.h"
-#include "Int32.h"
-#include "Int16.h"
-#include "Single.h"
-#include "Double.h"
-#include "Byte.h"
-#include "SByte.h"
-#include "UInt16.h"
-#include "UInt32.h"
-#include "UInt64.h"
-#include "Exception.h"
+#include "System\Int64.h"
+#include "System\ValueType.h"
+#include "System\String.h"
+#include "System\Boolean.h"
+#include "System\Int32.h"
+#include "System\Int16.h"
+#include "System\Single.h"
+#include "System\Double.h"
+#include "System\Byte.h"
+#include "System\SByte.h"
+#include "System\UInt16.h"
+#include "System\UInt32.h"
+#include "System\UInt64.h"
+#include "System\Exception.h"
 
 
 //--------------²Ù×÷·ûÖØÔØ-------------------------------------------
@@ -92,40 +92,40 @@ System::Int64 System::Int64::op_UnaryNegation(Int64 a)
 
 System::Byte System::Int64::Byte(Int64 a)
 {
-	return System::Byte(a._v);
+	return System::Byte((System::Byte::ValueType)a._v);
 }
 
 
 System::Int16 System::Int64::Int16(System::Int64  v)
 {
-	return System::Int16(v._v);
+	return System::Int16((System::Int16::ValueType)v._v);
 }
 
 System::Single System::Int64::Single(System::Int64  v)
 {
-	return System::Single(v._v);
+	return System::Single((System::Single::ValueType)v._v);
 }
 System::Double System::Int64::Double(System::Int64  v)
 {
-	return System::Double(v._v);
+	return System::Double((System::Double::ValueType)v._v);
 }
 System::Int32 System::Int64::Int32(System::Int64  v)
 {
-	return System::Int32(v._v);
+	return System::Int32((System::Int32::ValueType)v._v);
 }
 System::SByte System::Int64::SByte(System::Int64  v)
 {
-	return System::SByte(v._v);
+	return System::SByte((System::SByte::ValueType)v._v);
 }
 System::UInt16 System::Int64::UInt16(System::Int64  v)
 {
-	return System::UInt16(v._v);
+	return System::UInt16((System::UInt16::ValueType)v._v);
 }
 System::UInt32 System::Int64::UInt32(System::Int64  v)
 {
-	return System::UInt32(v._v);
+	return System::UInt32((System::UInt32::ValueType)v._v);
 }
 System::UInt64 System::Int64::UInt64(System::Int64  v)
 {
-	return System::UInt64(v._v);
+	return System::UInt64((System::UInt64::ValueType)v._v);
 }

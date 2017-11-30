@@ -1,5 +1,0 @@
-﻿#include "stdafx.h"
-#include "TestDel.h"
-#include "Object.h"
-#include "Boolean.h"
-#include "String.h"

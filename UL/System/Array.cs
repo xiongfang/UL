@@ -1,10 +1,11 @@
 ﻿namespace System
 {
-    public class Array<T>
+    public class Array
     {
-        public Array(int len)
-        {
-            
-        }
+    }
+
+    public class ArrayT<T>:Array
+    {
+        public ArrayT(int len) { }
     }
 }

@@ -1,9 +1,9 @@
 ﻿#include "stdafx.h"
-#include "String.h"
-#include "Object.h"
-#include "Int32.h"
-#include "Char.h"
-#include "Array.h"
+#include "System\String.h"
+#include "System\Object.h"
+#include "System\Int32.h"
+#include "System\Char.h"
+#include "System\t_ArrayT.h"
 
 
 using namespace System;

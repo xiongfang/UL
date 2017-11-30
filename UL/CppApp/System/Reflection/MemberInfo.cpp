@@ -1,0 +1,6 @@
+﻿#include "stdafx.h"
+#include "System\Reflection\MemberInfo.h"
+#include "System\Object.h"
+#include "System\Reflection\MemberTypes.h"
+#include "System\String.h"
+#include "System\Type.h"

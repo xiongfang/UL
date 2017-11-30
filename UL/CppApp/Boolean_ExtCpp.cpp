@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "Boolean.h"
-#include "Object.h"
-#include "String.h"
-#include "ArgumentNullException.h"
-#include "FormatException.h"
-#include "Exception.h"
+#include "System\Boolean.h"
+#include "System\ValueType.h"
+#include "System\String.h"
+#include "System\ArgumentNullException.h"
+#include "System\FormatException.h"
+#include "System\Exception.h"
 
 System::Boolean System::Boolean::op_LogicNot(System::Boolean  a)
 {

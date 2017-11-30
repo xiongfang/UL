@@ -2,13 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "Console.h"
-#include "String.h"
-#include "Char.h"
-#include "Single.h"
-#include "Int32.h"
-#include "Boolean.h"
-#include "Test.h"
+#include "System/Test.h"
 #include <locale.h>
 
 using namespace System;

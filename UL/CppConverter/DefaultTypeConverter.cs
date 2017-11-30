@@ -102,7 +102,7 @@ namespace CppConverter
                                 {
                                     if (depType.is_enum)
                                     {
-                                        sb.AppendLine("enum " + depType.name + ";");
+                                        sb.AppendLine("struct " + depType.name + ";");
                                     }
                                     else
                                     {
@@ -145,12 +145,12 @@ namespace CppConverter
                     }
 
                     depth++;
-                    if (type.is_enum)
-                    {
-                        Append(string.Format("enum {0}", type.name));
-                    }
-                    else
-                    {
+                    //if (type.is_enum)
+                    //{
+                    //    Append(string.Format("enum {0}", type.name));
+                    //}
+                    //else
+                    //{
                         if (type.is_generic_type_definition)
                         {
                             Append("template<");
@@ -188,7 +188,7 @@ namespace CppConverter
                             }
                             sb.AppendLine();
                         }
-                    }
+                    //}
 
                     AppendLine("{");
                     {
@@ -196,15 +196,15 @@ namespace CppConverter
 
                         if (type.is_enum)
                         {
-                            List<Metadata.DB_Member> members = type.members.Values.ToList();
-                            members.Sort((a, b) => { return a.order <= b.order ? -1 : 1; });
-                            for (int i = 0; i < members.Count; i++)
-                            {
-                                Append(members[i].name);
-                                if (i < members.Count - 1)
-                                    sb.Append(",");
-                                sb.AppendLine();
-                            }
+                            //List<Metadata.DB_Member> members = type.members.Values.ToList();
+                            //members.Sort((a, b) => { return a.order <= b.order ? -1 : 1; });
+                            //for (int i = 0; i < members.Count; i++)
+                            //{
+                            //    Append(members[i].name);
+                            //    if (i < members.Count - 1)
+                            //        sb.Append(",");
+                            //    sb.AppendLine();
+                            //}
                         }
                         else
                         {
@@ -329,7 +329,45 @@ namespace CppConverter
                     return tc.header_path;
             }
 
-            return type.name + ".h";
+
+            string[] ns_list = type._namespace.Split('.');
+            string path = System.IO.Path.Combine(ns_list);
+            if(type.is_generic_type_definition)
+            {
+                return System.IO.Path.Combine(path, "t_" +type.name + ".h");
+            }
+
+            return System.IO.Path.Combine(path, type.name + ".h");
+        }
+
+        public string GetTypeCppFileName(Metadata.DB_Type type)
+        {
+            string[] ns_list = type._namespace.Split('.');
+            string path = System.IO.Path.Combine(ns_list);
+            if (type.is_generic_type_definition)
+            {
+                return System.IO.Path.Combine(path, "t_" + type.name + ".cpp");
+            }
+
+            return System.IO.Path.Combine(path, type.name + ".cpp");
+        }
+
+        void WriteFile(string path,Metadata.DB_Type type, string content)
+        {
+            string dir = System.IO.Path.GetDirectoryName(path);
+            if (!System.IO.Directory.Exists(dir))
+            {
+                System.IO.Directory.CreateDirectory(dir);
+            }
+
+            if(System.IO.File.Exists(path))
+            {
+                if (System.IO.File.ReadAllText(path, Encoding.UTF8) == content)
+                    return;
+            }
+
+            System.IO.File.WriteAllText(path, content, Encoding.UTF8);
+
         }
 
         public void ConvertType(Metadata.DB_Type type)
@@ -343,14 +381,15 @@ namespace CppConverter
                 if (tc.ConvertTypeHeader(Converter, type, out content))
                 {
                     sb.Append(content);
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString(),Encoding.UTF8);
+
+                    WriteFile(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), type, sb.ToString());
                 }
 
                 sb.Clear();
                 if (tc.ConvertTypeCpp(Converter, type, out content))
                 {
                     sb.Append(content);
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString(), Encoding.UTF8);
+                    WriteFile(System.IO.Path.Combine(outputDir, GetTypeCppFileName(type)), type, sb.ToString());
                 }
             }
             else
@@ -358,13 +397,14 @@ namespace CppConverter
                 sb.Clear();
                 ConvertTypeHeader(type);
                 //sb.Append(ConvertTypeHeader(type));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString(), Encoding.UTF8);
-
+                //System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString(), Encoding.UTF8);
+                WriteFile(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), type, sb.ToString());
 
                 sb.Clear();
                 if(ConvertTypeCpp(type))
                 {
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString(), Encoding.UTF8);
+                    WriteFile(System.IO.Path.Combine(outputDir, GetTypeCppFileName(type)), type, sb.ToString());
+                    //System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, type.name + ".cpp"), sb.ToString(), Encoding.UTF8);
                 }
             }
         }
