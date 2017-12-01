@@ -176,18 +176,7 @@ namespace CppConverter
                     }
                 }
             }
-            public bool VisitMember(Metadata.DB_Type type, Metadata.DB_Member member)
-            {
-                return false;
-            }
-            public void VisitStatement(Metadata.DB_Type type, Metadata.DB_Member member, Metadata.DB_StatementSyntax statement)
-            {
-
-            }
-            public void VisitExp(Metadata.DB_Type type, Metadata.DB_Member member, Metadata.DB_StatementSyntax statement, Metadata.Expression.Exp exp)
-            {
-
-            }
+            public Metadata.IMemberVisitor GetMemberVisitor() { return null; }
         }
         //返回一个类型的不可以声明的类型
         public HashSet<string> GetTypeDependencesNoDeclareType(Metadata.DB_Type type)
@@ -195,7 +184,7 @@ namespace CppConverter
             Metadata.Model model = new Metadata.Model(new DataBaseFinder(_con));
 
             MyCppHeaderTypeNoDeclareFinder f = new MyCppHeaderTypeNoDeclareFinder(model);
-            model.Visit(type, f);
+            model.Accept(type, f);
 
             HashSet<string> set = new HashSet<string>();
             foreach (var s in f.result)
@@ -237,7 +226,7 @@ namespace CppConverter
             Metadata.Model model = new Metadata.Model(new DataBaseFinder(_con));
 
             Metadata.MyCppHeaderTypeFinder f = new Metadata.MyCppHeaderTypeFinder(model);
-            model.Visit(type, f);
+            model.Accept(type, f);
 
             HashSet<string> set = new HashSet<string>();
             foreach (var s in f.result)
@@ -259,7 +248,7 @@ namespace CppConverter
             Metadata.Model model = new Metadata.Model(new DataBaseFinder(_con));
 
             Metadata.MyCppMethodBodyTypeFinder f = new Metadata.MyCppMethodBodyTypeFinder(model);
-            model.Visit(type, f);
+            model.Accept(type, f);
 
             HashSet<string> set = new HashSet<string>();
             foreach (var s in f.typeRef)

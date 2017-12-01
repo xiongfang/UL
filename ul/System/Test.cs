@@ -36,16 +36,16 @@ namespace System
             Console.WriteLine(v.Length);
         }
 
-        //static void TestDel()
-        //{
-        //    TestDel v = TestDel;
-        //    v("测试委托");
-        //}
+        static void TestDel()
+        {
+            TestDel v = TestDel;
+            v("测试委托");
+        }
 
-        //static bool TestDel(string v)
-        //{
-        //    Console.WriteLine(v);
-        //    return true;
-        //}
+        static bool TestDel(string v)
+        {
+            Console.WriteLine(v);
+            return true;
+        }
     }
 }

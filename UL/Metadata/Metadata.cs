@@ -825,9 +825,9 @@ namespace Metadata
         public class MethodExp : Exp
         {
             //调用函数的对象，或者类，如果为null，表示创建Name类型的对象
-            public Exp Caller;
+            public Exp Expression;
             //调用的函数名
-            public string Name;
+            //public string Name;
 
             //调用的参数
             public List<Exp> Args = new List<Exp>();
@@ -876,11 +876,11 @@ namespace Metadata
         {
             public Exp exp;
         }
-        
+
 
 
         [JsonConverter(typeof(JsonConverterType<TypeSyntax>))]
-        public abstract class TypeSyntax : Exp
+        public abstract class TypeSyntax : DB_Syntax
         {
             public string name_space = "";
             public string Name = "";
@@ -895,7 +895,7 @@ namespace Metadata
             {
                 get
                 {
-                    return new IdentifierNameSyntax() { Name = "void",name_space = "System" };
+                    return new IdentifierNameSyntax() { Name = "void", name_space = "System" };
                 }
             }
 
@@ -945,13 +945,13 @@ namespace Metadata
         //{
         //    public string Name = "";
 
-            
+
         //}
 
         [JsonConverter(typeof(JsonConverterType<IdentifierNameSyntax>))]
-        public class IdentifierNameSyntax: TypeSyntax
+        public class IdentifierNameSyntax : TypeSyntax
         {
-            
+
             public override bool Equals(object obj)
             {
                 if (System.Object.ReferenceEquals(obj, null) && this.IsVoid)
@@ -986,7 +986,7 @@ namespace Metadata
         }
 
         [JsonConverter(typeof(JsonConverterType<GenericParameterSyntax>))]
-        public class GenericParameterSyntax:TypeSyntax
+        public class GenericParameterSyntax : TypeSyntax
         {
             public string declare_type;
             public override int GetHashCode()
@@ -1019,7 +1019,7 @@ namespace Metadata
         }
 
         [JsonConverter(typeof(JsonConverterType<GenericNameSyntax>))]
-        public class GenericNameSyntax: TypeSyntax
+        public class GenericNameSyntax : TypeSyntax
         {
             public List<TypeSyntax> Arguments = new List<TypeSyntax>();
 

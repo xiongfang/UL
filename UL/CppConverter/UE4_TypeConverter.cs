@@ -793,80 +793,80 @@ namespace CppConverter
             }
 
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(ExpressionToString(es.Caller));
+            //stringBuilder.Append(ExpressionToString(es.Caller));
 
-            Metadata.DB_Type caller_type = null;
+            //Metadata.DB_Type caller_type = null;
 
-            if (es.Caller is Metadata.Expression.IndifierExp)
-            {
-                Metadata.Expression.IndifierExp ie = es.Caller as Metadata.Expression.IndifierExp;
-                Metadata.Model.IndifierInfo ii = Model.GetIndifierInfo(ie.Name);
-                caller_type = ii.type;
-                if (ii.is_namespace || ii.is_type)
-                {
-                    stringBuilder.Append("::");
-                }
-                else if (caller_type.is_class)
-                {
-                    stringBuilder.Append("->");
-                }
-                else
-                {
-                    stringBuilder.Append(".");
-                }
-            }
-            else if (es.Caller is Metadata.Expression.BaseExp)
-            {
-                stringBuilder.Append("::");
-                caller_type = Model.GetExpType(es.Caller);
-            }
-            else if(es.Caller is Metadata.Expression.ThisExp)
-            {
-                stringBuilder.Append("->");
-                caller_type = Model.GetExpType(es.Caller);
-            }
-            else
-            {
-                caller_type = Model.GetExpType(es.Caller);
-                if (caller_type.is_class)
-                {
-                    stringBuilder.Append("->");
-                }
-                else
-                {
-                    stringBuilder.Append(".");
-                }
-            }
+            //if (es.Caller is Metadata.Expression.IndifierExp)
+            //{
+            //    Metadata.Expression.IndifierExp ie = es.Caller as Metadata.Expression.IndifierExp;
+            //    Metadata.Model.IndifierInfo ii = Model.GetIndifierInfo(ie.Name);
+            //    caller_type = ii.type;
+            //    if (ii.is_namespace || ii.is_type)
+            //    {
+            //        stringBuilder.Append("::");
+            //    }
+            //    else if (caller_type.is_class)
+            //    {
+            //        stringBuilder.Append("->");
+            //    }
+            //    else
+            //    {
+            //        stringBuilder.Append(".");
+            //    }
+            //}
+            //else if (es.Caller is Metadata.Expression.BaseExp)
+            //{
+            //    stringBuilder.Append("::");
+            //    caller_type = Model.GetExpType(es.Caller);
+            //}
+            //else if(es.Caller is Metadata.Expression.ThisExp)
+            //{
+            //    stringBuilder.Append("->");
+            //    caller_type = Model.GetExpType(es.Caller);
+            //}
+            //else
+            //{
+            //    caller_type = Model.GetExpType(es.Caller);
+            //    if (caller_type.is_class)
+            //    {
+            //        stringBuilder.Append("->");
+            //    }
+            //    else
+            //    {
+            //        stringBuilder.Append(".");
+            //    }
+            //}
 
-            List<Metadata.DB_Type> args = new List<Metadata.DB_Type>();
-            for (int i = 0; i < es.Args.Count; i++)
-            {
-                args.Add(Model.GetExpType(es.Args[i]));
-            }
+            //List<Metadata.DB_Type> args = new List<Metadata.DB_Type>();
+            //for (int i = 0; i < es.Args.Count; i++)
+            //{
+            //    args.Add(Model.GetExpType(es.Args[i]));
+            //}
 
-            Metadata.DB_Member method = caller_type.FindMethod(es.Name, args, Model);
+            //Metadata.DB_Member method = caller_type.FindMethod(es.Name, args, Model);
 
-            stringBuilder.Append(es.Name);
-            stringBuilder.Append("(");
-            if (es.Args != null)
-            {
-                for (int i = 0; i < es.Args.Count; i++)
-                {
-                    Metadata.DB_Type arg_type = args[i];
-                    if (es.Args[i] is Metadata.Expression.ThisExp)
-                    {
-                        if(arg_type.is_value_type)
-                        {
-                            stringBuilder.Append("*");
-                        }
-                    }
-                    stringBuilder.Append(ExpressionToString(es.Args[i]));
+            //stringBuilder.Append(es.Name);
+            //stringBuilder.Append("(");
+            //if (es.Args != null)
+            //{
+            //    for (int i = 0; i < es.Args.Count; i++)
+            //    {
+            //        Metadata.DB_Type arg_type = args[i];
+            //        if (es.Args[i] is Metadata.Expression.ThisExp)
+            //        {
+            //            if(arg_type.is_value_type)
+            //            {
+            //                stringBuilder.Append("*");
+            //            }
+            //        }
+            //        stringBuilder.Append(ExpressionToString(es.Args[i]));
 
-                    if (i < es.Args.Count - 2)
-                        stringBuilder.Append(",");
-                }
-            }
-            stringBuilder.Append(")");
+            //        if (i < es.Args.Count - 2)
+            //            stringBuilder.Append(",");
+            //    }
+            //}
+            //stringBuilder.Append(")");
 
             return stringBuilder.ToString();
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Metadata.Expression;
 
 namespace Metadata
 {
@@ -16,16 +17,9 @@ namespace Metadata
     }
 
 
-    public interface ITypeVisitor
-    {
-        void VisitType(DB_Type type);
-        bool VisitMember(DB_Type type, DB_Member member);
-        //返回是否访问子语句以及表达式
-        void VisitStatement(DB_Type type, DB_Member member, DB_StatementSyntax statement);
-        void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.Exp exp);
-    }
 
-    public class Model
+
+    public partial class Model
     {
         public IModelTypeFinder Finder;
 
@@ -106,29 +100,6 @@ namespace Metadata
         }
 
 
-
-
-
-
-
-
-
-
-
-        ////查找指定的命名空间的所有类型
-        //public static Dictionary<string, Metadata.DB_Type> FindNamespace(string ns)
-        //{
-        //    Dictionary<string, Metadata.DB_Type> rt = new Dictionary<string, Metadata.DB_Type>();
-
-
-        //    foreach (var v in types.Select(a => { if (a.Value._namespace == ns) return a.Value; return null; }))
-        //    {
-        //        if (v != null)
-        //            rt.Add(v.unique_name, v);
-        //    }
-        //    return rt;
-        //}
-
         public Metadata.DB_Type GetType(string full_name)
         {
             return Finder.FindType(full_name);
@@ -139,7 +110,7 @@ namespace Metadata
             return Finder.FindType(typeRef);
         }
 
-        public DB_Type GetExpType(Expression.Exp exp)
+        public DB_Type GetExpType(Expression.Exp exp, Expression.Exp outer=null)
         {
             if (exp is Metadata.Expression.ConstExp)
             {
@@ -188,53 +159,62 @@ namespace Metadata
                 return GetType("System.String");
             }
 
-            if (exp is Metadata.Expression.FieldExp)
+            else if (exp is Metadata.Expression.FieldExp)
             {
                 Metadata.Expression.FieldExp e = exp as Metadata.Expression.FieldExp;
                 Metadata.DB_Type caller_type = GetExpType(e.Caller);
-                DB_Member field = caller_type.FindField(e.Name, this);
-                if (field == null)
-                    field = caller_type.FindProperty(e.Name, this);
-                return GetType(field.typeName);
+
+                if(outer is MethodExp)
+                {
+                    MethodExp methodExp = outer as MethodExp;
+                    List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                    foreach (var t in methodExp.Args)
+                    {
+                        argTypes.Add(GetExpType(t));
+                    }
+                    Metadata.DB_Member member = caller_type.FindMethod(e.Name, argTypes, this);
+                    return GetType(member.typeName);
+                }
+                else
+                {
+                    DB_Member field = caller_type.FindField(e.Name, this);
+                    if (field == null)
+                        field = caller_type.FindProperty(e.Name, this);
+                    return GetType(field.typeName);
+                }
             }
 
-            if (exp is Metadata.Expression.IndifierExp)
+            else if (exp is Metadata.Expression.IndifierExp)
             {
                 Metadata.Expression.IndifierExp e = exp as Metadata.Expression.IndifierExp;
                 return GetIndifierInfo(e.Name).type;
             }
 
-            if (exp is Metadata.Expression.MethodExp)
+            else if (exp is Metadata.Expression.MethodExp)
             {
                 Metadata.Expression.MethodExp me = exp as Metadata.Expression.MethodExp;
                 //Metadata.Expression.FieldExp e = me.Caller as Metadata.Expression.FieldExp;
-                Metadata.DB_Type caller_type = GetExpType(me.Caller);
-                List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
-                foreach (var t in me.Args)
-                {
-                    argTypes.Add(GetExpType(t));
-                }
-                Metadata.DB_Member member = caller_type.FindMethod(me.Name, argTypes,this);
-                return GetType(member.typeName);
+                Metadata.DB_Type caller_type = GetExpType(me.Expression,me);
+                return caller_type;
             }
 
-            if (exp is Metadata.Expression.ObjectCreateExp)
+            else if (exp is Metadata.Expression.ObjectCreateExp)
             {
                 Metadata.Expression.ObjectCreateExp e = exp as Metadata.Expression.ObjectCreateExp;
                 return GetType(e.Type);
             }
 
-            if(exp is Metadata.Expression.BaseExp)
+            else if (exp is Metadata.Expression.BaseExp)
             {
                 return GetType(currentType.base_type);
             }
 
-            if(exp is Metadata.Expression.ThisExp)
+            else if (exp is Metadata.Expression.ThisExp)
             {
                 return currentType;
             }
 
-            if(exp is Metadata.Expression.BinaryExpressionSyntax)
+            else if (exp is Metadata.Expression.BinaryExpressionSyntax)
             {
                 Metadata.Expression.BinaryExpressionSyntax me = exp as Metadata.Expression.BinaryExpressionSyntax;
                 Metadata.DB_Type caller_type = GetExpType(me.Left);
@@ -245,7 +225,7 @@ namespace Metadata
                 return GetType(member.typeName);
             }
 
-            if(exp is Metadata.Expression.PostfixUnaryExpressionSyntax)
+            else if (exp is Metadata.Expression.PostfixUnaryExpressionSyntax)
             {
                 Metadata.Expression.PostfixUnaryExpressionSyntax me = exp as Metadata.Expression.PostfixUnaryExpressionSyntax;
                 Metadata.DB_Type caller_type = GetExpType(me.Operand);
@@ -256,7 +236,7 @@ namespace Metadata
                 return GetType(member.typeName);
             }
 
-            if (exp is Metadata.Expression.PrefixUnaryExpressionSyntax)
+            else if (exp is Metadata.Expression.PrefixUnaryExpressionSyntax)
             {
                 Metadata.Expression.PrefixUnaryExpressionSyntax me = exp as Metadata.Expression.PrefixUnaryExpressionSyntax;
                 Metadata.DB_Type caller_type = GetExpType(me.Operand);
@@ -267,13 +247,15 @@ namespace Metadata
                 return GetType(member.typeName);
             }
 
-            if(exp is Metadata.Expression.ParenthesizedExpressionSyntax)
+            else if (exp is Metadata.Expression.ParenthesizedExpressionSyntax)
             {
                 Metadata.Expression.ParenthesizedExpressionSyntax pes = exp as Metadata.Expression.ParenthesizedExpressionSyntax;
                 return GetExpType(pes.exp);
             }
-
-            Console.Error.WriteLine("无法确定表达式类型 "+exp.JsonType);
+            else
+            {
+                Console.Error.WriteLine("无法确定表达式类型 " + exp.JsonType);
+            }
             return null;
         }
 
@@ -287,6 +269,7 @@ namespace Metadata
             public bool is_method_type_parameter;
             public Metadata.DB_Type type;
         }
+
 
 
         public DB_Type FindTypeInNamespace(string name,string ns)
@@ -417,248 +400,9 @@ namespace Metadata
 
             return null;
         }
-
-        //public static Metadata.DB_Type FindVariable(string name)
-        //{
-        //    //查找本地变量
-        //    foreach (var v in stackLocalVariables)
-        //    {
-        //        if (v.ContainsKey(name))
-        //            return v[name];
-        //    }
-
-        //    //查找成员变量
-        //    if (currentType != null)
-        //    {
-        //        if (currentType.members.ContainsKey(name))
-        //            return Finder.FindType(currentType.members[name].typeName);
-        //        //查找泛型
-        //        if (currentType.is_generic_type_definition)
-        //        {
-        //            foreach (var gd in currentType.generic_parameter_definitions)
-        //            {
-        //                if (gd.type_name == name)
-        //                {
-        //                    return Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    //当前命名空间查找
-        //    if(!string.IsNullOrEmpty(outNamespace))
-        //    {
-        //        Dictionary<string, Metadata.DB_Type> nsTypes = Finder.FindNamespace(outNamespace);
-        //        if (nsTypes != null && nsTypes.ContainsKey(name))
-        //            return nsTypes[name];
-        //    }
-
-        //    //当前命名空间查找
-        //    foreach (var nsName in usingNamespace)
-        //    {
-        //        Dictionary<string, Metadata.DB_Type> nsTypes = Finder.FindNamespace(nsName);
-        //        if (nsTypes != null && nsTypes.ContainsKey(name))
-        //            return nsTypes[name];
-        //    }
-
-        //    return null;
-        //}
-
-        public void Visit(DB_Type type,ITypeVisitor visitor)
-        {
-            StartUsing(type.usingNamespace);
-            EnterNamespace(type._namespace);
-            EnterType(type);
-            visitor.VisitType(type);
-            foreach(var m in type.members)
-            {
-                if(m.Value.member_type == (int)MemberTypes.Method)
-                {
-                    EnterMethod(m.Value);
-                }
-                
-                if(visitor.VisitMember(type, m.Value))
-                {
-                    if (m.Value.method_body != null)
-                    {
-                        VisitStatement(type, visitor, m.Value, m.Value.method_body);
-                    }
-                }
-                if (m.Value.member_type == (int)MemberTypes.Method)
-                {
-                    LeaveMethod();
-                }
-            }
-            LeaveType();
-            LeaveNamespace();
-            ClearUsing();
-        }
-
-        void VisitStatement(DB_Type type, ITypeVisitor visitor,DB_Member method,DB_StatementSyntax statement)
-        {
-            visitor.VisitStatement(type, method, statement);
-            if (statement is DB_BlockSyntax)
-            {
-                EnterBlock();
-                DB_BlockSyntax bs = statement as DB_BlockSyntax;
-                foreach(var s in bs.List)
-                {
-                    VisitStatement(type, visitor, method, s);
-                }
-                LeaveBlock();
-            }
-            else if(statement is DB_IfStatementSyntax)
-            {
-                DB_IfStatementSyntax ss = statement as DB_IfStatementSyntax;
-                VisitExp(type, visitor, method, statement, ss.Condition);
-                VisitStatement(type, visitor, method, ss.Statement);
-                if(ss.Else!=null)
-                {
-                    VisitStatement(type, visitor, method, ss.Else);
-                }
-            }
-            else if(statement is DB_ForStatementSyntax)
-            {
-                EnterBlock();
-                DB_ForStatementSyntax ss = statement as DB_ForStatementSyntax;
-                if(ss.Declaration!=null)
-                {
-                    VisitDeclareVairable(type, visitor, method, statement, ss.Declaration);
-                }
-                VisitExp(type, visitor, method, statement, ss.Condition);
-                foreach(var inc in ss.Incrementors)
-                    VisitExp(type, visitor, method, statement, inc);
-
-                VisitStatement(type, visitor, method, ss.Statement);
-
-                LeaveBlock();
-            }
-            else if(statement is DB_LocalDeclarationStatementSyntax)
-            {
-                DB_LocalDeclarationStatementSyntax ss = statement as DB_LocalDeclarationStatementSyntax;
-                VisitDeclareVairable(type, visitor, method, statement, ss.Declaration);
-            }
-            else if(statement is DB_DoStatementSyntax)
-            {
-                DB_DoStatementSyntax ss = statement as DB_DoStatementSyntax;
-                VisitExp(type, visitor, method, statement, ss.Condition);
-                VisitStatement(type, visitor, method, ss.Statement);
-            }
-            else if(statement is DB_ExpressionStatementSyntax)
-            {
-                DB_ExpressionStatementSyntax ss = statement as DB_ExpressionStatementSyntax;
-                VisitExp(type, visitor, method, statement, ss.Exp);
-            }
-            else if(statement is DB_SwitchStatementSyntax)
-            {
-                DB_SwitchStatementSyntax ss = statement as DB_SwitchStatementSyntax;
-                VisitExp(type, visitor, method, statement, ss.Expression);
-                EnterBlock();
-                foreach(var sec in ss.Sections)
-                {
-                    foreach(var l in sec.Labels)
-                    {
-                        VisitExp(type, visitor, method, statement, l);
-                    }
-                    foreach (var s in sec.Statements)
-                    {
-                        VisitStatement(type, visitor, method, s);
-                    }
-                }
-                LeaveBlock();
-            }
-            else if(statement is DB_WhileStatementSyntax)
-            {
-                DB_WhileStatementSyntax ss = statement as DB_WhileStatementSyntax;
-                VisitExp(type, visitor, method, statement, ss.Condition);
-                VisitStatement(type, visitor, method, ss.Statement);
-            }
-            else if(statement is DB_TryStatementSyntax)
-            {
-                DB_TryStatementSyntax ss = statement as DB_TryStatementSyntax;
-                VisitStatement(type, visitor, method, ss.Block);
-                foreach(var c in ss.Catches)
-                {
-                    VisitExp(type, visitor, method, statement, c.Type);
-                    VisitStatement(type, visitor, method, c.Block);
-                }
-                if(ss.Finally!=null)
-                   VisitStatement(type, visitor, method, ss.Finally.Block);
-            }
-            else if(statement is DB_ThrowStatementSyntax)
-            {
-                DB_ThrowStatementSyntax ss = statement as DB_ThrowStatementSyntax;
-                VisitExp(type, visitor, method,ss , ss.Expression);
-            }
-            else if(statement is DB_ReturnStatementSyntax)
-            {
-                DB_ReturnStatementSyntax ss = statement as DB_ReturnStatementSyntax;
-                if(ss.Expression!=null)
-                {
-                    VisitExp(type, visitor, method, ss, ss.Expression);
-                }
-            }
-            else
-            {
-                throw new NotSupportedException("不支持的语句 "+ statement.JsonType);
-            }
-        }
-
-        void VisitExp(DB_Type type, ITypeVisitor visitor, DB_Member method, DB_StatementSyntax statement,Expression.Exp exp)
-        {
-            visitor.VisitExp(type, method, statement, exp);
-            if (exp is Expression.IndifierExp)
-            {
-            }
-            else if (exp is Expression.FieldExp)
-            {
-                Expression.FieldExp e = exp as Expression.FieldExp;
-                VisitExp(type, visitor, method, statement, e.Caller);
-            }
-            else if (exp is Expression.ObjectCreateExp)
-            {
-                Expression.ObjectCreateExp e = exp as Expression.ObjectCreateExp;
-                foreach (var a in e.Args)
-                {
-                    VisitExp(type, visitor, method, statement, a);
-                }
-                
-            }
-            else if (exp is Expression.ConstExp)
-            {
-                Expression.ConstExp e = exp as Expression.ConstExp;
-                
-            }
-            else if (exp is Expression.MethodExp)
-            {
-                Expression.MethodExp e = exp as Expression.MethodExp;
-                VisitExp(type, visitor, method, statement, e.Caller);
-                List<DB_Type> argTypes = new List<DB_Type>();
-                foreach (var a in e.Args)
-                {
-                    VisitExp(type, visitor, method, statement, a);
-                }
-            }
-            else if( exp is Expression.ParenthesizedExpressionSyntax)
-            {
-                Expression.ParenthesizedExpressionSyntax e = exp as Expression.ParenthesizedExpressionSyntax;
-                VisitExp(type, visitor, method, statement, e.exp);
-            }
-
-        }
-
-        void VisitDeclareVairable(DB_Type type, ITypeVisitor visitor, DB_Member method, DB_StatementSyntax statement,VariableDeclarationSyntax Declaration)
-        {
-            foreach (var e in Declaration.Variables)
-            {
-                AddLocal(e.Identifier,Finder.FindType( Declaration.Type));
-                VisitExp(type, visitor, method, statement, e.Initializer);
-            }
-        }
-
     }
 
-    public class MyCppHeaderTypeFinder : ITypeVisitor
+    public class MyCppHeaderTypeFinder : ITypeVisitor,IMemberVisitor
     {
         Model model;
         public MyCppHeaderTypeFinder(Model model)
@@ -674,42 +418,33 @@ namespace Metadata
             {
                 result.Add(i);
             }
-            foreach (var m in type.members.Values)
+        }
+        public IMemberVisitor GetMemberVisitor() { return this; }
+        public void VisitMember(DB_Type type, DB_Member m)
+        {
+            if (m.member_type == (int)Metadata.MemberTypes.Field)
             {
-                if (m.member_type == (int)Metadata.MemberTypes.Field)
-                {
+                result.Add(m.type);
+            }
+            else if (m.member_type == (int)Metadata.MemberTypes.Method)
+            {
+                if (!m.type.IsVoid)
                     result.Add(m.type);
-                }
-                else if (m.member_type == (int)Metadata.MemberTypes.Method)
+                foreach (var a in m.method_args)
                 {
-                    if (!m.type.IsVoid)
-                        result.Add(m.type);
-                    foreach (var a in m.method_args)
-                    {
-                        result.Add(a.type);
-                    }
-                }
-                else if(m.member_type == (int)Metadata.MemberTypes.Property)
-                {
-                    result.Add(m.type);
+                    result.Add(a.type);
                 }
             }
+            else if (m.member_type == (int)Metadata.MemberTypes.Property)
+            {
+                result.Add(m.type);
+            }
         }
-        public bool VisitMember(DB_Type type, DB_Member member)
-        {
-            return false;
-        }
-        public void VisitStatement(DB_Type type, DB_Member member, DB_StatementSyntax statement)
-        {
 
-        }
-        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.Exp exp)
-        {
-
-        }
+        public IMethodVisitor GetMethodVisitor() { return null; }
     }
 
-    public class MyCppMethodBodyTypeFinder:ITypeVisitor
+    public class MyCppMethodBodyTypeFinder : ITypeVisitor, IMemberVisitor,IMethodVisitor
     {
         Model model;
         public MyCppMethodBodyTypeFinder(Model model)
@@ -721,65 +456,163 @@ namespace Metadata
         {
 
         }
-        public bool VisitMember(DB_Type type, DB_Member member)
-        {
-            return true;
-        }
-        //返回是否访问子语句以及表达式
-        public void VisitStatement(DB_Type type, DB_Member member, DB_StatementSyntax statement)
+        public void VisitMember(DB_Type type, DB_Member member)
         {
 
         }
-        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.Exp exp)
+        public IMemberVisitor GetMemberVisitor() { return this; }
+        public IMethodVisitor GetMethodVisitor() { return this; }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_BreakStatementSyntax statement, DB_StatementSyntax outer)
         {
-            if (exp is Expression.IndifierExp)
+            //throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_BlockSyntax statement, DB_StatementSyntax outer)
+        {
+           // throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_DoStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_ExpressionStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_ForStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+            typeRef.Add(statement.Declaration.Type);
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_IfStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_LocalDeclarationStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_ReturnStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_SwitchStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_ThrowStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_TryStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitStatement(DB_Type type, DB_Member member, DB_WhileStatementSyntax statement, DB_StatementSyntax outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, AssignmentExpressionSyntax exp, Exp outer)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, BaseExp exp, Exp outer)
+        {
+            typeRef.Add(type.base_type);
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, BinaryExpressionSyntax exp, Exp outer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ConstExp exp, Exp outer)
+        {
+            typeRef.Add(model.GetExpType(exp).GetRefType());
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, FieldExp exp, Exp outer)
+        {
+            DB_Type caller = model.GetExpType(exp.Caller);
+            typeRef.Add(caller.GetRefType());
+            if(outer is MethodExp)
             {
-                Expression.IndifierExp e = exp as Expression.IndifierExp;
-                DB_Type vt = model.GetIndifierInfo(e.Name).type;
-                typeRef.Add(vt.GetRefType());
-            }
-            else if (exp is Expression.FieldExp)
-            {
-                Expression.FieldExp e = exp as Expression.FieldExp;
-                DB_Type caller = model.GetExpType(e.Caller);
-                typeRef.Add(caller.GetRefType());
-                typeRef.Add(caller.members[e.Name].typeName);
-            }
-            else if (exp is Expression.ObjectCreateExp)
-            {
-                Expression.ObjectCreateExp e = exp as Expression.ObjectCreateExp;
-                typeRef.Add(e.Type);
-            }
-            else if (exp is Expression.ConstExp)
-            {
-                Expression.ConstExp e = exp as Expression.ConstExp;
-                typeRef.Add(model.GetExpType(e).GetRefType());
-            }
-            else if (exp is Expression.MethodExp)
-            {
-                Expression.MethodExp e = exp as Expression.MethodExp;
-                DB_Type caller = model.GetExpType(e.Caller);
-                typeRef.Add(caller.GetRefType());
+                MethodExp methodExp = outer as MethodExp;
                 List<DB_Type> argTypes = new List<DB_Type>();
-                foreach (var a in e.Args)
+                foreach (var a in methodExp.Args)
                 {
                     argTypes.Add(model.GetExpType(a));
                 }
-                typeRef.Add(caller.FindMethod(e.Name, argTypes, this.model).type);
+                DB_Member method = caller.FindMethod(exp.Name, argTypes, model);
+                typeRef.Add(method.type);
             }
-            else if (exp is Expression.BaseExp)
+            else
             {
-                typeRef.Add(type.base_type);
+                typeRef.Add(caller.members[exp.Name].typeName);
             }
-            else if (exp is Expression.ThisExp)
-            {
-                typeRef.Add(type.GetRefType());
-            }
-            else if (exp is Expression.TypeSyntax)
-            {
-                typeRef.Add(exp as Expression.TypeSyntax);
-            }
+        }
 
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, MethodExp exp, Exp outer)
+        {
+            //Expression.MethodExp e = exp as Expression.MethodExp;
+            //DB_Type caller = model.GetExpType(e.Expression);
+            //typeRef.Add(caller.GetRefType());
+            //List<DB_Type> argTypes = new List<DB_Type>();
+            //foreach (var a in e.Args)
+            //{
+            //    argTypes.Add(model.GetExpType(a));
+            //}
+            //typeRef.Add(caller.FindMethod(e.Name, argTypes, this.model).type);
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ObjectCreateExp exp, Exp outer)
+        {
+            typeRef.Add(exp.Type);
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ParenthesizedExpressionSyntax exp, Exp outer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, PostfixUnaryExpressionSyntax exp, Exp outer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, PrefixUnaryExpressionSyntax exp, Exp outer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ThisExp exp, Exp outer)
+        {
+            typeRef.Add(type.GetRefType());
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ThrowExp exp, Exp outer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, IndifierExp exp, Exp outer)
+        {
+            //throw new NotImplementedException();
+            DB_Type vt = model.GetIndifierInfo(exp.Name).type;
+            typeRef.Add(vt.GetRefType());
         }
     }
 }
