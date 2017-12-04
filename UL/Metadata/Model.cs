@@ -187,15 +187,41 @@ namespace Metadata
             else if (exp is Metadata.Expression.IndifierExp)
             {
                 Metadata.Expression.IndifierExp e = exp as Metadata.Expression.IndifierExp;
-                return GetIndifierInfo(e.Name).type;
+                IndifierInfo info = GetIndifierInfo(e.Name);
+                //if(outer is MethodExp)
+                //{
+                //    MethodExp methodExp = outer as MethodExp;
+                //    List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                //    foreach (var t in methodExp.Args)
+                //    {
+                //        argTypes.Add(GetExpType(t));
+                //    }
+                //    foreach(var m in info.methods)
+                //    {
+                //        if(m.MatchingParameter(argTypes,this))
+                //        {
+                //            return GetType(m.typeName);
+                //        }
+                //    }
+
+                //}
+                //else
+                {
+                    return info.type;
+                }
             }
 
             else if (exp is Metadata.Expression.MethodExp)
             {
                 Metadata.Expression.MethodExp me = exp as Metadata.Expression.MethodExp;
                 //Metadata.Expression.FieldExp e = me.Caller as Metadata.Expression.FieldExp;
-                Metadata.DB_Type caller_type = GetExpType(me.Expression,me);
-                return caller_type;
+                Metadata.DB_Type caller_type = GetExpType(me.Caller,me);
+                List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                foreach (var t in me.Args)
+                {
+                    argTypes.Add(GetExpType(t));
+                }
+                return GetType( caller_type.FindMethod(me.Name, argTypes,this).typeName);
             }
 
             else if (exp is Metadata.Expression.ObjectCreateExp)
@@ -261,7 +287,7 @@ namespace Metadata
 
         public class IndifierInfo
         {
-            public bool is_type;
+            public bool is_type;    
             public bool is_var;
             public bool is_namespace;
             public bool is_member;
@@ -349,6 +375,7 @@ namespace Metadata
                     info.type = GetType(currentType.FindProperty(name, this).typeName);
                     return info;
                 }
+
                 //查找泛型
                 if (currentType.is_generic_type_definition)
                 {
@@ -409,16 +436,13 @@ namespace Metadata
         {
             this.model = model;
         }
-        public HashSet<Expression.TypeSyntax> result = new HashSet<Expression.TypeSyntax>();
-        public void VisitType(DB_Type type)
+
+        public MyCppHeaderTypeFinder()
         {
-            if (!type.base_type.IsVoid)
-                result.Add(type.base_type);
-            foreach(var i in type.interfaces)
-            {
-                result.Add(i);
-            }
         }
+
+        public HashSet<Expression.TypeSyntax> result = new HashSet<Expression.TypeSyntax>();
+
         public IMemberVisitor GetMemberVisitor() { return this; }
         public void VisitMember(DB_Type type, DB_Member m)
         {
@@ -442,9 +466,24 @@ namespace Metadata
         }
 
         public IMethodVisitor GetMethodVisitor() { return null; }
+
+        public void VisitTypeStart(DB_Type type)
+        {
+            if (!type.base_type.IsVoid)
+                result.Add(type.base_type);
+            foreach (var i in type.interfaces)
+            {
+                result.Add(i);
+            }
+        }
+
+        public void VisitTypeEnd(DB_Type type)
+        {
+            //throw new NotImplementedException();
+        }
     }
 
-    public class MyCppMethodBodyTypeFinder : ITypeVisitor, IMemberVisitor,IMethodVisitor
+    public class MyCppMethodBodyTypeFinder : ITypeVisitor,IMemberVisitor, IMethodVisitor
     {
         Model model;
         public MyCppMethodBodyTypeFinder(Model model)
@@ -452,15 +491,8 @@ namespace Metadata
             this.model = model;
         }
         public HashSet<Expression.TypeSyntax> typeRef = new HashSet<Expression.TypeSyntax>();
-        public void VisitType(DB_Type type)
-        {
 
-        }
-        public void VisitMember(DB_Type type, DB_Member member)
-        {
 
-        }
-        public IMemberVisitor GetMemberVisitor() { return this; }
         public IMethodVisitor GetMethodVisitor() { return this; }
 
         public void VisitStatement(DB_Type type, DB_Member member, DB_BreakStatementSyntax statement, DB_StatementSyntax outer)
@@ -517,6 +549,10 @@ namespace Metadata
         public void VisitStatement(DB_Type type, DB_Member member, DB_TryStatementSyntax statement, DB_StatementSyntax outer)
         {
             //throw new NotImplementedException();
+            foreach(var c in statement.Catches)
+            {
+                typeRef.Add(c.Type);
+            }
         }
 
         public void VisitStatement(DB_Type type, DB_Member member, DB_WhileStatementSyntax statement, DB_StatementSyntax outer)
@@ -536,7 +572,7 @@ namespace Metadata
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, BinaryExpressionSyntax exp, Exp outer)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ConstExp exp, Exp outer)
@@ -548,34 +584,26 @@ namespace Metadata
         {
             DB_Type caller = model.GetExpType(exp.Caller);
             typeRef.Add(caller.GetRefType());
-            if(outer is MethodExp)
-            {
-                MethodExp methodExp = outer as MethodExp;
-                List<DB_Type> argTypes = new List<DB_Type>();
-                foreach (var a in methodExp.Args)
-                {
-                    argTypes.Add(model.GetExpType(a));
-                }
-                DB_Member method = caller.FindMethod(exp.Name, argTypes, model);
-                typeRef.Add(method.type);
-            }
-            else
+
+            
+            if(caller.members.ContainsKey(exp.Name))
             {
                 typeRef.Add(caller.members[exp.Name].typeName);
             }
+            else
+            {
+                List<DB_Member> methods = caller.FindMethod(exp.Name, model);
+                if(methods.Count>0)
+                {
+                    //typeRef.Add(caller.members[exp.Name].typeName);
+                }
+            }
+            
         }
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, MethodExp exp, Exp outer)
         {
-            //Expression.MethodExp e = exp as Expression.MethodExp;
-            //DB_Type caller = model.GetExpType(e.Expression);
-            //typeRef.Add(caller.GetRefType());
-            //List<DB_Type> argTypes = new List<DB_Type>();
-            //foreach (var a in e.Args)
-            //{
-            //    argTypes.Add(model.GetExpType(a));
-            //}
-            //typeRef.Add(caller.FindMethod(e.Name, argTypes, this.model).type);
+
         }
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ObjectCreateExp exp, Exp outer)
@@ -585,17 +613,17 @@ namespace Metadata
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ParenthesizedExpressionSyntax exp, Exp outer)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, PostfixUnaryExpressionSyntax exp, Exp outer)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, PrefixUnaryExpressionSyntax exp, Exp outer)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ThisExp exp, Exp outer)
@@ -605,14 +633,45 @@ namespace Metadata
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ThrowExp exp, Exp outer)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, IndifierExp exp, Exp outer)
         {
+
+            Model.IndifierInfo info = model.GetIndifierInfo(exp.Name);
+
+            typeRef.Add(info.type.GetRefType());
+        }
+
+        public void VisitMethodStart(DB_Type type, DB_Member member)
+        {
             //throw new NotImplementedException();
-            DB_Type vt = model.GetIndifierInfo(exp.Name).type;
-            typeRef.Add(vt.GetRefType());
+        }
+
+        public void VisitMethodEnd(DB_Type type, DB_Member member)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitTypeStart(DB_Type type)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void VisitTypeEnd(DB_Type type)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public IMemberVisitor GetMemberVisitor()
+        {
+            return this;
+        }
+
+        public void VisitMember(DB_Type type, DB_Member member)
+        {
+            //throw new NotImplementedException();
         }
     }
 }

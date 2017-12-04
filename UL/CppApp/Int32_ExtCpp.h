@@ -82,12 +82,12 @@ System::Int64 System::Int32::Int64(Int32 a)
 
 System::Int16 System::Int32::Int16(System::Int32  v)
 {
-	return System::Int16(v._v);
+	return System::Int16((System::Int16::ValueType)v._v);
 }
 
 System::Single System::Int32::Single(System::Int32  v)
 {
-	return System::Single(v._v);
+	return System::Single((System::Single::ValueType)v._v);
 }
 System::Double System::Int32::Double(System::Int32  v)
 {

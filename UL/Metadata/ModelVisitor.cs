@@ -9,7 +9,8 @@ namespace Metadata
 
     public interface ITypeVisitor
     {
-        void VisitType(DB_Type type);
+        void VisitTypeStart(DB_Type type);
+        void VisitTypeEnd(DB_Type type);
         IMemberVisitor GetMemberVisitor();
     }
 
@@ -21,6 +22,8 @@ namespace Metadata
 
     public interface IMethodVisitor
     {
+        void VisitMethodStart(DB_Type type, DB_Member member);
+        void VisitMethodEnd(DB_Type type, DB_Member member);
         void VisitStatement(DB_Type type, DB_Member member, DB_BreakStatementSyntax statement, DB_StatementSyntax outer);
         void VisitStatement(DB_Type type, DB_Member member, DB_BlockSyntax statement, DB_StatementSyntax outer);
         void VisitStatement(DB_Type type, DB_Member member, DB_DoStatementSyntax statement, DB_StatementSyntax outer);
@@ -71,15 +74,18 @@ namespace Metadata
             this.typeVisitor = null;
         }
 
-        public void VisitType(DB_Type type)
+        void VisitType(DB_Type type)
         {
             StartUsing(type.usingNamespace);
             EnterNamespace(type._namespace);
             EnterType(type);
-            typeVisitor.VisitType(type);
+
+            VisitTypeStart(type);
 
             foreach (var m in type.members)
                 VisitMember(type, m.Value);
+
+            VisitTypeEnd(type);
 
             LeaveType();
             LeaveNamespace();
@@ -97,22 +103,26 @@ namespace Metadata
                 if (member.member_type == (int)MemberTypes.Method)
                 {
                     EnterMethod(member);
-                }
+                    VisitMethodStart(type, member);
 
-                memberVisitor.VisitMember(type, member);
+                    memberVisitor.VisitMember(type, member);
 
-                methodVisitor = memberVisitor.GetMethodVisitor();
-                if (methodVisitor != null)
-                {
-                    if (member.method_body != null)
+                    methodVisitor = memberVisitor.GetMethodVisitor();
+                    if (methodVisitor != null)
                     {
-                        VisitStatement(type, member, member.method_body,null);
+                        if (member.method_body != null)
+                        {
+                            VisitStatement(type, member, member.method_body, null);
+                        }
+                        
                     }
-                }
 
-                if (member.member_type == (int)MemberTypes.Method)
-                {
+                    VisitMethodEnd(type, member);
                     LeaveMethod();
+                }
+                else
+                {
+                    memberVisitor.VisitMember(type, member);
                 }
             }
         }
@@ -265,7 +275,7 @@ namespace Metadata
         {
             methodVisitor.VisitExp(type, member, statement, exp, outer);
 
-            VisitExp(type, member, statement, exp.Expression,exp);
+            VisitExp(type, member, statement, exp.Caller,exp);
             List<DB_Type> argTypes = new List<DB_Type>();
             foreach (var a in exp.Args)
             {
@@ -421,5 +431,28 @@ namespace Metadata
 
         }
 
+        public void VisitTypeStart(DB_Type type)
+        {
+            if(typeVisitor!=null)
+                typeVisitor.VisitTypeStart(type);
+        }
+
+        public void VisitTypeEnd(DB_Type type)
+        {
+            if (typeVisitor != null)
+                typeVisitor.VisitTypeEnd(type);
+        }
+
+        public void VisitMethodStart(DB_Type type, DB_Member member)
+        {
+            if (methodVisitor != null)
+                methodVisitor.VisitMethodStart(type, member);
+        }
+
+        public void VisitMethodEnd(DB_Type type, DB_Member member)
+        {
+            if (methodVisitor != null)
+                methodVisitor.VisitMethodEnd(type, member);
+        }
     }
 }

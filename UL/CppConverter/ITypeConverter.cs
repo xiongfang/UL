@@ -43,7 +43,7 @@ namespace CppConverter
     {
         void ConvertType(Metadata.DB_Type type);
 
-        string ExpressionToString(Metadata.Expression.Exp es);
+        string ExpressionToString(Metadata.Expression.Exp es, Metadata.Expression.Exp outer);
     }
 
     interface ITypeConverter

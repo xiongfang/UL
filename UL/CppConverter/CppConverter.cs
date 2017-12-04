@@ -4,6 +4,7 @@ using System.Data.Odbc;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Metadata;
 
 namespace CppConverter
 {
@@ -177,6 +178,16 @@ namespace CppConverter
                 }
             }
             public Metadata.IMemberVisitor GetMemberVisitor() { return null; }
+
+            public void VisitTypeStart(DB_Type type)
+            {
+                VisitType(type);
+            }
+
+            public void VisitTypeEnd(DB_Type type)
+            {
+                //throw new NotImplementedException();
+            }
         }
         //返回一个类型的不可以声明的类型
         public HashSet<string> GetTypeDependencesNoDeclareType(Metadata.DB_Type type)

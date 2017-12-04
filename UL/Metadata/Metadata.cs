@@ -199,49 +199,8 @@ namespace Metadata
                 if (m.name != name || m.member_type != (int)MemberTypes.Method)
                     continue;
 
-                if (m.method_args.Length == 0)
-                {
-                    if (typeParameters.Count == 0)
-                        return m;
-                    else
-                        continue;
-                }
-
-
-                int arg_index = 0;  //形式参数索引
-                int real_arg_index = 0; //实际参数索引
-                bool all_arg_type_same = true;
-                for (; real_arg_index< typeParameters.Count; real_arg_index++)
-                {
-                    if (model.GetType(m.method_args[arg_index].type).IsAssignableFrom(typeParameters[real_arg_index], model))
-                    {
-                        if(!m.method_args[arg_index].is_params)
-                            arg_index++;
-                        continue;
-                    }
-                    all_arg_type_same = false;
-                    break;
-                }
-
-                if(all_arg_type_same)
+                if (m.MatchingParameter(typeParameters, model))
                     return m;
-
-                //if (m.method_args.Length == typeParameters.Count)
-                //{
-                //    if (m.method_args.Length == 0)
-                //        return m;
-                //    bool all_arg_type_same = true;
-                //    for(int i=0;i< m.method_args.Length;i++)
-                //    {
-                //        if (!model.GetType( m.method_args[i].type).IsAssignableFrom(typeParameters[i],model))
-                //        {
-                //            all_arg_type_same = false;
-                //            break;
-                //        }
-                //    }
-                //    if(all_arg_type_same)
-                //        return m;
-                //}
             }
 
             //查找父类
@@ -261,6 +220,34 @@ namespace Metadata
             }
 
             return null;
+        }
+
+        public List<DB_Member> FindMethod(string name, Model model)
+        {
+            List<DB_Member> results = new List<DB_Member>();
+
+            foreach (var m in members.Values)
+            {
+                if (m.name != name || m.member_type != (int)MemberTypes.Method)
+                    continue;
+
+
+                results.Add(m);
+            }
+
+            //查找父类
+            if (base_type != null && !base_type.IsVoid)
+            {
+                results.AddRange( model.GetType(base_type).FindMethod(name, model));
+            }
+
+            //借口
+            foreach (var it in interfaces)
+            {
+                results.AddRange(model.GetType(it).FindMethod(name, model));
+            }
+
+            return results;
         }
 
         public  bool IsSubclassOf(DB_Type type, Model model)
@@ -530,6 +517,39 @@ namespace Metadata
             {
                 return type;
             }
+        }
+
+        public bool MatchingParameter(List<DB_Type> typeParameters,Model model)
+        {
+            if (method_args.Length == 0)
+            {
+                if (typeParameters.Count == 0)
+                    return true;
+                else
+                    return false;
+            }
+
+
+            int arg_index = 0;  //形式参数索引
+            int real_arg_index = 0; //实际参数索引
+            bool all_arg_type_same = true;
+            for (; real_arg_index < typeParameters.Count; real_arg_index++)
+            {
+                if (model.GetType(method_args[arg_index].type).IsAssignableFrom(typeParameters[real_arg_index], model))
+                {
+                    if (!method_args[arg_index].is_params)
+                        arg_index++;
+                    continue;
+                }
+                all_arg_type_same = false;
+                break;
+            }
+
+            if (all_arg_type_same)
+                return true;
+
+
+            return false;
         }
     }
 
@@ -825,9 +845,9 @@ namespace Metadata
         public class MethodExp : Exp
         {
             //调用函数的对象，或者类，如果为null，表示创建Name类型的对象
-            public Exp Expression;
+            public Exp Caller;
             //调用的函数名
-            //public string Name;
+            public string Name;
 
             //调用的参数
             public List<Exp> Args = new List<Exp>();

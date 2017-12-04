@@ -721,7 +721,7 @@ namespace CppConverter
         }
 
 
-        public string ExpressionToString(Metadata.Expression.Exp es)
+        public string ExpressionToString(Metadata.Expression.Exp es, Metadata.Expression.Exp outer = null)
         {
             if (es is Metadata.Expression.ConstExp)
             {

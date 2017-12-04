@@ -49,6 +49,7 @@
     <Compile Include="CppConverter.cs" />
     <Compile Include="DefaultTypeConverter.cs" />
     <Compile Include="CustomTypeConverter.cs" />
+    <Compile Include="NewDefaultTypeConverter.cs" />
     <Compile Include="UE4_TypeConverter.cs" />
     <Compile Include="ITypeConverter.cs" />
     <Compile Include="Program.cs" />
