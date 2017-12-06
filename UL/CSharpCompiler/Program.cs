@@ -358,15 +358,8 @@ namespace CSharpCompiler
             else if (typeSyntax is IdentifierNameSyntax)
             {
                 IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
-                Metadata.DB_Type type = null;
-                if (!string.IsNullOrEmpty(ns))
-                {
-                    type = Model.Instance.GetIndifierInfo(ts.Identifier.Text,ns).type;
-                }
-                else
-                {
-                    type = Model.Instance.GetIndifierInfo(ts.Identifier.Text).type;
-                }
+                Metadata.DB_Type type = Model.Instance.GetIndifierInfo(ts.Identifier.Text,ns,Metadata.Model.EIndifierFlag.IF_Type).type;
+    
 
                 //Metadata.DB_Type type = Model.Instance.GetIndifierInfo(Identifier).type;
                 //Model.Instance.GetIndifierInfo(ts.Identifier.Text).type;
@@ -532,8 +525,8 @@ namespace CSharpCompiler
                     }
                 }
 
-                
-                foreach(var tree in treeList)
+
+                foreach (var tree in treeList)
                 {
                     var root = (CompilationUnitSyntax)tree.GetRoot();
 
@@ -2172,24 +2165,24 @@ namespace CSharpCompiler
         static Metadata.Expression.Exp ExportExp(InvocationExpressionSyntax es)
         {
             Metadata.Expression.MethodExp db_les = new Metadata.Expression.MethodExp();
-            if (es.Expression is MemberAccessExpressionSyntax)
-            {
-                MemberAccessExpressionSyntax maes = es.Expression as MemberAccessExpressionSyntax;
-                db_les.Name = (maes).Name.Identifier.Text;
-                db_les.Caller = ExportExp(maes.Expression);
-            }
-            else if (es.Expression is IdentifierNameSyntax)
-            {
-                IdentifierNameSyntax nameSyntax = es.Expression as IdentifierNameSyntax;
-                db_les.Name = nameSyntax.Identifier.Text;
-                db_les.Caller = new Metadata.Expression.ThisExp();
-            }
-            else
-            {
-                Console.Error.WriteLine("不支持的方法调用表达式 " + es.ToString());
-            }
+            //if (es.Expression is MemberAccessExpressionSyntax)
+            //{
+            //    MemberAccessExpressionSyntax maes = es.Expression as MemberAccessExpressionSyntax;
+            //    db_les.Name = (maes).Name.Identifier.Text;
+            //    db_les.Caller = ExportExp(maes.Expression);
+            //}
+            //else if (es.Expression is IdentifierNameSyntax)
+            //{
+            //    IdentifierNameSyntax nameSyntax = es.Expression as IdentifierNameSyntax;
+            //    db_les.Name = nameSyntax.Identifier.Text;
+            //    db_les.Caller = new Metadata.Expression.ThisExp();
+            //}
+            //else
+            //{
+            //    Console.Error.WriteLine("不支持的方法调用表达式 " + es.ToString());
+            //}
             
-            //db_les.Caller = ExportExp(es.Expression);
+            db_les.Caller = ExportExp(es.Expression);
 
             foreach (var a in es.ArgumentList.Arguments)
             {

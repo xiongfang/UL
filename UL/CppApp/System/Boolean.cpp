@@ -2,6 +2,7 @@
 #include "System\Boolean.h"
 #include "System\ValueType.h"
 #include "System\String.h"
+#include "System\Object.h"
 #include "System\ArgumentNullException.h"
 #include "System\FormatException.h"
 #include "System\Exception.h"

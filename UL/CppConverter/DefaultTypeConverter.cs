@@ -1057,6 +1057,7 @@ namespace CppConverter
             {
                 args.Add(Model.GetExpType(es.Args[i]));
             }
+            Metadata.DB_Member method = null;
 
             if (es.Caller is Metadata.Expression.IndifierExp)
             {
@@ -1065,57 +1066,60 @@ namespace CppConverter
                 Metadata.Expression.IndifierExp ie = es.Caller as Metadata.Expression.IndifierExp;
                 Metadata.Model.IndifierInfo ii = Model.GetIndifierInfo(ie.Name);
                 caller_type = ii.type;
-                if (ii.is_namespace || ii.is_type)
+                if(ii.is_var)
                 {
-                    stringBuilder.Append("::");
-                }
-                else if (caller_type.is_class)
-                {
-                    stringBuilder.Append("->");
+                    method = caller_type.FindMethod("Invoke", args, Model);
+                    stringBuilder.Append("->Invoke");
                 }
                 else
                 {
-                    stringBuilder.Append(".");
+                    caller_type = Model.currentType;
+                    method = caller_type.FindMethod(ie.Name, args, Model);
                 }
             }
-            else if (es.Caller is Metadata.Expression.BaseExp)
+            else if (es.Caller is Metadata.Expression.FieldExp)
             {
+                Metadata.Expression.FieldExp fe = es.Caller as Metadata.Expression.FieldExp;
+                caller_type = Model.GetExpType(fe.Caller, fe);
+                method = caller_type.FindMethod(fe.Name, args, Model);
+
                 stringBuilder.Append(ExpressionToString(es.Caller));
-                stringBuilder.Append("::");
-                caller_type = Model.GetExpType(es.Caller);
+
+                //stringBuilder.Append("::");
+                //caller_type = Model.GetExpType(es.Caller);
             }
-            else if (es.Caller is Metadata.Expression.ThisExp)
-            {
-                caller_type = Model.GetExpType(es.Caller);
-                if (caller_type.FindMethod(es.Name, args, Model).is_static)
-                {
-                    //stringBuilder.Append("::");
-                }
-                else
-                {
-                    stringBuilder.Append("->");
+            //else if (es.Caller is Metadata.Expression.ThisExp)
+            //{
+            //    caller_type = Model.GetExpType(es.Caller);
+            //    if (caller_type.FindMethod(es.Name, args, Model).is_static)
+            //    {
+            //        //stringBuilder.Append("::");
+            //    }
+            //    else
+            //    {
+            //        stringBuilder.Append("->");
 
-                }
-            }
-            else
-            {
-                stringBuilder.Append(ExpressionToString(es.Caller));
-                caller_type = Model.GetExpType(es.Caller);
-                if (caller_type.is_class)
-                {
-                    stringBuilder.Append("->");
-                }
-                else
-                {
-                    stringBuilder.Append(".");
-                }
-            }
+            //    }
+            //}
+            //else
+            //{
+            //    stringBuilder.Append(ExpressionToString(es.Caller));
+            //    caller_type = Model.GetExpType(es.Caller);
+            //    if (caller_type.is_class)
+            //    {
+            //        stringBuilder.Append("->");
+            //    }
+            //    else
+            //    {
+            //        stringBuilder.Append(".");
+            //    }
+            //}
 
 
 
-            Metadata.DB_Member method = caller_type.FindMethod(es.Name, args, Model);
+            //Metadata.DB_Member method = caller_type.FindMethod(es.Name, args, Model);
 
-            stringBuilder.Append(es.Name);
+            //stringBuilder.Append(es.Name);
             stringBuilder.Append("(");
             if (es.Args != null)
             {

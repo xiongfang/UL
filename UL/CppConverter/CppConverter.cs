@@ -131,6 +131,8 @@ namespace CppConverter
             //查找一个类型，如果是动态类型，构造一个
             public Metadata.DB_Type FindType(Metadata.Expression.TypeSyntax refType)
             {
+                if (refType.IsVoid)
+                    return null;
                 Metadata.DB_Type type = Model.GetType(refType);
                 if (type == null)
                 {
@@ -195,7 +197,7 @@ namespace CppConverter
             Metadata.Model model = new Metadata.Model(new DataBaseFinder(_con));
 
             MyCppHeaderTypeNoDeclareFinder f = new MyCppHeaderTypeNoDeclareFinder(model);
-            model.Accept(type, f);
+            model.AcceptTypeVisitor(f,type);
 
             HashSet<string> set = new HashSet<string>();
             foreach (var s in f.result)
@@ -237,7 +239,7 @@ namespace CppConverter
             Metadata.Model model = new Metadata.Model(new DataBaseFinder(_con));
 
             Metadata.MyCppHeaderTypeFinder f = new Metadata.MyCppHeaderTypeFinder(model);
-            model.Accept(type, f);
+            model.AcceptTypeVisitor( f, type);
 
             HashSet<string> set = new HashSet<string>();
             foreach (var s in f.result)
@@ -259,7 +261,7 @@ namespace CppConverter
             Metadata.Model model = new Metadata.Model(new DataBaseFinder(_con));
 
             Metadata.MyCppMethodBodyTypeFinder f = new Metadata.MyCppMethodBodyTypeFinder(model);
-            model.Accept(type, f);
+            model.AcceptTypeVisitor( f, type);
 
             HashSet<string> set = new HashSet<string>();
             foreach (var s in f.typeRef)

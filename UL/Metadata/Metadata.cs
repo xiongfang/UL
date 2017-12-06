@@ -100,7 +100,14 @@ namespace Metadata
 
         public bool is_generic_paramter;
         public int generic_parameter_position;
-        
+
+        public bool is_delegate
+        {
+            get
+            {
+                return members.Count == 1 && members.First().Value.name == "Invoke";
+            }
+        }
 
         public Dictionary<string, DB_Member> members = new Dictionary<string, DB_Member>();
 
@@ -847,7 +854,7 @@ namespace Metadata
             //调用函数的对象，或者类，如果为null，表示创建Name类型的对象
             public Exp Caller;
             //调用的函数名
-            public string Name;
+            //public string Name;
 
             //调用的参数
             public List<Exp> Args = new List<Exp>();
