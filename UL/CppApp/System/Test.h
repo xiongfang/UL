@@ -19,5 +19,7 @@ namespace System{
 			static void TestDel();
 			private:
 			static System::Boolean TestDel(Ref<System::String>  v);
+			private:
+			System::Boolean TestDel2(Ref<System::String>  v);
 		};
 }

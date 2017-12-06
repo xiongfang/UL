@@ -36,10 +36,18 @@ void System::Test::TestString()
 }
 void System::Test::TestDel()
 {
-	Ref<System::TestDel> v = new System::TestDel(Ref<System::Object>(nullptr),System::Test::TestDel);
+	Ref<System::TestDel<Test>> v = new System::TestDel<System::Test>(nullptr, System::Test::TestDel);
 	v->Invoke(Ref<System::String>(new System::String(_T("测试委托"))));
+	Ref<System::Test> t = new System::Test();
+	Ref<System::TestDel<Test>> v2 = new System::TestDel<System::Test>(t, &System::Test::TestDel2);
+	v2->Invoke(Ref<System::String>(new System::String(_T("测试委托2"))));
 }
 System::Boolean System::Test::TestDel(Ref<System::String>  v)
+{
+	System::Console::WriteLine(v);
+	return true;
+}
+System::Boolean System::Test::TestDel2(Ref<System::String>  v)
 {
 	System::Console::WriteLine(v);
 	return true;

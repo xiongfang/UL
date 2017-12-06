@@ -195,6 +195,9 @@
     <ClInclude Include="Enum_Ext.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Delegate.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Boolean_ExtCpp.cpp">

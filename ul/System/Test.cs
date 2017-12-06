@@ -41,9 +41,19 @@ namespace System
         {
             TestDel v = Test.TestDel;
             v("测试委托");
+
+            Test t = new Test();
+            TestDel v2 = t.TestDel2;
+            v2("测试委托2");
         }
 
         static bool TestDel(string v)
+        {
+            Console.WriteLine(v);
+            return true;
+        }
+
+        bool TestDel2(string v)
         {
             Console.WriteLine(v);
             return true;
