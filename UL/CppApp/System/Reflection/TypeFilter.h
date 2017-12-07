@@ -6,11 +6,11 @@ namespace System{
 }
 namespace System{
 	namespace Reflection{
-			class TypeFilter:public System::Object
-			{
-				public:
-				virtual System::Boolean Invoke(Ref<System::Type>  m,Ref<System::Object>  filterCriteria)=0;
-			};
+		class TypeFilter:public System::Object
+		{
+			public:
+			virtual System::Boolean Invoke(Ref<System::Type>  m,Ref<System::Object>  filterCriteria)=0;
+		};
 		template<typename T>
 		class TypeFilter__Implement:public TypeFilter
 		{

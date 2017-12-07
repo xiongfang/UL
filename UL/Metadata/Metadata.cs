@@ -157,6 +157,27 @@ namespace Metadata
             return null;
         }
 
+        public DB_Member FindEvent(string name, Model model)
+        {
+            foreach (var m in members.Values)
+            {
+                if (m.name != name || m.member_type != (int)MemberTypes.Event)
+                    continue;
+
+                return m;
+            }
+
+            //查找父类
+            if (base_type != null && !base_type.IsVoid)
+            {
+                DB_Member base_member = model.GetType(base_type).FindEvent(name, model);
+                if (base_member != null)
+                    return base_member;
+            }
+
+            return null;
+        }
+
         public DB_Member FindProperty(string name, Model model)
         {
             foreach (var m in members.Values)
@@ -325,7 +346,9 @@ namespace Metadata
             Operator=1<<4,
             Conversion_operator=1<<5,
             Property_get=1<<6,
-            Property_set=1<<7
+            Property_set=1<<7,
+            Event_add = 1<<8,
+            Event_remove = 1<<9
         }
         public EMethodFlag method_flag;
 
@@ -450,6 +473,35 @@ namespace Metadata
                     method_flag &= ~EMethodFlag.Property_set;
             }
         }
+
+        public bool method_is_event_add
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Event_add) != 0;
+            }
+            set
+            {
+                if (value)
+                    method_flag |= EMethodFlag.Event_add;
+                else
+                    method_flag &= ~EMethodFlag.Event_add;
+            }
+        }
+        public bool method_is_event_remove
+        {
+            get
+            {
+                return (method_flag & EMethodFlag.Event_remove) != 0;
+            }
+            set
+            {
+                if (value)
+                    method_flag |= EMethodFlag.Event_remove;
+                else
+                    method_flag &= ~EMethodFlag.Event_remove;
+            }
+        }
         //********************************************/
 
         //*****************属性***********************/
@@ -469,6 +521,27 @@ namespace Metadata
             }
         }
 
+        public string property_add
+        {
+            get
+            {
+                return "add_" + name;
+            }
+        }
+        public string property_remove
+        {
+            get
+            {
+                return "remove_" + name;
+            }
+        }
+
+        public bool IsEventProperty(Model model)
+        {
+            return model.GetType(declaring_type).FindMethod(property_add, model).Count > 0;
+        }
+        
+
         //********************************************/
 
         //签名，一个类唯一
@@ -477,6 +550,14 @@ namespace Metadata
             get
             {
                 if(member_type == (int)MemberTypes.Field)
+                {
+                    return name;
+                }
+                else if(member_type == (int)MemberTypes.Property)
+                {
+                    return name;
+                }
+                else if(member_type == (int)MemberTypes.Event)
                 {
                     return name;
                 }
@@ -511,8 +592,13 @@ namespace Metadata
                     
                     return sb.ToString();
                 }
+                else if(member_type == (int)MemberTypes.EnumMember)
+                {
+                    return name;
+                }
                 else
                 {
+                    Console.Error.Write("未知的类型 "+member_type);
                     return name;
                 }
             }
@@ -1221,27 +1307,27 @@ namespace Metadata
         //
         // 摘要:
         //     指定该成员是一个事件。
-        Event = 2,
+        Event,
         //
         // 摘要:
         //     指定该成员是一个字段。
-        Field = 4,
+        Field,
         //
         // 摘要:
         //     指定该成员是一种方法。
-        Method = 8,
+        Method,
         //
         // 摘要:
         //     指定成员是属性。
-        Property = 16,
+        Property,
         //
         // 摘要:
         //     指定该成员是一种类型。
-        TypeInfo = 32,
+        TypeInfo,
         //
         // 摘要:
         //     指定该成员是自定义成员的指针类型。
-        EnumMember = 64,
+        EnumMember
         
     }
 

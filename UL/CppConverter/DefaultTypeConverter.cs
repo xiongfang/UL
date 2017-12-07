@@ -144,7 +144,7 @@ namespace CppConverter
                         depth++;
                     }
 
-                    depth++;
+                    //depth++;
                     //if (type.is_enum)
                     //{
                     //    Append(string.Format("enum {0}", type.name));
@@ -233,7 +233,7 @@ namespace CppConverter
                     }
 
                     AppendLine("};");
-                    depth--;
+                    //depth--;
 
 
                     if (type.is_delegate)
@@ -649,11 +649,19 @@ namespace CppConverter
                 else
                     Append("");
 
+                AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.type)), member.name));
+            }
+            else if (member.member_type == (int)Metadata.MemberTypes.Event)
+            {
+                AppendLine(GetModifierString(member.modifier) + ":");
+                //属性
+                //AppendLine(ConvertCppAttribute(member.attributes));
+                if (member.is_static)
+                    Append("static ");
+                else
+                    Append("");
 
-                //if (member_type.is_class)
-                //    AppendLine(string.Format("{0}* {1};", GetCppTypeWrapName(Model.GetType(member.field_type)), member.name));
-                //else
-                    AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.type)), member.name));
+                AppendLine(string.Format("{0} {1};", GetCppTypeWrapName(Model.GetType(member.type)), member.name));
             }
             else if (member.member_type == (int)Metadata.MemberTypes.Method)
             {
@@ -1236,6 +1244,11 @@ namespace CppConverter
                     method = caller_type.FindMethod("Invoke", args, Model);
                     stringBuilder.Append("->Invoke");
                 }
+                else if(ii.is_event)
+                {
+                    method = caller_type.FindMethod("Invoke", args, Model);
+                    stringBuilder.Append("->Invoke");
+                }
                 else
                 {
                     caller_type = Model.currentType;
@@ -1467,6 +1480,95 @@ namespace CppConverter
         //    return stringBuilder.ToString();
         //}
 
+        string MakeDelegate(Metadata.DB_Member delegateMethod,Metadata.Expression.Exp exp)
+        {
+            if (exp is Metadata.Expression.IndifierExp)
+            {
+                Metadata.Expression.IndifierExp indifierExp = exp as Metadata.Expression.IndifierExp;
+                Metadata.Model.IndifierInfo info = Model.GetIndifierInfo(indifierExp.Name);
+                if (!info.is_method)
+                    return ExpressionToString(exp);
+            }
+            StringBuilder stringBuilder = new StringBuilder();
+            Metadata.DB_Type type = Model.GetType(delegateMethod.declaring_type);
+            Metadata.DB_Member right_method = GetExpDelegateMethod(delegateMethod, exp);
+            Metadata.DB_Type caller = Model.GetType(right_method.declaring_type);
+
+            if (right_method.is_static)
+            {
+                stringBuilder.Append(string.Format("new {0}__Implement<{1}>(nullptr,{2})", GetCppTypeName(type), GetCppTypeName(caller), ExpressionToString(exp)));
+            }
+            else
+            {
+                if (exp is Metadata.Expression.FieldExp)
+                {
+                    Metadata.Expression.FieldExp fe = exp as Metadata.Expression.FieldExp;
+                    stringBuilder.Append(string.Format("new {0}__Implement<{1}>({2},&{3}::{4})", GetCppTypeName(type), GetCppTypeName(caller), ExpressionToString(fe.Caller), GetCppTypeName(caller), fe.Name));
+                }
+                else if (exp is Metadata.Expression.IndifierExp)
+                {
+                    Metadata.Expression.IndifierExp fe = exp as Metadata.Expression.IndifierExp;
+                    stringBuilder.Append(string.Format("new {0}__Implement<{1}>({2},&{3}::{4})", GetCppTypeName(type), GetCppTypeName(caller), "this", GetCppTypeName(caller), fe.Name));
+                }
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        Metadata.DB_Member GetExpDelegateMethod(Metadata.DB_Member delegateMethod, Metadata.Expression.Exp exp)
+        {
+            Metadata.DB_Member right_method = null;
+            List<Metadata.DB_Member> methods = null;
+            if (exp is Metadata.Expression.FieldExp)
+            {
+                Metadata.Expression.FieldExp fe = exp as Metadata.Expression.FieldExp;
+                Metadata.DB_Type caller = Model.GetExpType(fe.Caller, fe);
+                methods = caller.FindMethod(fe.Name, Model);
+                
+            }
+            else if(exp is Metadata.Expression.IndifierExp)
+            {
+                Metadata.Expression.IndifierExp indifierExp = exp as Metadata.Expression.IndifierExp;
+                Metadata.Model.IndifierInfo info = Model.GetIndifierInfo(indifierExp.Name);
+                if(info.is_method)
+                {
+                    methods = Model.currentType.FindMethod(indifierExp.Name, Model);
+                }
+            }
+
+
+            foreach (var m in methods)
+            {
+                if (m.method_args.Length != delegateMethod.method_args.Length)
+                    continue;
+                bool martch = true;
+                for (int arg_index = 0; arg_index < m.method_args.Length; arg_index++)
+                {
+                    if (m.method_args[arg_index].type != delegateMethod.method_args[arg_index].type
+                        || m.method_args[arg_index].is_out != delegateMethod.method_args[arg_index].is_out
+                        || m.method_args[arg_index].is_params != delegateMethod.method_args[arg_index].is_params
+                        || m.method_args[arg_index].is_ref != delegateMethod.method_args[arg_index].is_ref
+                        )
+                    {
+                        martch = false;
+                        break;
+                    }
+                }
+
+                if (!martch)
+                {
+                    continue;
+                }
+
+                right_method = m;
+                break;
+
+            }
+
+            return right_method;
+        }
+
+
         string ExpressionToString(Metadata.VariableDeclarationSyntax es, Metadata.Expression.Exp outer = null)
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -1530,50 +1632,20 @@ namespace CppConverter
                 else
                 {
                     Metadata.VariableDeclaratorSyntax esVar = es.Variables[i];
-                    Metadata.Expression.FieldExp fe = esVar.Initializer as Metadata.Expression.FieldExp;
-                    Metadata.DB_Type caller = Model.GetExpType(fe.Caller, fe);
 
-                    Metadata.Model.IndifierInfo info = Model.GetIndifierInfo(fe.Name, "", Metadata.Model.EIndifierFlag.IF_Method);
                     Metadata.DB_Member delegateMethod = type.FindMethod("Invoke", Model)[0];
 
-                    Metadata.DB_Member right_method = null;
-                    foreach (var m in info.methods)
+                    if(esVar.Initializer!=null)
                     {
-                        if (m.method_args.Length != delegateMethod.method_args.Length)
-                            continue;
-                        bool martch = true;
-                        for (int arg_index = 0; arg_index < m.method_args.Length; arg_index++)
-                        {
-                            if (m.method_args[arg_index].type != delegateMethod.method_args[arg_index].type
-                                || m.method_args[arg_index].is_out != delegateMethod.method_args[arg_index].is_out
-                                || m.method_args[arg_index].is_params != delegateMethod.method_args[arg_index].is_params
-                                || m.method_args[arg_index].is_ref != delegateMethod.method_args[arg_index].is_ref
-                                )
-                            {
-                                martch = false;
-                                break;
-                            }
-                        }
+                        Metadata.DB_Member right_method = GetExpDelegateMethod(delegateMethod, esVar.Initializer);
+                        Metadata.DB_Type caller = Model.GetType(right_method.declaring_type);
 
-                        if (!martch)
-                        {
-                            continue;
-                        }
-
-                        right_method = m;
-                        break;
-
-                    }
-
-
-                    Append(string.Format("Ref<{0}> {1} = ", GetCppTypeName(type), esVar.Identifier));
-                    if (right_method.is_static)
-                    {
-                        stringBuilder.Append(string.Format("new {0}__Implement<{1}>(nullptr,{2})", GetCppTypeName(type), GetCppTypeName(caller), ExpressionToString(esVar.Initializer)));
+                        stringBuilder.Append(string.Format("Ref<{0}> {1} = ", GetCppTypeName(type), esVar.Identifier));
+                        stringBuilder.Append(MakeDelegate(delegateMethod, esVar.Initializer));
                     }
                     else
                     {
-                        stringBuilder.Append(string.Format("new {0}__Implement<{1}>({2},&{3}::{4})", GetCppTypeName(type), GetCppTypeName(caller), ExpressionToString(fe.Caller),GetCppTypeName(caller),fe.Name));
+                        stringBuilder.Append(string.Format("Ref<{0}> {1}", GetCppTypeName(type), esVar.Identifier));
                     }
                     
                 }
@@ -1631,6 +1703,52 @@ namespace CppConverter
             }
             else
             {
+                if(exp.OperatorToken == "+=" || exp.OperatorToken == "-=")
+                {
+                    Metadata.DB_Member eventMember = null;
+                    if (exp.Left is Metadata.Expression.IndifierExp)
+                    {
+                        Metadata.Expression.IndifierExp indifierExp = exp.Left as Metadata.Expression.IndifierExp;
+                        Metadata.Model.IndifierInfo info = Model.GetIndifierInfo(indifierExp.Name);
+                        if (info.is_event || info.is_property)
+                        {
+                            eventMember = Model.currentType.FindEvent(indifierExp.Name, Model);
+                            if(eventMember == null)
+                            {
+                                eventMember = Model.currentType.FindProperty(indifierExp.Name, Model);
+                            }
+                        }
+                    }
+                    else if (exp.Left is Metadata.Expression.FieldExp)
+                    {
+                        Metadata.Expression.FieldExp fieldExp = exp.Left as Metadata.Expression.FieldExp;
+                        eventMember = Model.GetExpType(fieldExp.Caller).FindEvent(fieldExp.Name, Model);
+                        if (eventMember == null)
+                        {
+                            eventMember = Model.GetExpType(fieldExp.Caller).FindProperty(fieldExp.Name, Model);
+                        }
+                    }
+
+                    //左边是事件
+                    if(eventMember!=null)
+                    {
+                        Metadata.DB_Type declareType = Model.GetType(eventMember.declaring_type);
+                        Metadata.DB_Type delegateType = Model.GetType(eventMember.type);
+                        Metadata.DB_Member delegateMethod = delegateType.members.First().Value;
+                        if (exp.OperatorToken == "+=")
+                        {
+                            stringBuilder.AppendFormat("{0}::{1}({2})",GetCppTypeName(declareType), eventMember.property_add, MakeDelegate(delegateMethod, exp.Right));
+                            return stringBuilder.ToString();
+                        }
+                        else if(exp.OperatorToken == "-=")
+                        {
+                            stringBuilder.AppendFormat("{0}::{1}({2})", GetCppTypeName(declareType), eventMember.property_remove, MakeDelegate(delegateMethod, exp.Right));
+                            return stringBuilder.ToString();
+                        }
+                    }
+                }
+                
+                
                 string token = exp.OperatorToken.Replace("=", "");
                 Metadata.Expression.BinaryExpressionSyntax binaryExpressionSyntax = new Metadata.Expression.BinaryExpressionSyntax();
                 binaryExpressionSyntax.Left = exp.Left;

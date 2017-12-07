@@ -8,11 +8,11 @@ namespace System{
 }
 namespace System{
 	namespace Reflection{
-			class MemberFilter:public System::Object
-			{
-				public:
-				virtual System::Boolean Invoke(Ref<System::Reflection::MemberInfo>  m,Ref<System::Object>  filterCriteria)=0;
-			};
+		class MemberFilter:public System::Object
+		{
+			public:
+			virtual System::Boolean Invoke(Ref<System::Reflection::MemberInfo>  m,Ref<System::Object>  filterCriteria)=0;
+		};
 		template<typename T>
 		class MemberFilter__Implement:public MemberFilter
 		{

@@ -5,11 +5,11 @@ namespace System{
 	class String;
 }
 namespace System{
-		class TestDel:public System::Object
-		{
-			public:
-			virtual System::Boolean Invoke(Ref<System::String>  v)=0;
-		};
+	class TestDel:public System::Object
+	{
+		public:
+		virtual System::Boolean Invoke(Ref<System::String>  v)=0;
+	};
 	template<typename T>
 	class TestDel__Implement:public TestDel
 	{

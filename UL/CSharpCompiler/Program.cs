@@ -1065,10 +1065,17 @@ namespace CSharpCompiler
 
 
                 //导出所有变量
-                var virableNodes = c.ChildNodes().OfType<FieldDeclarationSyntax>();
+                var virableNodes = c.ChildNodes().OfType<BaseFieldDeclarationSyntax>();
                 foreach (var v in virableNodes)
                 {
                     ExportVariable(v, type);
+                }
+
+                //导出所有属性
+                var propertyNodes = c.ChildNodes().OfType<BasePropertyDeclarationSyntax>();
+                foreach (var v in propertyNodes)
+                {
+                    ExportProperty(v, type);
                 }
 
                 //导出所有方法
@@ -1191,7 +1198,7 @@ namespace CSharpCompiler
 
 
                 //导出所有变量
-                var virableNodes = c.ChildNodes().OfType<FieldDeclarationSyntax>();
+                var virableNodes = c.ChildNodes().OfType<BaseFieldDeclarationSyntax>();
                 foreach (var v in virableNodes)
                 {
                     ExportVariable(v, type);
@@ -1249,6 +1256,13 @@ namespace CSharpCompiler
                 foreach (var f in funcNodes)
                 {
                     ExportMethod(f, type);
+                }
+
+                //导出所有属性
+                var propertyNodes = c.ChildNodes().OfType<BasePropertyDeclarationSyntax>();
+                foreach (var v in propertyNodes)
+                {
+                    ExportProperty(v, type);
                 }
 
                 var operatorNodes = c.ChildNodes().OfType<OperatorDeclarationSyntax>();
@@ -1409,14 +1423,14 @@ namespace CSharpCompiler
 
 
                 //导出所有变量
-                var virableNodes = c.ChildNodes().OfType<FieldDeclarationSyntax>();
+                var virableNodes = c.ChildNodes().OfType<BaseFieldDeclarationSyntax>();
                 foreach (var v in virableNodes)
                 {
                     ExportVariable(v, type);
                 }
 
                 //导出所有属性
-                var propertyNodes = c.ChildNodes().OfType<PropertyDeclarationSyntax>();
+                var propertyNodes = c.ChildNodes().OfType<BasePropertyDeclarationSyntax>();
                 foreach (var v in propertyNodes)
                 {
                     ExportProperty(v, type);
@@ -1467,6 +1481,12 @@ namespace CSharpCompiler
                     ExportMethod(f, type);
                 }
 
+                //导出所有属性
+                var propertyNodes = c.ChildNodes().OfType<BasePropertyDeclarationSyntax>();
+                foreach (var v in propertyNodes)
+                {
+                    ExportProperty(v, type);
+                }
 
                 var operatorNodes = c.ChildNodes().OfType<OperatorDeclarationSyntax>();
                 foreach (var f in operatorNodes)
@@ -1490,7 +1510,7 @@ namespace CSharpCompiler
         //}
 
         
-        static void ExportVariable(FieldDeclarationSyntax v, Metadata.DB_Type type)
+        static void ExportVariable(BaseFieldDeclarationSyntax v, Metadata.DB_Type type)
         {
             Metadata.DB_Type v_type = Model.GetType(GetTypeSyntax(v.Declaration.Type));
 
@@ -1508,7 +1528,17 @@ namespace CSharpCompiler
                     dB_Member.name = ve.Identifier.Text;
                     dB_Member.is_static = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
                     dB_Member.declaring_type = type.static_full_name;
-                    dB_Member.member_type = (int)Metadata.MemberTypes.Field;
+                    if(v is FieldDeclarationSyntax)
+                        dB_Member.member_type = (int)Metadata.MemberTypes.Field;
+                    else if(v is EventFieldDeclarationSyntax)
+                    {
+                        dB_Member.member_type = (int)Metadata.MemberTypes.Event;
+                    }
+                        
+                    else
+                    {
+                        Console.Error.WriteLine("无法识别的类成员 " + v);
+                    }
                     dB_Member.modifier = GetModifier(type,v.Modifiers);
                     dB_Member.type = v_type.GetRefType();
                     if(ve.Initializer!=null)
@@ -1522,7 +1552,8 @@ namespace CSharpCompiler
 
 
         }
-        static void ExportProperty(PropertyDeclarationSyntax v, Metadata.DB_Type type)
+
+        static void ExportProperty(BasePropertyDeclarationSyntax v, Metadata.DB_Type type)
         {
             Metadata.DB_Type v_type = Model.GetType(GetTypeSyntax(v.Type));
 
@@ -1532,10 +1563,20 @@ namespace CSharpCompiler
                 return;
             }
 
+            string name = "";
+            if (v is PropertyDeclarationSyntax)
+            {
+                name = ((PropertyDeclarationSyntax)v).Identifier.Text;
+            }
+            else if (v is EventDeclarationSyntax)
+            {
+                name = ((EventDeclarationSyntax)v).Identifier.Text;
+            }
+
             if (step == ECompilerStet.ScanMember)
             {
                 Metadata.DB_Member property = new Metadata.DB_Member();
-                property.name = v.Identifier.Text;
+                property.name = name; 
                 property.declaring_type = type.static_full_name;
                 property.member_type = (int)Metadata.MemberTypes.Property;
                 property.is_static = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
@@ -1547,7 +1588,7 @@ namespace CSharpCompiler
                     Metadata.DB_Member dB_Member = new Metadata.DB_Member();
                     dB_Member.declaring_type = type.static_full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Method;
-
+                    dB_Member.is_static = property.is_static;
                     if (ve.Keyword.Text == "get")
                     {
                         dB_Member.type = v_type.GetRefType();
@@ -1555,7 +1596,7 @@ namespace CSharpCompiler
                         dB_Member.method_is_property_get = true;
                         dB_Member.method_args = new Metadata.DB_Member.Argument[0];
                     }
-                    else
+                    else if(ve.Keyword.Text == "set")
                     {
                         dB_Member.method_is_property_set = true;
                         dB_Member.name = property.property_set;
@@ -1564,7 +1605,24 @@ namespace CSharpCompiler
                         arg.type = v_type.GetRefType();
                         dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
                     }
-
+                    else if(ve.Keyword.Text == "add")
+                    {
+                        dB_Member.method_is_event_add = true;
+                        dB_Member.name = property.property_add;
+                        Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+                        arg.name = "value";
+                        arg.type = v_type.GetRefType();
+                        dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
+                    }
+                    else if (ve.Keyword.Text == "remove")
+                    {
+                        dB_Member.method_is_event_remove = true;
+                        dB_Member.name = property.property_remove;
+                        Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+                        arg.name = "value";
+                        arg.type = v_type.GetRefType();
+                        dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
+                    }
                     Model.AddMember(type.static_full_name, dB_Member);
                 }
                 Model.AddMember(type.static_full_name, property);
@@ -1572,7 +1630,7 @@ namespace CSharpCompiler
             else if(step == ECompilerStet.Compile)
             {
                 Metadata.DB_Member property = new Metadata.DB_Member();
-                property.name = v.Identifier.Text;
+                property.name = name;
                 property.is_static = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
                 property.modifier = GetModifier(type, v.Modifiers);
                 property.attributes = ExportAttributes(v.AttributeLists);
@@ -1590,7 +1648,7 @@ namespace CSharpCompiler
                             }
                         Model.Instance.LeaveMethod();
                     }
-                    else
+                    else if (ve.Keyword.Text == "set")
                     {
                         List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
                         argTypes.Add(v_type);
@@ -1603,6 +1661,33 @@ namespace CSharpCompiler
                             }
                         Model.Instance.LeaveMethod();
                     }
+                    else if (ve.Keyword.Text == "add")
+                    {
+                        List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                        argTypes.Add(v_type);
+                        dB_Member = type.FindMethod(property.property_add, argTypes, Model.Instance);
+                        Model.Instance.EnterMethod(dB_Member);
+                        if (ve.Body != null)
+                            if (!ingore_method_body)
+                            {
+                                dB_Member.method_body = ExportBody(ve.Body);
+                            }
+                        Model.Instance.LeaveMethod();
+                    }
+                    else if (ve.Keyword.Text == "remove")
+                    {
+                        List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                        argTypes.Add(v_type);
+                        dB_Member = type.FindMethod(property.property_remove, argTypes, Model.Instance);
+                        Model.Instance.EnterMethod(dB_Member);
+                        if (ve.Body != null)
+                            if (!ingore_method_body)
+                            {
+                                dB_Member.method_body = ExportBody(ve.Body);
+                            }
+                        Model.Instance.LeaveMethod();
+                    }
+
                 }
             }
         }

@@ -9,8 +9,8 @@ namespace System{
 	class IFormatProvider;
 }
 namespace System{
-		class ICustomFormater		{
-			public:
-			Ref<System::String> Format(Ref<System::String>  format,Ref<System::Object>  arg,Ref<System::IFormatProvider>  formatProvider);
-		};
+	class ICustomFormater	{
+		public:
+		Ref<System::String> Format(Ref<System::String>  format,Ref<System::Object>  arg,Ref<System::IFormatProvider>  formatProvider);
+	};
 }

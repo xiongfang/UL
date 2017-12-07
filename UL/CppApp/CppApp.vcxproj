@@ -151,9 +151,9 @@
     <ClInclude Include="Byte_ExtHeader.h" />
     <ClInclude Include="Char_ExtHeader.h" />
     <ClInclude Include="Console_ExtCpp.h" />
-    <ClInclude Include="Delegate.h" />
     <ClInclude Include="Double_ExtHeader.h" />
     <ClInclude Include="Enum_Ext.h" />
+    <ClInclude Include="Event.h" />
     <ClInclude Include="HandleManager.h" />
     <ClInclude Include="Int16_ExtHeader.h" />
     <ClInclude Include="Int32_ExtCpp.h" />

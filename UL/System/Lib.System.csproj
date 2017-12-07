@@ -38,6 +38,7 @@
     <Compile Include="Console.cs" />
     <Compile Include="Double.cs" />
     <Compile Include="Enum.cs" />
+    <Compile Include="Event.cs" />
     <Compile Include="Exception\ArgumentNullException.cs" />
     <Compile Include="Exception\Exception.cs" />
     <Compile Include="Exception\FormatException.cs" />

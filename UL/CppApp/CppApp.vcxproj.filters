@@ -195,7 +195,7 @@
     <ClInclude Include="Enum_Ext.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="Delegate.h">
+    <ClInclude Include="Event.h">
       <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>

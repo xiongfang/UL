@@ -4,11 +4,11 @@ namespace System{
 	struct Int32;
 }
 namespace System{
-		template<class T>
-		class ArrayT:public System::Array
-		{
-			public:
-			ArrayT(System::Int32  len)			{
-			}
-		};
+	template<class T>
+	class ArrayT:public System::Array
+	{
+		public:
+		ArrayT(System::Int32  len)		{
+		}
+	};
 }

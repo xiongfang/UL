@@ -341,7 +341,9 @@ namespace Metadata
             public bool is_type;
             public bool is_var;
             public bool is_namespace;
-            public bool is_member;
+            public bool is_field;
+            public bool is_property;
+            public bool is_event;
             public bool is_class_type_parameter;
             public bool is_method_type_parameter;
             public bool is_method;
@@ -408,14 +410,20 @@ namespace Metadata
                 {
                     if (currentType.FindField(name, this) != null)
                     {
-                        info.is_member = true;
+                        info.is_field = true;
                         info.type = GetType(currentType.FindField(name, this).typeName);
                         return info;
                     }
                     if (currentType.FindProperty(name, this) != null)
                     {
-                        info.is_member = true;
+                        info.is_property = true;
                         info.type = GetType(currentType.FindProperty(name, this).typeName);
+                        return info;
+                    }
+                    if (currentType.FindEvent(name, this) != null)
+                    {
+                        info.is_event = true;
+                        info.type = GetType(currentType.FindEvent(name, this).typeName);
                         return info;
                     }
                 }
