@@ -157,6 +157,7 @@ namespace CppConverter
             {
                 if (!type.base_type.IsVoid)
                     result.Add(type.base_type);
+
                 foreach (var i in type.interfaces)
                 {
                     result.Add(i);
@@ -171,6 +172,8 @@ namespace CppConverter
                     {
                         if (m.type is Metadata.Expression.GenericNameSyntax)
                             result.Add(m.type);
+                        if (type.is_delegate)
+                            result.Add(m.type);
                         foreach (var a in m.method_args)
                         {
                             if (a.type is Metadata.Expression.GenericNameSyntax)
@@ -179,27 +182,24 @@ namespace CppConverter
                     }
                 }
             }
-            public Metadata.IMemberVisitor GetMemberVisitor() { return null; }
-
-            public void VisitTypeStart(DB_Type type)
-            {
-                VisitType(type);
-            }
-
-            public void VisitTypeEnd(DB_Type type)
-            {
-                //throw new NotImplementedException();
-            }
         }
         //返回一个类型的不可以声明的类型
         public HashSet<string> GetTypeDependencesNoDeclareType(Metadata.DB_Type type)
         {
+            HashSet<string> set = new HashSet<string>();
+
             Metadata.Model model = new Metadata.Model(new DataBaseFinder(_con));
 
             MyCppHeaderTypeNoDeclareFinder f = new MyCppHeaderTypeNoDeclareFinder(model);
             model.AcceptTypeVisitor(f,type);
 
-            HashSet<string> set = new HashSet<string>();
+            //泛型需要添加方法体
+            if(type.is_generic_type_definition)
+            {
+                set = GetMethodBodyDependences(type);
+            }
+
+            
             foreach (var s in f.result)
             {
                 if (s.IsVoid)

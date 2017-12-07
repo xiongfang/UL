@@ -8,8 +8,7 @@ namespace System{
 		class Array:public System::Object
 		{
 			public:
-			Array(System::Int32  len)
-			{
+			Array(System::Int32  len)			{
 			}
 		};
 }

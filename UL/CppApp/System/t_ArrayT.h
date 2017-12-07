@@ -8,8 +8,7 @@ namespace System{
 		class ArrayT:public System::Array
 		{
 			public:
-			ArrayT(System::Int32  len)
-			{
+			ArrayT(System::Int32  len)			{
 			}
 		};
 }

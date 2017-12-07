@@ -103,7 +103,7 @@ System::Int16 System::UInt32::Int16(System::UInt32  v)
 
 System::Single System::UInt32::Single(System::UInt32  v)
 {
-	return System::Single(v._v);
+	return System::Single((System::Single::ValueType)v._v);
 }
 System::Double System::UInt32::Double(System::UInt32  v)
 {

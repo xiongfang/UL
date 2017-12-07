@@ -114,7 +114,7 @@ System::Int32 System::UInt16::Int32(System::UInt16  v)
 }
 System::SByte System::UInt16::SByte(System::UInt16  v)
 {
-	return System::SByte(v._v);
+	return System::SByte((System::SByte::ValueType)v._v);
 }
 System::Byte System::UInt16::Byte(System::UInt16  v)
 {
