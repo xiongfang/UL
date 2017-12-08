@@ -47,6 +47,7 @@ namespace Metadata
         void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ThisExp exp, Expression.Exp outer);
         void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ThrowExp exp, Expression.Exp outer);
         void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.IndifierExp exp, Expression.Exp outer);
+        void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ElementAccessExp exp, Expression.Exp outer);
     }
 
 
@@ -390,6 +391,10 @@ namespace Metadata
             else if (exp is Expression.ThrowExp)
             {
                 visitor.VisitExp(type, method, statement, exp as Expression.ThrowExp, outer);
+            }
+            else if(exp is Expression.ElementAccessExp)
+            {
+                visitor.VisitExp(type, method, statement, exp as Expression.ElementAccessExp, outer);
             }
             else
             {

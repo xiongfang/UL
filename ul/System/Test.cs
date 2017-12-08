@@ -76,7 +76,7 @@ namespace System
         static void TestEvent()
         {
             notify += Test_notify;
-
+            
             TestDel v = Test.TestDel;
             notify += v;
             _notify("你好");

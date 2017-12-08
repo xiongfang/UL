@@ -710,7 +710,8 @@ namespace CppConverter
                 if (declare_type.is_generic_type_definition)
                 {
                     //sb.AppendLine(")");
-                    ConvertStatement(member.method_body);
+                    if(member.method_body!=null)
+                        ConvertStatement(member.method_body);
                 }
                 else if(declare_type.is_delegate)
                 {
@@ -1043,6 +1044,10 @@ namespace CppConverter
             else if(es is Metadata.Expression.ParenthesizedExpressionSyntax)
             {
                 return ExpressionToString(((Metadata.Expression.ParenthesizedExpressionSyntax)es), outer);
+            }
+            else if(es is Metadata.Expression.ElementAccessExp)
+            {
+                return ExpressionToString(((Metadata.Expression.ElementAccessExp)es), outer);
             }
             else
             {
@@ -1427,11 +1432,22 @@ namespace CppConverter
                     {
                         if(member.member_type == (int)Metadata.MemberTypes.Property)
                         {
-                            if(right == null)
+                            property = true;
+                            bool lefgValue = false;
+                            if(right !=null && right is Metadata.Expression.AssignmentExpressionSyntax)
+                            {
+                                Metadata.Expression.AssignmentExpressionSyntax aes = right as Metadata.Expression.AssignmentExpressionSyntax;
+                                if(aes.Left == es)
+                                {
+                                    lefgValue = true;
+                                }
+                            }
+
+                            if (!lefgValue)
                                 stringBuilder.Append(member.property_get+"()") ;
                             else
                                 stringBuilder.Append(member.property_set +"("+ ExpressionToString(right)+")");
-                            property = true;
+                            
                         }
                     }
                 }
@@ -1687,11 +1703,11 @@ namespace CppConverter
                 Metadata.DB_Type left_type = Model.GetExpType(exp.Left);
                 Metadata.DB_Type right_type = Model.GetExpType(exp.Right);
 
-                if(exp.Left is Metadata.Expression.FieldExp)
-                {
-                    stringBuilder.Append( ExpressionToString(exp.Left as Metadata.Expression.FieldExp, exp.Right));
-                }
-                else
+                //if(exp.Left is Metadata.Expression.FieldExp)
+                //{
+                //    stringBuilder.Append( ExpressionToString(exp.Left as Metadata.Expression.FieldExp, exp.Right));
+                //}
+                //else
                 {
                     stringBuilder.Append(ExpressionToString(exp.Left,exp));
                     stringBuilder.Append(" = ");
@@ -1755,11 +1771,11 @@ namespace CppConverter
                 binaryExpressionSyntax.Right = exp.Right;
                 binaryExpressionSyntax.OperatorToken = token;
 
-                if (exp.Left is Metadata.Expression.FieldExp)
-                {
-                    stringBuilder.Append(ExpressionToString(exp.Left as Metadata.Expression.FieldExp, binaryExpressionSyntax));
-                }
-                else
+                //if (exp.Left is Metadata.Expression.FieldExp)
+                //{
+                //    stringBuilder.Append(ExpressionToString(exp.Left as Metadata.Expression.FieldExp, binaryExpressionSyntax));
+                //}
+                //else
                 {
                     stringBuilder.Append(ExpressionToString(exp.Left,exp));
                     stringBuilder.Append(" = ");
@@ -1878,5 +1894,37 @@ namespace CppConverter
             stringBuilder.Append(")");
             return stringBuilder.ToString();
         }
+
+        string ExpressionToString(Metadata.Expression.ElementAccessExp exp, Metadata.Expression.Exp outer)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            bool leftValue = false;
+            if (outer!=null && outer is Metadata.Expression.AssignmentExpressionSyntax)
+            {
+                Metadata.Expression.AssignmentExpressionSyntax ae = outer as Metadata.Expression.AssignmentExpressionSyntax;
+                if(ae.Left == exp)
+                {
+                    leftValue = true;
+                    
+                }
+            }
+
+            if(leftValue)
+                stringBuilder.Append("get_Index(");
+            else
+                stringBuilder.Append("set_Index(");
+
+            for (int i = 0; i < exp.args.Count; i++)
+            {
+                stringBuilder.Append(ExpressionToString(exp.args[i], exp));
+                if (i < exp.args.Count - 1)
+                    stringBuilder.Append(",");
+            }
+            stringBuilder.Append(")");
+
+            return stringBuilder.ToString();
+        }
+        
     }
 }

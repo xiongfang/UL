@@ -1552,6 +1552,17 @@ namespace CSharpCompiler
 
 
         }
+        static Metadata.DB_Member.Argument GetArgument(ParameterSyntax parameter)
+        {
+            Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+            arg.name = parameter.Identifier.Text;
+            arg.type = GetTypeSyntax(parameter.Type);
+            arg.is_out = ContainModifier(parameter.Modifiers, "out");
+            arg.is_ref = ContainModifier(parameter.Modifiers, "ref");
+            arg.is_params = ContainModifier(parameter.Modifiers, "params");
+            return arg;
+        }
+
 
         static void ExportProperty(BasePropertyDeclarationSyntax v, Metadata.DB_Type type)
         {
@@ -1571,6 +1582,10 @@ namespace CSharpCompiler
             else if (v is EventDeclarationSyntax)
             {
                 name = ((EventDeclarationSyntax)v).Identifier.Text;
+            }
+            else if(v is IndexerDeclarationSyntax)
+            {
+                name = "Index";
             }
 
             if (step == ECompilerStet.ScanMember)
@@ -1594,16 +1609,43 @@ namespace CSharpCompiler
                         dB_Member.type = v_type.GetRefType();
                         dB_Member.name = property.property_get;
                         dB_Member.method_is_property_get = true;
-                        dB_Member.method_args = new Metadata.DB_Member.Argument[0];
+                        if (v is IndexerDeclarationSyntax)
+                        {
+                            IndexerDeclarationSyntax indexerDeclarationSyntax = v as IndexerDeclarationSyntax;
+                            List<Metadata.DB_Member.Argument> args = new List<Metadata.DB_Member.Argument>();
+                            foreach(var a in indexerDeclarationSyntax.ParameterList.Parameters)
+                            {
+                                args.Add(GetArgument(a));
+                            }
+                            dB_Member.method_args = args.ToArray();
+                        }
+                        else
+                        {
+                            dB_Member.method_args = new Metadata.DB_Member.Argument[0];
+                        }
+                        
                     }
                     else if(ve.Keyword.Text == "set")
                     {
                         dB_Member.method_is_property_set = true;
                         dB_Member.name = property.property_set;
-                        Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
-                        arg.name = "value";
-                        arg.type = v_type.GetRefType();
-                        dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
+                        if (v is IndexerDeclarationSyntax)
+                        {
+                            IndexerDeclarationSyntax indexerDeclarationSyntax = v as IndexerDeclarationSyntax;
+                            List<Metadata.DB_Member.Argument> args = new List<Metadata.DB_Member.Argument>();
+                            foreach (var a in indexerDeclarationSyntax.ParameterList.Parameters)
+                            {
+                                args.Add(GetArgument(a));
+                            }
+                            dB_Member.method_args = args.ToArray();
+                        }
+                        else
+                        {
+                            Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+                            arg.name = "value";
+                            arg.type = v_type.GetRefType();
+                            dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
+                        }
                     }
                     else if(ve.Keyword.Text == "add")
                     {
@@ -1639,7 +1681,14 @@ namespace CSharpCompiler
                     Metadata.DB_Member dB_Member = null;
                     if (ve.Keyword.Text == "get")
                     {
-                        dB_Member = type.FindMethod(property.property_get, new List<Metadata.DB_Type>(), Model.Instance);
+                        if (v is IndexerDeclarationSyntax)
+                        {
+                            dB_Member = type.FindMethod(property.property_get, Model.Instance)[0];
+                        }
+                        else
+                        {
+                            dB_Member = type.FindMethod(property.property_get, new List<Metadata.DB_Type>(), Model.Instance);
+                        }
                         Model.Instance.EnterMethod(dB_Member);
                         if (ve.Body != null)
                             if (!ingore_method_body)
@@ -1647,12 +1696,21 @@ namespace CSharpCompiler
                                 dB_Member.method_body = ExportBody(ve.Body);
                             }
                         Model.Instance.LeaveMethod();
+
                     }
                     else if (ve.Keyword.Text == "set")
                     {
-                        List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
-                        argTypes.Add(v_type);
-                        dB_Member = type.FindMethod(property.property_get, argTypes, Model.Instance);
+                        if (v is IndexerDeclarationSyntax)
+                        {
+                            dB_Member = type.FindMethod(property.property_set, Model.Instance)[0];
+                        }
+                        else
+                        {
+                            List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                            argTypes.Add(v_type);
+                            dB_Member = type.FindMethod(property.property_set, argTypes, Model.Instance);
+                        }
+
                         Model.Instance.EnterMethod(dB_Member);
                         if (ve.Body != null)
                             if (!ingore_method_body)
@@ -2222,6 +2280,10 @@ namespace CSharpCompiler
             {
                 return ExportExp(es as ParenthesizedExpressionSyntax);
             }
+            else if(es is ElementAccessExpressionSyntax)
+            {
+                return ExportExp(es as ElementAccessExpressionSyntax);
+            }
             else
             {
                 Console.Error.WriteLine(string.Format("error:不支持的表达式 {0} {1}" , es.GetType().Name,es.ToString()));
@@ -2444,6 +2506,18 @@ namespace CSharpCompiler
         {
             Metadata.Expression.ParenthesizedExpressionSyntax exp = new Metadata.Expression.ParenthesizedExpressionSyntax();
             exp.exp = ExportExp(es.Expression);
+            return exp;
+        }
+
+        static Metadata.Expression.Exp ExportExp(ElementAccessExpressionSyntax es)
+        {
+            Metadata.Expression.ElementAccessExp exp = new Metadata.Expression.ElementAccessExp();
+            exp.exp = ExportExp(es.Expression);
+            foreach(var a in es.ArgumentList.Arguments)
+            {
+                exp.args.Add(ExportExp(a.Expression));
+            }
+
             return exp;
         }
     }

@@ -129,6 +129,10 @@ namespace Metadata
             dB_Type.is_generic_type_definition = false;
             dB_Type.generic_parameter_position = declare_type.generic_parameter_definitions.FindIndex((a) => { return a.type_name == def.type_name; });
             //dB_Type._namespace = dB_Type._namespace + "." + dB_Type.name;
+            //foreach(var c in declare_type.generic_parameter_definitions[dB_Type.generic_parameter_position].constraint)
+            //{
+
+            //}
             dB_Type.name = def.type_name;
             dB_Type.declare_type = declare_type.static_full_name;
 
@@ -989,8 +993,12 @@ namespace Metadata
         {
             public Exp exp;
         }
-
-
+        [JsonConverter(typeof(JsonConverterType<ElementAccessExp>))]
+        public class ElementAccessExp:Exp
+        {
+            public Exp exp;
+            public List<Exp> args = new List<Exp>();
+        }
 
         [JsonConverter(typeof(JsonConverterType<TypeSyntax>))]
         public abstract class TypeSyntax : DB_Syntax

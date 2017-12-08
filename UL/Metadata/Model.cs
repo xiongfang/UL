@@ -306,6 +306,31 @@ namespace Metadata
                 Metadata.Expression.ParenthesizedExpressionSyntax pes = exp as Metadata.Expression.ParenthesizedExpressionSyntax;
                 return GetExpType(pes.exp);
             }
+            else if(exp is Metadata.Expression.ElementAccessExp)
+            {
+                Metadata.Expression.ElementAccessExp eae = exp as Metadata.Expression.ElementAccessExp;
+                Metadata.DB_Type caller_type = GetExpType(eae.exp);
+                List<Metadata.DB_Type> argTypes = new List<Metadata.DB_Type>();
+                foreach(var a in eae.args)
+                    argTypes.Add(GetExpType(a));
+
+
+                return GetType(caller_type.FindProperty("Index", this).type);
+
+                //string methodName = "";
+
+                //if(outer is Metadata.Expression.AssignmentExpressionSyntax && ((Metadata.Expression.AssignmentExpressionSyntax)outer).Left == exp)
+                //{
+                //    methodName = "set_Index";
+                //}
+                //else
+                //{
+                //    methodName = "get_Index";
+                //}
+
+                //Metadata.DB_Member member = caller_type.FindMethod(methodName, argTypes, this);
+                //return GetType(member.typeName);
+            }
             else
             {
                 Console.Error.WriteLine("无法确定表达式类型 " + exp.JsonType);
@@ -805,6 +830,16 @@ namespace Metadata
                     model.VisitStatement(this, type, member, member.method_body, null);
                 }
             }
+        }
+
+        public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, ElementAccessExp exp, Exp outer)
+        {
+            model.VisitExp(this, type, member, statement, exp.exp, exp);
+            foreach(var e in exp.args)
+            {
+                model.VisitExp(this, type, member, statement, e, exp);
+            }
+            
         }
     }
 }
