@@ -111,7 +111,7 @@ namespace Metadata
 
         public Dictionary<string, DB_Member> members = new Dictionary<string, DB_Member>();
 
-        public static DB_Type MakeGenericType(DB_Type genericTypeDef, List<Expression.TypeSyntax> genericParameters)
+        public static DB_Type MakeGenericType(DB_Type genericTypeDef, List<Expression.TypeSyntax> genericParameters,Model model)
         {
             DB_Type dB_Type = DB.ReadObject<DB_Type>(DB.WriteObject(genericTypeDef));
             dB_Type.is_generic_type_definition = false;
@@ -119,6 +119,15 @@ namespace Metadata
             dB_Type.declare_type = genericTypeDef.static_full_name;
             //dB_Type.generic_parameter_definitions.Clear();
             dB_Type.generic_parameters.AddRange(genericParameters);
+
+            //foreach(var m in genericTypeDef.members)
+            //{
+            //    DB_Member newM = DB.ReadObject<DB_Member>(DB.WriteObject(m.Value));
+            //    dB_Type.members.Add(newM.identifier, newM);
+            //}
+
+            GenericTypeReplace genericTypeReplace = new GenericTypeReplace(model);
+            model.AcceptTypeVisitor(genericTypeReplace, dB_Type);
             return dB_Type;
         }
 

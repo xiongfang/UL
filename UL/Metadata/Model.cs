@@ -530,10 +530,6 @@ namespace Metadata
             this.model = model;
         }
 
-        public MyCppHeaderTypeFinder()
-        {
-        }
-
         public HashSet<Expression.TypeSyntax> result = new HashSet<Expression.TypeSyntax>();
 
         public IMemberVisitor GetMemberVisitor() { return this; }

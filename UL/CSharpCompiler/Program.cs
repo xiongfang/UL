@@ -132,7 +132,7 @@ namespace CSharpCompiler
             {
                 Metadata.Expression.GenericNameSyntax ins = typeSyntax as Metadata.Expression.GenericNameSyntax;
                 Metadata.DB_Type ma = GetType(ins.GetStaticFullName());
-                return Metadata.DB_Type.MakeGenericType(ma, ins.Arguments);
+                return Metadata.DB_Type.MakeGenericType(ma, ins.Arguments, new Metadata.Model(new Finder()));
             }
 
             if(typeSyntax is Metadata.Expression.GenericParameterSyntax)

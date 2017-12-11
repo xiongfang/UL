@@ -96,7 +96,7 @@ namespace CppConverter
                 if (typeRef is Metadata.Expression.GenericNameSyntax)
                 {
                     Metadata.Expression.GenericNameSyntax gns = typeRef as Metadata.Expression.GenericNameSyntax;
-                    return Metadata.DB_Type.MakeGenericType(type, gns.Arguments);
+                    return Metadata.DB_Type.MakeGenericType(type, gns.Arguments, new Metadata.Model(new Finder()));
                 }
                 if (typeRef is Metadata.Expression.GenericParameterSyntax)
                 {

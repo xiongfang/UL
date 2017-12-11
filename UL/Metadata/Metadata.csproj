@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GenericTypeReplace.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="ModelVisitor.cs" />
