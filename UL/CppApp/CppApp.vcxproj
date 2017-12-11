@@ -147,6 +147,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Array_Ext.h" />
     <ClInclude Include="Boolean_ExtHeader.h" />
     <ClInclude Include="Byte_ExtHeader.h" />
     <ClInclude Include="Char_ExtHeader.h" />
@@ -159,6 +160,7 @@
     <ClInclude Include="Int32_ExtCpp.h" />
     <ClInclude Include="Int32_ExtHeader.h" />
     <ClInclude Include="Int64_ExtHeader.h" />
+    <ClInclude Include="List_Ext.h" />
     <ClInclude Include="Object_ExtCpp.h" />
     <ClInclude Include="Object_ExtHeader.h" />
     <ClInclude Include="Ref.h" />
@@ -172,7 +174,9 @@
     <ClInclude Include="System\Boolean.h" />
     <ClInclude Include="System\Byte.h" />
     <ClInclude Include="System\Char.h" />
+    <ClInclude Include="System\Collections\Generic\t_List.h" />
     <ClInclude Include="System\Console.h" />
+    <ClInclude Include="System\Delegate.h" />
     <ClInclude Include="System\Double.h" />
     <ClInclude Include="System\Enum.h" />
     <ClInclude Include="System\Exception.h" />
@@ -195,7 +199,6 @@
     <ClInclude Include="System\Test.h" />
     <ClInclude Include="System\TestDel.h" />
     <ClInclude Include="System\Type.h" />
-    <ClInclude Include="System\t_Array.h" />
     <ClInclude Include="System\t_ArrayT.h" />
     <ClInclude Include="System\UInt16.h" />
     <ClInclude Include="System\UInt32.h" />
@@ -210,6 +213,7 @@
     <ClCompile Include="Boolean_ExtCpp.cpp" />
     <ClCompile Include="Byte_ExtCpp.cpp" />
     <ClCompile Include="CppApp.cpp" />
+    <ClCompile Include="Delegate_ExtCpp.cpp" />
     <ClCompile Include="Double_ExtCpp.cpp" />
     <ClCompile Include="Enum_Ext.cpp" />
     <ClCompile Include="Int16_ExtCpp.cpp" />
@@ -229,6 +233,7 @@
     <ClCompile Include="System\Byte.cpp" />
     <ClCompile Include="System\Char.cpp" />
     <ClCompile Include="System\Console.cpp" />
+    <ClCompile Include="System\Delegate.cpp" />
     <ClCompile Include="System\Double.cpp" />
     <ClCompile Include="System\Enum.cpp" />
     <ClCompile Include="System\Exception.cpp" />

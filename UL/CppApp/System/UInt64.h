@@ -37,9 +37,9 @@ namespace System{
 	struct UInt64:public System::ValueType
 	{
 		public:
-		static 		System::UInt64 MaxValue;
+static System::UInt64 MaxValue;
 		public:
-		static 		System::UInt64 MinValue;
+static System::UInt64 MinValue;
 		public:
 		static System::UInt64 Parse(Ref<System::String>  value);
 		public:

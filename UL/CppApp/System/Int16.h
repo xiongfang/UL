@@ -37,9 +37,9 @@ namespace System{
 	struct Int16:public System::ValueType
 	{
 		public:
-		static 		System::Int16 MaxValue;
+static System::Int16 MaxValue;
 		public:
-		static 		System::Int16 MinValue;
+static System::Int16 MinValue;
 		public:
 		static System::Int16 Parse(Ref<System::String>  value);
 		public:

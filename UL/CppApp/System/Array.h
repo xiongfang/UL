@@ -7,6 +7,6 @@ namespace System{
 	class Array:public System::Object
 	{
 		public:
-		System::Int32 get_Length();
+		virtual System::Int32 get_Length()=0;
 	};
 }

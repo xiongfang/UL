@@ -37,9 +37,9 @@ namespace System{
 	struct UInt16:public System::ValueType
 	{
 		public:
-		static 		System::UInt16 MaxValue;
+static System::UInt16 MaxValue;
 		public:
-		static 		System::UInt16 MinValue;
+static System::UInt16 MinValue;
 		public:
 		static System::UInt16 Parse(Ref<System::String>  value);
 		public:

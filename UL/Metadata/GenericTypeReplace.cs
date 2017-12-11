@@ -34,7 +34,7 @@ namespace Metadata
                 GenericNameSyntax genericNameSyntax = oldTs as GenericNameSyntax;
                 for(int i=0;i< genericNameSyntax.Arguments.Count;i++)
                 {
-                    genericNameSyntax.Arguments[i] = ReplaceType(type, oldTs);
+                    genericNameSyntax.Arguments[i] = ReplaceType(type, genericNameSyntax.Arguments[i]);
                 }
             }
 

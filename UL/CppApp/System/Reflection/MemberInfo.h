@@ -16,13 +16,13 @@ namespace System{
 		class MemberInfo:public System::Object
 		{
 			public:
-			System::Reflection::MemberTypes get_MemberType();
+			virtual System::Reflection::MemberTypes get_MemberType()=0;
 			public:
-			Ref<System::String> get_Name();
+			virtual Ref<System::String> get_Name()=0;
 			public:
-			Ref<System::Type> get_DeclaringType();
+			virtual Ref<System::Type> get_DeclaringType()=0;
 			public:
-			Ref<System::Type> get_ReflectedType();
+			virtual Ref<System::Type> get_ReflectedType()=0;
 		};
 	}
 }

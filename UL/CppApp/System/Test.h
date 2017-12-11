@@ -13,7 +13,7 @@ namespace System{
 	class Test:public System::Object
 	{
 		private:
-		static 		Ref<System::TestDel> _notify;
+		static Ref<System::TestDel> _notify;
 		public:
 		static void add_notify(Ref<System::TestDel>  value);
 		public:

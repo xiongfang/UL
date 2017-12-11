@@ -37,11 +37,11 @@ namespace System{
 	struct Single:public System::ValueType
 	{
 		public:
-		static 		System::Single Epsilon;
+static System::Single Epsilon;
 		public:
-		static 		System::Single MaxValue;
+static System::Single MaxValue;
 		public:
-		static 		System::Single MinValue;
+static System::Single MinValue;
 		public:
 		static System::Single Parse(Ref<System::String>  value);
 		public:

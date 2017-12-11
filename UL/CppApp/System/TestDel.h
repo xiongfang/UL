@@ -1,11 +1,11 @@
 ﻿#pragma once
-#include "System\Object.h"
+#include "System\Delegate.h"
 #include "System\Boolean.h"
 namespace System{
 	class String;
 }
 namespace System{
-	class TestDel:public System::Object
+	class TestDel:public System::Delegate
 	{
 		public:
 		virtual System::Boolean Invoke(Ref<System::String>  v)=0;
@@ -15,31 +15,37 @@ namespace System{
 	{
 		public:
 		typedef System::Boolean(T::*Type)(Ref<System::String>  v);
-		Ref<T> object;
+		typedef TestDel__Implement ThisType;
 		Type p;
 		typedef System::Boolean(StaticType)(Ref<System::String>  v);
 		StaticType* static_p;
-		TestDel__Implement(T* o, Type p)
+		ThisType(T* o, Type p)
 		
                                 {
-	                                object = o;
+	                                _target = o;
 	                                this->p = p;
 	                                static_p = nullptr;
                                 }
-		TestDel__Implement(T* o, StaticType* p)
+		ThisType(T* o, StaticType* p)
 		
                                 {
-	                                object = o;
+	                                _target = o;
 	                                this->static_p = p;
 	                                p = nullptr;
                                 }
 		System::Boolean Invoke(Ref<System::String>  v)
 		{
+
+			                    for(int i=0;i<list->get_Count()._v;i++)
+			                    {
+				                    ThisType* thisDel = (ThisType*)list->get_Index(i).Get();
+                                			thisDel->Invoke(v);
+			}
 			if (static_p != nullptr)
 			{
 				return static_p(v);
 			}
-			return (object.Get()->*p)(v);
+			return (((T*)_target.Get())->*p)(v);
 		}
 	};
 }

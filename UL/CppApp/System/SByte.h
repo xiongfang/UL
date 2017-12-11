@@ -37,9 +37,9 @@ namespace System{
 	struct SByte:public System::ValueType
 	{
 		public:
-		static 		System::SByte MaxValue;
+static System::SByte MaxValue;
 		public:
-		static 		System::SByte MinValue;
+static System::SByte MinValue;
 		public:
 		static System::SByte Parse(Ref<System::String>  value);
 		public:

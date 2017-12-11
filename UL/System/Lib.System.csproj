@@ -35,10 +35,11 @@
     <Compile Include="Boolean.cs" />
     <Compile Include="Byte.cs" />
     <Compile Include="Char.cs" />
+    <Compile Include="Collections\Generic\List.cs" />
     <Compile Include="Console.cs" />
     <Compile Include="Double.cs" />
     <Compile Include="Enum.cs" />
-    <Compile Include="Event.cs" />
+    <Compile Include="Delegate.cs" />
     <Compile Include="Exception\ArgumentNullException.cs" />
     <Compile Include="Exception\Exception.cs" />
     <Compile Include="Exception\FormatException.cs" />

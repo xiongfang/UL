@@ -17,6 +17,8 @@ namespace System{
 		public:
 		virtual Ref<System::String> ToString();
 		public:
+		static System::Boolean ReferenceEquals(Ref<System::Object>  a,Ref<System::Object>  b);
+		public:
 		static System::Boolean op_Equality(Ref<System::Object>  a,Ref<System::Object>  b);
 		public:
 		static System::Boolean op_Inequality(Ref<System::Object>  a,Ref<System::Object>  b);

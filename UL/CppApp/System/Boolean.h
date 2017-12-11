@@ -5,9 +5,9 @@ namespace System{
 	struct Boolean:public System::ValueType
 	{
 		public:
-		static 		Ref<System::String> FalseString;
+static Ref<System::String> FalseString;
 		public:
-		static 		Ref<System::String> TrueString;
+static Ref<System::String> TrueString;
 		public:
 		static System::Boolean Parse(Ref<System::String>  value);
 		public:

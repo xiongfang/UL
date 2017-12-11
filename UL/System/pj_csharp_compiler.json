@@ -4,7 +4,8 @@
 	[
     ".",
     "Exception",
-    "Reflection"
+    "Reflection",
+    "Collections/Generic",
 	],
 	"ref_namespace":
 	[

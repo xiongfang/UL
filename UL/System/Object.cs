@@ -13,5 +13,7 @@
         {
             return !(a == b);
         }
+
+        public extern static bool ReferenceEquals(Object a, Object b);
     }
 }

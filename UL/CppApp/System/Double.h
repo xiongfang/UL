@@ -37,11 +37,11 @@ namespace System{
 	struct Double:public System::ValueType
 	{
 		public:
-		static 		System::Double Epsilon;
+static System::Double Epsilon;
 		public:
-		static 		System::Double MaxValue;
+static System::Double MaxValue;
 		public:
-		static 		System::Double MinValue;
+static System::Double MinValue;
 		public:
 		static System::Double Parse(Ref<System::String>  value);
 		public:

@@ -1,10 +1,17 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
 
 namespace System
 {
     public abstract class Delegate
     {
-        object _target;
+        protected object _target;
+        protected List<Delegate> list;
+
+        public Delegate()
+        {
+            list = new List<Delegate>();
+        }
+
         //
         // 摘要:
         //     初始化一个委托，该委托对指定的类实例调用指定的实例方法。
@@ -53,7 +60,7 @@ namespace System
         // 异常:
         //   T:System.MemberAccessException:
         //     调用方不能访问委托所表示的方法（例如，当该方法为私有时）。
-        public MethodInfo Method { get { return GetMethodImpl(); } }
+        //public MethodInfo Method { get { return GetMethodImpl(); } }
         //
         // 摘要:
         //     获取类实例，当前委托将对其调用实例方法。
@@ -67,8 +74,6 @@ namespace System
 
         public static Delegate Combine(Delegate a, Delegate b)
         {
-            if (a == null && b == null)
-                return null;
             if (a == null)
                 return b;
             if (b == null)
@@ -109,16 +114,35 @@ namespace System
         //
         //   T:System.ArgumentException:
         //     委托类型不匹配。
-        public extern static Delegate Remove(Delegate source, Delegate value);
-
-        public extern static Delegate RemoveAll(Delegate source, Delegate value);
-
-        public object DynamicInvoke(params object[] args)
+        public extern static Delegate Remove(Delegate source, Delegate value)
         {
-            return DynamicInvokeImpl(args);
+            if (source == null)
+                return null;
+            if (value == null)
+                return source;
+            source.list.Remove(value);
+            return source;
         }
 
-        public extern virtual Delegate[] GetInvocationList();
+        public extern static Delegate RemoveAll(Delegate source, Delegate value)
+        {
+            if (source == null)
+                return null;
+            if (value == null)
+                return source;
+            source.list.RemoveAll(value);
+            return source;
+        }
+
+        //public object DynamicInvoke(params object[] args)
+        //{
+        //    return DynamicInvokeImpl(args);
+        //}
+
+        public  Delegate[] GetInvocationList()
+        {
+            return list.ToArray();
+        }
 
 
         //
@@ -135,7 +159,11 @@ namespace System
         // 异常:
         //   T:System.MulticastNotSupportedException:
         //     总是引发。
-        protected extern virtual Delegate CombineImpl(Delegate d);
+        protected Delegate CombineImpl(Delegate d)
+        {
+            list.Add(d);
+            return this;
+        }
         //
         // 摘要:
         //     动态调用（后期绑定）由当前委托所表示的方法。
@@ -157,7 +185,7 @@ namespace System
         //   T:System.Reflection.TargetInvocationException:
         //     委托表示的方法是实例方法，并且目标对象是 null。-或- 某个封装的方法引发异常。
         //[SecuritySafeCritical]
-        protected extern virtual object DynamicInvokeImpl(object[] args);
+        //protected extern virtual object DynamicInvokeImpl(object[] args);
         //
         // 摘要:
         //     获取当前委托所表示的静态方法。
@@ -169,24 +197,7 @@ namespace System
         //   T:System.MemberAccessException:
         //     调用方不能访问委托所表示的方法（例如，当该方法为私有时）。
         //[SecuritySafeCritical]
-        protected extern virtual MethodInfo GetMethodImpl();
-        //
-        // 摘要:
-        //     从一个委托的调用列表中移除另一个委托的调用列表。
-        //
-        // 参数:
-        //   d:
-        //     委托，它提供要从当前委托的调用列表中移除的调用列表。
-        //
-        // 返回结果:
-        //     一个新委托，其调用列表的构成方法为：获取当前委托的调用列表，如果在当前委托的调用列表中找到了 value 的调用列表，则从中移除 value 的调用列表。
-        //     如果 value 为 null，或者在当前委托的调用列表中没有找到 value 的调用列表，则返回当前委托。 如果 value 的调用列表等于当前委托的调用列表，则返回
-        //     null。
-        //
-        // 异常:
-        //   T:System.MemberAccessException:
-        //     调用方不能访问委托所表示的方法（例如，当该方法为私有时）。
-        protected extern virtual Delegate RemoveImpl(Delegate d);
+        //protected extern virtual MethodInfo GetMethodImpl();
 
         //
         // 摘要:
@@ -202,7 +213,17 @@ namespace System
         // 返回结果:
         //     如果 d1 等于 d2，则为 true；否则为 false。
         //[TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
-        public extern static bool operator ==(Delegate d1, Delegate d2);
+        public static bool operator ==(Delegate d1, Delegate d2)
+        {
+            if (ReferenceEquals(d1, d2))
+                return true;
+            if (ReferenceEquals(d1, null))
+                return false;
+            if (ReferenceEquals(d2, null))
+                return false;
+            return d1.Equals(d2);
+        }
+
         //
         // 摘要:
         //     确定指定的委托是否相等。
@@ -216,7 +237,10 @@ namespace System
         //
         // 返回结果:
         //     如果 d1 不等于 d2，则为 true；否则为 false。
-        public extern static bool operator !=(Delegate d1, Delegate d2);
+        public extern static bool operator !=(Delegate d1, Delegate d2)
+        {
+            return !(d1 == d2);
+        }
 
 
         public static Delegate operator +(Delegate d1, Delegate d2)

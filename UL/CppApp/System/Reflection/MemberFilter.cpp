@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "System\Reflection\MemberFilter.h"
-#include "System\Object.h"
+#include "System\Delegate.h"
 #include "System\Boolean.h"
 #include "System\Reflection\MemberInfo.h"
+#include "System\Object.h"

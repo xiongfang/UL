@@ -688,7 +688,6 @@ namespace CSharpCompiler
                 bool partial = ContainModifier(c.Modifiers, "partial");
                 type.modifier = GetModifier(type, c.Modifiers);
                 type.name = c.Identifier.Text;
-
                 type.usingNamespace = new List<string>();
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
@@ -739,7 +738,7 @@ namespace CSharpCompiler
                 Metadata.DB_Type type = Model.Instance.GetIndifierInfo(typeName).type;
 
                 if (type.static_full_name != "System.Object" && type.base_type.IsVoid)
-                    type.base_type = Model.GetType("System.Object").GetRefType();
+                    type.base_type = Model.GetType("System.Delegate").GetRefType();
 
                 //属性
                 type.attributes = ExportAttributes(c.AttributeLists);
@@ -1528,19 +1527,25 @@ namespace CSharpCompiler
                     dB_Member.name = ve.Identifier.Text;
                     dB_Member.is_static = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
                     dB_Member.declaring_type = type.static_full_name;
-                    if(v is FieldDeclarationSyntax)
+                    dB_Member.type = v_type.GetRefType();
+
+                    if (v is FieldDeclarationSyntax)
                         dB_Member.member_type = (int)Metadata.MemberTypes.Field;
                     else if(v is EventFieldDeclarationSyntax)
                     {
                         dB_Member.member_type = (int)Metadata.MemberTypes.Event;
-                    }
-                        
+                        //Metadata.Expression.GenericNameSyntax genType = new Metadata.Expression.GenericNameSyntax();
+                        //genType.name_space = "System";
+                        //genType.Name = "DelegateImpl";
+                        //genType.Arguments = new List<Metadata.Expression.TypeSyntax>();
+                        //genType.Arguments.Add(v_type.GetRefType());
+                        //dB_Member.type = genType;
+                    } 
                     else
                     {
                         Console.Error.WriteLine("无法识别的类成员 " + v);
                     }
                     dB_Member.modifier = GetModifier(type,v.Modifiers);
-                    dB_Member.type = v_type.GetRefType();
                     if(ve.Initializer!=null)
                         dB_Member.field_initializer = ExportExp(ve.Initializer.Value);
 
@@ -1604,6 +1609,10 @@ namespace CSharpCompiler
                     dB_Member.declaring_type = type.static_full_name;
                     dB_Member.member_type = (int)Metadata.MemberTypes.Method;
                     dB_Member.is_static = property.is_static;
+                    dB_Member.modifier = property.modifier;
+                    dB_Member.method_abstract = ContainModifier(v.Modifiers, "abstract");
+                    dB_Member.method_virtual = ContainModifier(v.Modifiers, "virtual");
+                    dB_Member.method_override = ContainModifier(v.Modifiers, "override");
                     if (ve.Keyword.Text == "get")
                     {
                         dB_Member.type = v_type.GetRefType();
@@ -1637,6 +1646,10 @@ namespace CSharpCompiler
                             {
                                 args.Add(GetArgument(a));
                             }
+                            Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+                            arg.name = "value";
+                            arg.type = v_type.GetRefType();
+                            args.Add(arg);
                             dB_Member.method_args = args.ToArray();
                         }
                         else
@@ -1713,7 +1726,7 @@ namespace CSharpCompiler
 
                         Model.Instance.EnterMethod(dB_Member);
                         if (ve.Body != null)
-                            if (!ingore_method_body)
+                            if (!ingore_method_body && ve.Body != null)
                             {
                                 dB_Member.method_body = ExportBody(ve.Body);
                             }
@@ -1739,7 +1752,7 @@ namespace CSharpCompiler
                         dB_Member = type.FindMethod(property.property_remove, argTypes, Model.Instance);
                         Model.Instance.EnterMethod(dB_Member);
                         if (ve.Body != null)
-                            if (!ingore_method_body)
+                            if (!ingore_method_body && ve.Body != null)
                             {
                                 dB_Member.method_body = ExportBody(ve.Body);
                             }
@@ -1834,7 +1847,7 @@ namespace CSharpCompiler
                     Metadata.DB_Member dB_Member = MemberMap[f];
                     Model.Instance.EnterMethod(dB_Member);
                     if (f.Body != null)
-                        if (!ingore_method_body)
+                        if (!ingore_method_body && f.Body!=null)
                         {
                             dB_Member.method_body = ExportBody(f.Body);
                         }
@@ -1883,7 +1896,7 @@ namespace CSharpCompiler
                 }
                 else if (step == ECompilerStet.Compile)
                 {
-                    if(!ingore_method_body)
+                    if(!ingore_method_body && f.Body!=null)
                     {
                         Metadata.DB_Member dB_Member = MemberMap[f];
                         dB_Member.method_body = ExportBody(f.Body);
@@ -1941,7 +1954,7 @@ namespace CSharpCompiler
                 Metadata.DB_Member dB_Member = MemberMap[f];
                 Model.Instance.EnterMethod(dB_Member);
                 if (f.Body != null)
-                    if (!ingore_method_body)
+                    if (!ingore_method_body && f.Body != null)
                     {
                         dB_Member.method_body = ExportBody(f.Body);
                     }
@@ -1998,7 +2011,7 @@ namespace CSharpCompiler
                 Metadata.DB_Member dB_Member = MemberMap[f];
                 Model.Instance.EnterMethod(dB_Member);
                 if (f.Body != null)
-                    if (!ingore_method_body)
+                    if (!ingore_method_body && f.Body != null)
                     {
                         dB_Member.method_body = ExportBody(f.Body);
                     }

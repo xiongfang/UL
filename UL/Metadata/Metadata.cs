@@ -310,6 +310,20 @@ namespace Metadata
                 return true;
             if (this.is_interface && type.interfaces.Contains(GetRefType()))
                 return true;
+            
+            return false;
+        }
+
+        //是否目标类型可以转换为此类型
+        public bool IsConvertable(DB_Type type, Model model)
+        {
+            if (IsAssignableFrom(type, model))
+                return true;
+            List<DB_Type> args = new List<DB_Type>();
+            args.Add(type);
+            if (type.FindMethod(name, args, model) != null)
+                return true;
+
             return false;
         }
     }

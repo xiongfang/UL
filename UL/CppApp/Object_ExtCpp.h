@@ -28,3 +28,17 @@ System::Boolean System::Object::op_Equality(Ref<System::Object>  a, Ref<System::
 {
 	return a.v == b.v;
 }
+
+System::Boolean System::Object::ReferenceEquals(Ref<System::Object>  a, Ref<System::Object>  b)
+{
+	bool a_null = a.IsNull();
+	bool b_null = b.IsNull();
+	if (a_null && b_null)
+		return true;
+	if (!a_null && !b_null)
+	{
+		return a.Get() == b.Get();
+	}
+
+	return false;
+}

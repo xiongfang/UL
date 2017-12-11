@@ -7,13 +7,14 @@
 #include "System\Int32.h"
 #include "System\Console.h"
 #include "System\Int64.h"
+Ref<System::TestDel> System::Test::_notify;
 void System::Test::add_notify(Ref<System::TestDel>  value)
 {
-	System::Test::add__notify(value);
+	_notify = System::TestDel::op_Addition(Ref<System::Delegate>(_notify),Ref<System::Delegate>(value));
 }
 void System::Test::remove_notify(Ref<System::TestDel>  value)
 {
-	System::Test::remove__notify(value);
+	_notify = System::TestDel::op_Substraction(Ref<System::Delegate>(_notify),Ref<System::Delegate>(value));
 }
 void System::Test::Run()
 {

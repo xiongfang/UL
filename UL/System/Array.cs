@@ -1,8 +1,8 @@
 ﻿namespace System
 {
-    public class Array
+    public abstract class Array
     {
-        public int Length
+        public abstract int Length
         {
             get;
         }
@@ -10,12 +10,17 @@
 
     public class ArrayT<T>:Array
     {
-        public ArrayT(int len) { }
+        public ArrayT(int len);
 
         public extern T this[int i]
         {
             get;
             set;
         }
+
+        //public extern override int Length
+        //{
+        //    get;
+        //}
     }
 }

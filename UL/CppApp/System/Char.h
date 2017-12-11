@@ -10,9 +10,9 @@ namespace System{
 	struct Char:public System::ValueType
 	{
 		public:
-		static 		System::Char MaxValue;
+static System::Char MaxValue;
 		public:
-		static 		System::Char MinValue;
+static System::Char MinValue;
 		public:
 		static System::Char Parse(Ref<System::String>  value);
 		public:
