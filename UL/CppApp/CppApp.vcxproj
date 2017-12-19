@@ -154,7 +154,6 @@
     <ClInclude Include="Console_ExtCpp.h" />
     <ClInclude Include="Double_ExtHeader.h" />
     <ClInclude Include="Enum_Ext.h" />
-    <ClInclude Include="Event.h" />
     <ClInclude Include="HandleManager.h" />
     <ClInclude Include="Int16_ExtHeader.h" />
     <ClInclude Include="Int32_ExtCpp.h" />

@@ -32,32 +32,32 @@ namespace System{
 	class Type:public System::Object
 	{
 		public:
-		Ref<System::Type> get_BaseType();
+		virtual Ref<System::Type> get_BaseType()=0;
 		public:
-		Ref<System::Type> get_DeclaringType();
+		virtual Ref<System::Type> get_DeclaringType()=0;
 		public:
-		Ref<System::String> get_FullName();
+		virtual Ref<System::String> get_FullName()=0;
 		public:
-		System::Boolean get_IsAbstract();
+		virtual System::Boolean get_IsAbstract()=0;
 		public:
-		System::Boolean get_IsClass();
+		virtual System::Boolean get_IsClass()=0;
 		public:
-		System::Boolean get_IsEnum();
+		virtual System::Boolean get_IsEnum()=0;
 		public:
-		System::Boolean get_IsGenericType();
+		virtual System::Boolean get_IsGenericType()=0;
 		public:
-		System::Boolean get_IsInterface();
+		virtual System::Boolean get_IsInterface()=0;
 		public:
-		System::Boolean get_IsPublic();
+		virtual System::Boolean get_IsPublic()=0;
 		public:
-		System::Boolean get_IsValueType();
+		virtual System::Boolean get_IsValueType()=0;
 		public:
-		Ref<System::String> get_Name();
+		virtual Ref<System::String> get_Name()=0;
 		public:
-		Ref<System::String> get_Namespace();
+		virtual Ref<System::String> get_Namespace()=0;
 		public:
-		virtual Ref<System::ArrayT<System::Type>> FindInterfaces(Ref<System::Reflection::TypeFilter>  filter,Ref<System::Object>  filterCriteria);
+		virtual Ref<System::ArrayT<System::Type>> FindInterfaces(Ref<System::Reflection::TypeFilter>  filter,Ref<System::Object>  filterCriteria)=0;
 		public:
-		virtual Ref<System::ArrayT<System::Reflection::MemberInfo>> FindMembers(System::Reflection::MemberTypes  memberType,System::Reflection::BindingFlags  bindingAttr,Ref<System::Reflection::MemberFilter>  filter,Ref<System::Object>  filterCriteria);
+		virtual Ref<System::ArrayT<System::Reflection::MemberInfo>> FindMembers(System::Reflection::MemberTypes  memberType,System::Reflection::BindingFlags  bindingAttr,Ref<System::Reflection::MemberFilter>  filter,Ref<System::Object>  filterCriteria)=0;
 	};
 }

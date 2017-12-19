@@ -1,10 +1,12 @@
 ﻿
 namespace System
 {
-    public delegate bool TestDel(string v);
 
+    public delegate bool TestDel(string v);
     class Test
     {
+        
+
         static event TestDel _notify;
         public static event TestDel notify
         {

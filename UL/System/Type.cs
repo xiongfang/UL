@@ -1,74 +1,74 @@
 ﻿using System.Reflection;
 namespace System
 {
-    public class Type
+    public abstract class Type
     {
-        public Type BaseType
+        public abstract Type BaseType
         {
             get;
         }
 
-        public Type DeclaringType
+        public abstract Type DeclaringType
         {
             get;
         }
 
-        public string FullName
+        public abstract string FullName
         {
             get;
         }
 
-        public bool IsAbstract
+        public abstract bool IsAbstract
         {
             get;
         }
 
-        public bool IsClass
+        public abstract bool IsClass
         {
             get;
         }
 
-        public bool IsEnum
+        public abstract bool IsEnum
         {
             get;
         }
 
-        public bool IsGenericType
+        public abstract bool IsGenericType
         {
             get;
         }
 
-        public bool IsInterface
+        public abstract bool IsInterface
         {
             get;
         }
 
-        public bool IsPublic
+        public abstract bool IsPublic
         {
             get;
         }
 
-        public bool IsValueType
+        public abstract bool IsValueType
         {
             get;
         }
 
-        public string Name
+        public abstract string Name
         {
             get;
         }
 
-        public string Namespace
+        public abstract string Namespace
         {
             get;
         }
 
-        public extern virtual Type[] FindInterfaces(
+        public abstract Type[] FindInterfaces(
             TypeFilter filter,
             object filterCriteria
         );
 
-        public extern virtual MemberInfo[] FindMembers(
+        public abstract MemberInfo[] FindMembers(
             MemberTypes memberType,
             BindingFlags bindingAttr,
             MemberFilter filter,

@@ -17,10 +17,5 @@
             get;
             set;
         }
-
-        //public extern override int Length
-        //{
-        //    get;
-        //}
     }
 }
