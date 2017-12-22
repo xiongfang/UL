@@ -1,0 +1,5 @@
+print("ÄãºÃ");
+
+function  main( ... )
+	print("¹þ¹þ");
+end
