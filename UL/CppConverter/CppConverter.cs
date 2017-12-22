@@ -49,7 +49,7 @@ namespace CppConverter
 
         public CppConverter()
         {
-            DefaultConverter = new DefaultTypeConverter(this);
+            DefaultConverter = new LuaTypeConverter(this);
         }
 
         public void RegistTypeConverter(ITypeConverter tc)

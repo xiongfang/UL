@@ -1,0 +1,12 @@
+{
+  "export_dir": "F:\\Git\\UL\\UL\\Debug\\Lua",
+  "type_settings": [
+    
+  ],
+
+  "export_namespace": [ "System", "System.Reflection", "System.Collections.Generic" ],
+  "export_type": [],
+  "ref_namespace": [],
+  "precompile_header":"stdafx.h"
+
+}
