@@ -519,6 +519,8 @@ namespace CppConverter
 
             return stringBuilder.ToString();
         }
+
+        Metadata.DB_Member current_member;
         void ConvertMemberHeader(Metadata.DB_Member member)
         {
             Metadata.DB_Type member_type = Model.GetType(member.typeName);
@@ -575,6 +577,10 @@ namespace CppConverter
                     {
                         method_name = GetOperatorFuncName(member.name, member.method_args.Length);
                     }
+                    else
+                    {
+                        method_name = GetMethodUniqueName(member);
+                    }
                     sb.Append(string.Format("function {0}{1}{2}",GetCppTypeWrapName(declare_type), member.is_static?".":":", method_name));
                 }
                 else
@@ -586,8 +592,10 @@ namespace CppConverter
                 sb.AppendLine();
 
                 depth++;
+                current_member = member;
                 if (member.method_body != null)
                     ConvertStatement(member.method_body);
+                current_member = null;
                 depth--;
 
                 AppendLine("end");
@@ -746,6 +754,8 @@ namespace CppConverter
                 ConvertStatement(bs.Else);
                 CheckOut(bs.Else);
             }
+
+            AppendLine("end");
         }
 
         void ConvertStatement(Metadata.DB_ExpressionStatementSyntax bs)
@@ -797,9 +807,9 @@ namespace CppConverter
 
         void ConvertStatement(Metadata.DB_DoStatementSyntax bs)
         {
-            AppendLine("do");
+            AppendLine("repeat");
             ConvertStatement(bs.Statement);
-            Append("while");
+            Append("until ");
             sb.Append("(");
             sb.Append(ExpressionToString(bs.Condition));
             sb.AppendLine(");");
@@ -810,7 +820,9 @@ namespace CppConverter
             sb.Append("(");
             sb.Append(ExpressionToString(bs.Condition));
             sb.AppendLine(")");
+            AppendLine("do");
             ConvertStatement(bs.Statement);
+            AppendLine("end");
         }
 
         void ConvertStatement(Metadata.DB_SwitchStatementSyntax bs)
@@ -1077,7 +1089,23 @@ namespace CppConverter
         //    }
         //}
 
-
+        string GetMethodUniqueName(Metadata.DB_Member method)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(method.name);
+            if(method.method_args.Length>0)
+                sb.Append("_");
+            for (int i=0;i<method.method_args.Length;i++)
+            {
+                string TypeName = GetCppTypeName(Model.GetType(method.method_args[i].type));
+                TypeName = TypeName.Replace(".", "_");
+                sb.Append(TypeName);
+                //sb.Append(method.method_args[i].name);
+                if(i< method.method_args.Length-1)
+                    sb.Append("_");
+            }
+            return sb.ToString();
+        }
 
         string ExpressionToString(Metadata.Expression.MethodExp es, Metadata.Expression.Exp outer)
         {
@@ -1106,7 +1134,7 @@ namespace CppConverter
 
             if (es.Caller is Metadata.Expression.IndifierExp)
             {
-                stringBuilder.Append(ExpressionToString(es.Caller));
+                
 
                 Metadata.Expression.IndifierExp ie = es.Caller as Metadata.Expression.IndifierExp;
                 Metadata.Model.IndifierInfo ii = Model.GetIndifierInfo(ie.Name);
@@ -1114,17 +1142,40 @@ namespace CppConverter
                 if (ii.is_var)
                 {
                     method = caller_type.FindMethod("Invoke", args, Model);
+                    stringBuilder.Append(ExpressionToString(es.Caller));
                     stringBuilder.Append(":Invoke");
                 }
                 else if (ii.is_event)
                 {
                     method = caller_type.FindMethod("Invoke", args, Model);
+                    stringBuilder.Append(ExpressionToString(es.Caller));
                     stringBuilder.Append(":Invoke");
                 }
                 else
                 {
+                    
                     caller_type = Model.currentType;
                     method = caller_type.FindMethod(ie.Name, args, Model);
+
+                    if (ii.is_method || ii.is_field || ii.is_property)
+                    {
+                        if (method != null)
+                        {
+                            if (method.is_static)
+                            {
+                                stringBuilder.Append(GetCppTypeName(Model.GetType(method.declaring_type)));
+                                stringBuilder.Append(".");
+                            }
+                            else
+                            {
+                                stringBuilder.Append("self");
+                                stringBuilder.Append(".");
+                            }
+                        }
+
+                    }
+
+                    stringBuilder.Append(GetMethodUniqueName(method));
                 }
             }
             else if (es.Caller is Metadata.Expression.FieldExp)
@@ -1136,11 +1187,11 @@ namespace CppConverter
                 stringBuilder.Append(ExpressionToString(fe.Caller));
                 if(method.is_static)
                 {
-                    stringBuilder.Append("."+method.name);
+                    stringBuilder.Append("."+ GetMethodUniqueName(method));
                 }
                 else
                 {
-                    stringBuilder.Append(":" + method.name);
+                    stringBuilder.Append(":" + GetMethodUniqueName(method));
                 }
             }
 
@@ -1220,7 +1271,7 @@ namespace CppConverter
             //else
             {
                 StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.Append(ExpressionToString(es.Caller, es));
+                
 
                 Metadata.DB_Type caller_type = null;
 
@@ -1229,6 +1280,29 @@ namespace CppConverter
                     Metadata.Expression.IndifierExp ie = es.Caller as Metadata.Expression.IndifierExp;
                     Metadata.Model.IndifierInfo ii = Model.GetIndifierInfo(ie.Name);
                     caller_type = ii.type;
+
+
+
+                    if (ii.is_method || ii.is_field || ii.is_property)
+                    {
+                        if (current_member != null)
+                        {
+                            if (current_member.is_static)
+                            {
+                                stringBuilder.Append(GetCppTypeName(Model.GetType(current_member.declaring_type)));
+                                stringBuilder.Append(".");
+                            }
+                            else
+                            {
+                                stringBuilder.Append("self");
+                                stringBuilder.Append(".");
+                            }
+                        }
+
+                    }
+
+                    stringBuilder.Append(ExpressionToString(es.Caller, es));
+
                     if (ii.is_namespace || ii.is_type)
                     {
                         stringBuilder.Append(".");
@@ -1249,6 +1323,8 @@ namespace CppConverter
                 }
                 else
                 {
+                    stringBuilder.Append(ExpressionToString(es.Caller, es));
+
                     caller_type = Model.GetExpType(es.Caller);
 
                     if (caller_type != null)
@@ -1518,7 +1594,6 @@ namespace CppConverter
         string ExpressionToString(Metadata.Expression.IndifierExp es, Metadata.Expression.Exp outer)
         {
             Metadata.Model.IndifierInfo info = Model.GetIndifierInfo(es.Name);
-
 
             if (info.is_type)
             {
