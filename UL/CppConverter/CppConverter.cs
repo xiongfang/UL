@@ -325,6 +325,10 @@ namespace CppConverter
             List<string> ref_ns = new List<string>();
             ref_ns.AddRange(project.ref_namespace);
 
+            string pj_dir = System.IO.Path.GetFullPath(args[0]);
+            pj_dir = pj_dir.Substring(0, pj_dir.Length - System.IO.Path.GetFileName(pj_dir).Length - 1);
+            project.export_dir = System.IO.Path.Combine(pj_dir, project.export_dir);
+
             using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
             {
                 con.Open();
