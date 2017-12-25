@@ -12,6 +12,8 @@ namespace CppConverter
         StringBuilder sb = new StringBuilder();
         IConverter Converter;
 
+        HashSet<string> exportedNamespace = new HashSet<string>();
+
         public LuaTypeConverter(IConverter cv) { this.Converter = cv; }
 
         Metadata.Model Model
@@ -44,6 +46,10 @@ namespace CppConverter
             sb.Append(msg);
         }
 
+        string GetLuaImportHeader(Metadata.DB_Type type)
+        {
+            return type._namespace +"."+type.name;
+        }
 
         public void ConvertTypeHeader(Metadata.DB_Type type)
         {
@@ -54,11 +60,19 @@ namespace CppConverter
                 sb.Clear();
                 
                 {
+                    //HashSet<string> depTypes = Converter.GetTypeDependences(type);
 
-                    
+                    AppendLine("require \"" + GetNSTablePath(type._namespace) + "\"");
+                    //foreach (var t in depTypes)
+                    //{
+                    //    Metadata.DB_Type depType = Model.GetType(t);
+                    //    if(depType!=type)
+                    //        AppendLine("require \"" + GetLuaImportHeader(depType) + "\"");
+                    //}
+
                     if (!type.base_type.IsVoid /*&& !type.is_value_type*/ || type.interfaces.Count > 0)
                     {
-                        Append(string.Format("{0} = class({1},{2}", GetTypeTableName(type), type.name, GetTypeTableName(Model.GetType(type.base_type))));
+                        Append(string.Format("{0} = {1}:new(", GetTypeTableName(type),  GetTypeTableName(Model.GetType(type.base_type))));
                         for(int i=0;i<type.interfaces.Count;i++)
                         {
                             sb.Append(",");
@@ -69,7 +83,7 @@ namespace CppConverter
                     }
                     else
                     {
-                        AppendLine(string.Format("{0} = class({1})", GetTypeTableName(type), type.name));
+                        AppendLine(string.Format("{0} = {{}}", GetTypeTableName(type)));
                     }
                     //}
 
@@ -299,6 +313,11 @@ namespace CppConverter
             return type._namespace + "." + type.name;
         }
 
+        string GetNSTablePath(string ns)
+        {
+            return  ns.Replace(".","_");
+        }
+
         string GetCppTypeWrapName(Metadata.DB_Type type)
         {
             return GetTypeTableName(type);
@@ -308,7 +327,7 @@ namespace CppConverter
             return GetTypeTableName(type);
         }
 
-        void WriteFile(string path, Metadata.DB_Type type, string content)
+        void WriteFile(string path, string content)
         {
             string dir = System.IO.Path.GetDirectoryName(path);
             if (!System.IO.Directory.Exists(dir))
@@ -329,6 +348,23 @@ namespace CppConverter
         public void ConvertType(Metadata.DB_Type type)
         {
             string outputDir = Converter.GetProject().export_dir;
+
+            if(!exportedNamespace.Contains(type._namespace))
+            {
+                string ns_dep_ns = null;
+                if(type._namespace.Contains("."))
+                {
+                    ns_dep_ns = type._namespace.Substring(0, type._namespace.LastIndexOf("."));
+                }
+                StringBuilder stringBuild = new StringBuilder();
+                if(ns_dep_ns!=null)
+                    stringBuild.AppendLine("require \"" + GetNSTablePath(ns_dep_ns) + "\"");
+                stringBuild.AppendLine(type._namespace + " = {}");
+
+                WriteFile(System.IO.Path.Combine(outputDir, GetNSTablePath(type._namespace) + ".lua"), stringBuild.ToString());
+            }
+
+
             ITypeConverter tc = Converter.GetTypeConverter(type);
             if (tc != null)
             {
@@ -338,7 +374,7 @@ namespace CppConverter
                 {
                     sb.Append(content);
 
-                    WriteFile(System.IO.Path.Combine(outputDir, GetTypeHeaderPathName(type) + ".lua"), type, sb.ToString());
+                    WriteFile(System.IO.Path.Combine(outputDir, GetTypeHeaderPathName(type) + ".lua"), sb.ToString());
                 }
 
                 //sb.Clear();
@@ -354,7 +390,7 @@ namespace CppConverter
                 ConvertTypeHeader(type);
                 //sb.Append(ConvertTypeHeader(type));
                 //System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString(), Encoding.UTF8);
-                WriteFile(System.IO.Path.Combine(outputDir, GetTypeHeaderPathName(type) + ".lua"), type, sb.ToString());
+                WriteFile(System.IO.Path.Combine(outputDir, GetTypeHeaderPathName(type) + ".lua"), sb.ToString());
 
                 //sb.Clear();
                 //if (ConvertTypeCpp(type))
@@ -550,6 +586,8 @@ namespace CppConverter
             }
             else if (member.member_type == (int)Metadata.MemberTypes.Method)
             {
+                if (member.method_body == null)
+                    return;
                 Model.EnterMethod(member);
 
                 Metadata.DB_Type declare_type = Model.GetType(member.declaring_type);
@@ -572,15 +610,7 @@ namespace CppConverter
 
                 if (!member.method_is_constructor)
                 {
-                    string method_name = member.name;
-                    if (member.method_is_operator)
-                    {
-                        method_name = GetOperatorFuncName(member.name, member.method_args.Length);
-                    }
-                    else
-                    {
-                        method_name = GetMethodUniqueName(member);
-                    }
+                    string method_name = GetMethodUniqueName(member);
                     sb.Append(string.Format("function {0}{1}{2}",GetCppTypeWrapName(declare_type), member.is_static?".":":", method_name));
                 }
                 else
@@ -786,22 +816,38 @@ namespace CppConverter
         void ConvertStatement(Metadata.DB_ForStatementSyntax bs)
         {
             Model.EnterBlock();
-            Append("for(");
-            sb.Append(ExpressionToString(bs.Declaration));
-            sb.Append(";");
-            sb.Append(ExpressionToString(bs.Condition));
-            sb.Append(";");
+            AppendLine("do");
+            depth++;
+            AppendLine(ExpressionToString(bs.Declaration));
+            AppendLine("while "+ ExpressionToString(bs.Condition));
+            depth++;
 
+            AppendLine("do");
+            depth++;
+            ConvertStatement(bs.Statement);
+            depth--;
+            AppendLine("end");
+
+            AppendLine("do");
+            depth++;
+            AppendLine("::for_end::");
             for (int i = 0; i < bs.Incrementors.Count; i++)
             {
-                sb.Append(ExpressionToString(bs.Incrementors[i]));
+                Append(ExpressionToString(bs.Incrementors[i]));
                 if (i < bs.Incrementors.Count - 2)
                 {
                     sb.Append(",");
                 }
+                sb.AppendLine();
             }
-            sb.AppendLine(")");
-            ConvertStatement(bs.Statement);
+            depth--;
+            AppendLine("end");
+
+            depth--;
+            AppendLine("end");
+            depth--;
+            AppendLine("end");
+
             Model.LeaveBlock();
         }
 
@@ -1091,6 +1137,10 @@ namespace CppConverter
 
         string GetMethodUniqueName(Metadata.DB_Member method)
         {
+            if(method.method_is_operator)
+            {
+                return GetOperatorFuncName(method.name, method.method_args.Length);
+            }
             StringBuilder sb = new StringBuilder();
             sb.Append(method.name);
             if(method.method_args.Length>0)

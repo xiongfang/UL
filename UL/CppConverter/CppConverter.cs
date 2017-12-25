@@ -336,16 +336,6 @@ namespace CppConverter
 
                 Model.types = new Dictionary<string, Metadata.DB_Type>();
 
-                ////加载引用类
-                //foreach(var ns in cfg.ref_namespace)
-                //{
-                //    Dictionary<string, Metadata.DB_Type> nsTypes = Metadata.DB.LoadNamespace(ns, _con);
-                //    foreach (var t in nsTypes)
-                //    {
-                //        Model.types.Add(t.Value.static_full_name, t.Value);
-                //    }
-                //}
-
                 //加载命名空间和导出的类
                 foreach (var ns in project.export_namespace)
                 {
