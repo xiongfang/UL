@@ -334,7 +334,7 @@ namespace Metadata
             }
             else
             {
-                throw new NotSupportedException("不支持的语句 " + statement.JsonType);
+                throw new NotSupportedException("不支持的语句 " + statement.GetType().Name);
             }
         }
 
@@ -398,7 +398,7 @@ namespace Metadata
             }
             else
             {
-                throw new NotSupportedException("不支持的表达式 " + exp.JsonType);
+                throw new NotSupportedException("不支持的表达式 " + exp.GetType().ToString());
             }
 
         }

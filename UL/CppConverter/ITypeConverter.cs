@@ -15,10 +15,12 @@ namespace CppConverter
     }
     class Project
     {
+        public string converterType = "cpp";
         public TypeConfig[] type_settings;
         public string[] export_namespace;
         public string[] export_type;
-        public string export_dir;
+        public string output_dir;
+        public string dependence_dir;
         public string[] ref_namespace;
         public string precompile_header;
     }

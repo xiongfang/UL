@@ -1,5 +1,7 @@
 {
-  "export_dir": "..\\CppApp",
+  "converterType":"cpp",
+  "output_dir": "..\\CppApp",
+  "dependence_dir": "Data",
   "type_settings": [
     {
       "name": "System.Boolean",

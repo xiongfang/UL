@@ -18,9 +18,10 @@ namespace Metadata
         }
         //public HashSet<Expression.TypeSyntax> typeRef = new HashSet<Expression.TypeSyntax>();
 
+        //将oldTs替换为DB_Type的真实泛型参数
         TypeSyntax ReplaceType(DB_Type type, TypeSyntax oldTs)
         {
-             if(model.GetType(oldTs).is_generic_paramter)
+             if(oldTs.isGenericParameter)
             {
                 for (int i = 0; i < type.generic_parameter_definitions.Count; i++)
                 {
@@ -28,13 +29,13 @@ namespace Metadata
                         return type.generic_parameters[i];
                 }
             }
-
-            if(oldTs is GenericNameSyntax)
+            
+            //替换泛型参数
+            if(oldTs.isGenericType)
             {
-                GenericNameSyntax genericNameSyntax = oldTs as GenericNameSyntax;
-                for(int i=0;i< genericNameSyntax.Arguments.Count;i++)
+                for(int i=0;i< oldTs.args.Length;i++)
                 {
-                    genericNameSyntax.Arguments[i] = ReplaceType(type, genericNameSyntax.Arguments[i]);
+                    oldTs.args[i] = ReplaceType(type, oldTs.args[i]);
                 }
             }
 
@@ -106,7 +107,7 @@ namespace Metadata
         {
             foreach (var e in Declaration.Variables)
             {
-                model.AddLocal(e.Identifier, model.Finder.FindType(Declaration.Type));
+                model.AddLocal(e.Identifier, model.Finder.FindType(Declaration.Type, model));
                 model.VisitExp(this, type, method, statement, e.Initializer, null);
             }
         }

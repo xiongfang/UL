@@ -1,9 +1,7 @@
-
-
 require "System"
 require "System.Object"
 function System.Object:new(...)
-      local o = {}   -- create object if user does not provide one
+      local o = {}
       setmetatable(o, self)
       self.__index = self
       o:ctor(...)

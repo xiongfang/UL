@@ -347,7 +347,7 @@ namespace CppConverter
 
         public void ConvertType(Metadata.DB_Type type)
         {
-            string outputDir = Converter.GetProject().export_dir;
+            string outputDir = Converter.GetProject().output_dir;
 
             if(!exportedNamespace.Contains(type._namespace))
             {

@@ -24,6 +24,11 @@ namespace CppConverter
             get { return 0; }
         }
 
+        bool IsRefType(Metadata.DB_Type type)
+        {
+            return type.is_class || type.is_delegate;
+        }
+
         void AppendDepth()
         {
             for (int i = 0; i < depth; i++)
@@ -463,7 +468,7 @@ namespace CppConverter
 
         public void ConvertType(Metadata.DB_Type type)
         {
-            string outputDir = Converter.GetProject().export_dir;
+            string outputDir = Converter.GetProject().output_dir;
             ITypeConverter tc = Converter.GetTypeConverter(type);
             if (tc != null)
             {
@@ -538,7 +543,8 @@ namespace CppConverter
                 return type._namespace.Replace(".", "::") + "::" + type.name;
             if (type.is_enum)
                 return type._namespace.Replace(".", "::") + "::" + type.name;
-
+            if(type.is_delegate)
+                return type._namespace.Replace(".", "::") + "::" + type.name;
             return type.static_full_name;
         }
 
@@ -744,7 +750,7 @@ namespace CppConverter
             {
                 if (member.is_static)
                 {
-                    if (member_type.is_class)
+                    if (IsRefType(member_type))
                         AppendLine("Ref<" + GetCppTypeName(Model.GetType(member.type)) + "> " + GetCppTypeName(Model.GetType(member.declaring_type)) + "::" + member.name + ";");
                     else if (member_type.is_value_type)
                     {
@@ -1153,7 +1159,7 @@ namespace CppConverter
                     string ArgString = GetExpConversion(me_argType, arg_type, es.Args[i],es);
 
 
-                    if (me_argType.is_class && arg_type.is_class && arg_type.GetRefType() != me_argType.GetRefType())
+                    if (IsRefType(me_argType) && IsRefType(arg_type) && arg_type.GetRefType() != me_argType.GetRefType())
                     {
                         stringBuilder.Append(string.Format("Ref<{1}>({0}.Get())", ArgString, GetCppTypeName(me_argType)));
                     }
@@ -1371,7 +1377,7 @@ namespace CppConverter
                     }
                     else
                     {
-                        if (caller_type.is_class)
+                        if (IsRefType(caller_type))
                         {
                             stringBuilder.Append("->");
                         }
@@ -1389,7 +1395,7 @@ namespace CppConverter
                     if (caller_type != null)
                     {
 
-                        if (caller_type.is_class)
+                        if (IsRefType(caller_type))
                         {
                             stringBuilder.Append("->");
                         }
@@ -1570,14 +1576,13 @@ namespace CppConverter
             Metadata.DB_Type type = Model.GetType(es.Type);
             if (type.is_class)
             {
-                if(type.is_delegate)
-                {
-                    
-                }
-                else
                 {
                     Append("Ref<" + GetCppTypeName(type) + "> ");
                 }
+            }
+            else if(type.is_delegate)
+            {
+
             }
             else
                 Append(GetCppTypeName(type) + " ");
@@ -1825,7 +1830,7 @@ namespace CppConverter
                 stringBuilder.Append(string.Format("{0}::{1}(", GetCppTypeName(left_type), GetOperatorFuncName(exp.OperatorToken, argTypes.Count)));
             }
             
-            if(left_type.is_class && method.method_args[0].type != left_type.GetRefType())
+            if(IsRefType(left_type) && method.method_args[0].type != left_type.GetRefType())
             {
                 stringBuilder.Append(string.Format("Ref<{0}>({1})", GetCppTypeName(Model.GetType(method.method_args[0].type)), ExpressionToString(exp.Left,exp)));
             }
@@ -1834,7 +1839,7 @@ namespace CppConverter
                 stringBuilder.Append(ExpressionToString(exp.Left, exp));
             }
             stringBuilder.Append(",");
-            if (right_type.is_class && method.method_args[1].type != right_type.GetRefType())
+            if (IsRefType(right_type) && method.method_args[1].type != right_type.GetRefType())
             {
                 stringBuilder.Append(string.Format("Ref<{0}>({1})", GetCppTypeName(Model.GetType(method.method_args[1].type)), ExpressionToString(exp.Right, exp)));
             }
@@ -1912,7 +1917,7 @@ namespace CppConverter
             stringBuilder.Append(ExpressionToString(exp.exp, exp));
 
             Metadata.DB_Type callerType = Model.GetExpType(exp.exp,exp);
-            if(callerType.is_class)
+            if(IsRefType(callerType))
             {
                 stringBuilder.Append("->");
             }

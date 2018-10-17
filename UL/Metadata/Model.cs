@@ -12,7 +12,7 @@ namespace Metadata
         //查找一个数据库类型
         DB_Type FindType(string full_name);
         //查找一个类型，如果是动态类型，构造一个
-        DB_Type FindType(Expression.TypeSyntax refType);
+        DB_Type FindType(Expression.TypeSyntax refType,Model model);
         //Dictionary<string, Metadata.DB_Type> FindNamespace(string ns);
     }
 
@@ -107,7 +107,7 @@ namespace Metadata
 
         public Metadata.DB_Type GetType(Metadata.Expression.TypeSyntax typeRef)
         {
-            return Finder.FindType(typeRef);
+            return Finder.FindType(typeRef, this);
         }
 
         public DB_Type GetExpType(Expression.Exp exp, Expression.Exp outer=null)
@@ -333,7 +333,7 @@ namespace Metadata
             }
             else
             {
-                Console.Error.WriteLine("无法确定表达式类型 " + exp.JsonType);
+                Console.Error.WriteLine("无法确定表达式类型 " + exp.GetType().Name);
             }
             return null;
         }
@@ -422,7 +422,8 @@ namespace Metadata
                     if (gd.type_name == name)
                     {
                         info.is_method_type_parameter = true;
-                        info.type = Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
+                        Metadata.DB_Type constraintType = Finder.FindType(gd.constraint,this);
+                        info.type = Metadata.DB_Type.MakeGenericParameterType(constraintType, name);
                         return info;
                     }
                 }
@@ -473,10 +474,15 @@ namespace Metadata
                             if (gd.type_name == name)
                             {
                                 info.is_class_type_parameter = true;
-                                info.type = Metadata.DB_Type.MakeGenericParameterType(currentType, gd);
+                                Metadata.DB_Type constraintType = Finder.FindType(gd.constraint, this);
+                                info.type = Metadata.DB_Type.MakeGenericParameterType(constraintType, name);
                                 return info;
                             }
                         }
+                    }
+                    else if(currentType.is_generic_type)
+                    {
+                        //泛型实例，已经被替换了参数，所以无需查找
                     }
                     //当前命名空间查找
                     foreach (var nsName in currentType.usingNamespace)
@@ -643,7 +649,7 @@ namespace Metadata
         {
             foreach (var e in Declaration.Variables)
             {
-                model.AddLocal(e.Identifier, model.Finder.FindType(Declaration.Type));
+                model.AddLocal(e.Identifier, model.Finder.FindType(Declaration.Type, model));
                 model.VisitExp(this,type, method, statement, e.Initializer, null);
             }
         }

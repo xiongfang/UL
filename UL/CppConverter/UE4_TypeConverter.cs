@@ -197,7 +197,7 @@ namespace CppConverter
                         if (type.is_enum)
                         {
                             List<Metadata.DB_Member> members = type.members.Values.ToList();
-                            members.Sort((a, b) => { return a.order <= b.order ? -1 : 1; });
+                            //members.Sort((a, b) => { return a.order <= b.order ? -1 : 1; });
                             for (int i = 0; i < members.Count; i++)
                             {
                                 Append(members[i].name);
@@ -324,7 +324,7 @@ namespace CppConverter
 
         public void ConvertType(Metadata.DB_Type type)
         {
-            string outputDir = Converter.GetProject().export_dir;
+            string outputDir = Converter.GetProject().output_dir;
             ITypeConverter tc = Converter.GetTypeConverter(type);
             if (tc != null)
             {
