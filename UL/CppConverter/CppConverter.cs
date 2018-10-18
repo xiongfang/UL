@@ -85,23 +85,6 @@ namespace CppConverter
 
             public static Metadata.DB_Type GetType(Metadata.Expression.TypeSyntax typeSyntax,Metadata.Model model)
             {
-                //Metadata.DB_Type type = GetType(typeRef.GetStaticFullName());
-                //if (type == null)
-                //    return null;
-
-                //if (typeRef is Metadata.Expression.IdentifierNameSyntax)
-                //    return type;
-                //if (typeRef is Metadata.Expression.GenericNameSyntax)
-                //{
-                //    Metadata.Expression.GenericNameSyntax gns = typeRef as Metadata.Expression.GenericNameSyntax;
-                //    return Metadata.DB_Type.MakeGenericType(type, gns.Arguments, new Metadata.Model(new Finder()));
-                //}
-                //if (typeRef is Metadata.Expression.GenericParameterSyntax)
-                //{
-                //    Metadata.DB_Type declareType = type;
-                //    Metadata.GenericParameterDefinition typeDef = declareType.generic_parameter_definitions.Find((a) => { return a.type_name == typeRef.Name; });
-                //    return Metadata.DB_Type.MakeGenericParameterType(declareType, typeDef);
-                //}
                 if (typeSyntax.isGenericType)
                 {
                     Metadata.DB_Type ma = GetType(typeSyntax.GetTypeDefinitionFullName());
@@ -381,52 +364,48 @@ namespace CppConverter
             {
                 DefaultConverter = new DefaultTypeConverter(this);
             }
-            else
+            else if(project.converterType == "lua")
             {
                 DefaultConverter = new LuaTypeConverter(this);
             }
-
-            //using (OdbcConnection con = new OdbcConnection("Dsn=MySql;Database=ul"))
-            //{
-            //    con.Open();
-            //    _con = con;
+            else if(project.converterType == "ue4")
+            {
+                DefaultConverter = new UE4_TypeConverter(this);
+            }
 
             Model.types = new Dictionary<string, Metadata.DB_Type>();
 
-                //加载命名空间和导出的类
-                foreach (var ns in project.export_namespace)
+            //加载命名空间和导出的类
+            foreach (var ns in project.export_namespace)
+            {
+                Dictionary<string, Metadata.DB_Type> nsTypes = Metadata.DB.LoadNamespace(project.dependence_dir,ns);
+                foreach (var t in nsTypes)
                 {
-                    Dictionary<string, Metadata.DB_Type> nsTypes = Metadata.DB.LoadNamespace(project.dependence_dir,ns);
-                    foreach (var t in nsTypes)
-                    {
-                        Model.types.Add(t.Value.static_full_name, t.Value);
-                    }
+                    Model.types.Add(t.Value.static_full_name, t.Value);
                 }
-                foreach (var ns in project.export_type)
+            }
+            foreach (var ns in project.export_type)
+            {
+                Metadata.DB_Type type = Metadata.DB.LoadType(project.dependence_dir,ns);
+                Model.types.Add(type.static_full_name, type);
+            }
+
+            //加载依赖的类
+            List<Metadata.DB_Type> typeList = new List<Metadata.DB_Type>();
+            typeList.AddRange(Model.types.Values);
+            foreach (var t in typeList)
+            {
+                LoadTypeDependences(t.static_full_name, Model.types);
+            }
+
+            //导出所有非引用的类型
+            foreach (var t in Model.types.Values)
+            {
+                if (!ref_ns.Contains(t._namespace))
                 {
-                    Metadata.DB_Type type = Metadata.DB.LoadType(project.dependence_dir,ns);
-                    Model.types.Add(type.static_full_name, type);
+                    DefaultConverter.ConvertType(t);
                 }
-
-                //加载依赖的类
-                List<Metadata.DB_Type> typeList = new List<Metadata.DB_Type>();
-                typeList.AddRange(Model.types.Values);
-                foreach (var t in typeList)
-                {
-                    LoadTypeDependences(t.static_full_name, Model.types);
-                }
-
-                //导出所有非引用的类型
-                foreach (var t in Model.types.Values)
-                {
-                    if (!ref_ns.Contains(t._namespace))
-                    {
-                        DefaultConverter.ConvertType(t);
-                    }
-                }
-
-
-        //    }
+            }
         }
 
         
