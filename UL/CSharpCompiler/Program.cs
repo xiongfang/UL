@@ -109,7 +109,7 @@ namespace CSharpCompiler
             if(!try_loaded.Contains(full_name))
             {
                 try_loaded.Add(full_name);
-                Metadata.DB_Type type = Metadata.DB.LoadType(Path.Combine(Program.project_dir, Program.project_data.output_dir), full_name);
+                Metadata.DB_Type type = Metadata.DB.LoadType(Path.Combine(Program.project_dir, Program.project_data.ref_library_dir), full_name);
                 if(type!=null)
                 {
                     AddRefType(type);
@@ -465,11 +465,8 @@ namespace CSharpCompiler
 
         public class ULProject
         {
-            public string name;
-            //public string[] files;
-            public string[] ref_namespace;
-            public string[] ref_type;
-            public string[] dirs;
+            public string ref_library_dir;
+            public string[] source_dirs;
             public bool ingore_method_body;
             public string output_dir = "Data";
         }
@@ -497,7 +494,7 @@ namespace CSharpCompiler
             //分析文件
             List<SyntaxTree> treeList = new List<SyntaxTree>();
 
-            foreach (var dir in project_data.dirs)
+            foreach (var dir in project_data.source_dirs)
             {
                 string[] files = Directory.GetFiles(System.IO.Path.Combine(project_dir, dir), "*.cs");
                 foreach (var file in files)

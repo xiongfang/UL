@@ -1,16 +1,12 @@
 {
-	"name":"pj",
-	"dirs":
-	[
+  "source_dirs": [
     ".",
     "Exception",
     "Reflection",
-    "Collections/Generic",
-	],
-	"ref_namespace":
-	[
-	],
-	"ref_type":
-	[
-	]
+    "Collections/Generic"
+  ],
+
+  "ref_library_dir": "",
+  "ingore_method_body": false,
+  "output_dir": "Data"
 }
