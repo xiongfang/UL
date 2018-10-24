@@ -60,14 +60,14 @@ namespace CppConverter
         }
         public bool ConvertMethodExp(IConverter Converter, Metadata.DB_Type type, Metadata.Expression.MethodExp me, out string exp_string)
         {
-            if(type.name == "Object")
-            {
-                if(me.Name == "ToString")
-                {
-                    exp_string = string.Format("Object::ToString({1})", Converter.ExpressionToString(me.Caller));
-                    return true;
-                }
-            }
+            //if(type.name == "Object")
+            //{
+            //    if(me.Caller == "ToString")
+            //    {
+            //        exp_string = string.Format("Object::ToString({1})", Converter.ExpressionToString(me.Caller));
+            //        return true;
+            //    }
+            //}
             exp_string = "";
             return false;
 

@@ -54,7 +54,6 @@
     <Compile Include="Metadata.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="ModelVisitor.cs" />
-    <Compile Include="Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

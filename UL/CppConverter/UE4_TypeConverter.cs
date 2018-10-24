@@ -365,7 +365,7 @@ namespace CppConverter
             if(tc!=null)
             {
                 string name;
-                if(tc.GetCppTypeName(out name))
+                if(tc.GetCppTypeName(Converter,type,out name))
                 {
                     return name;
                 }
@@ -1005,7 +1005,7 @@ namespace CppConverter
                 //{
                 //    return content;
                 //}
-                if(tc.GetCppTypeName(out content))
+                if(tc.GetCppTypeName(Converter,info.type, out content))
                 {
                     return content;
                 }

@@ -1649,7 +1649,7 @@ namespace CppConverter
             {
                 ITypeConverter tc = Converter.GetTypeConverter(info.type);
                 string content;
-                if (tc != null && tc.GetCppTypeName(out content))
+                if (tc != null && tc.GetCppTypeName(Converter, info.type,out content))
                 {
                     return content;
                 }
