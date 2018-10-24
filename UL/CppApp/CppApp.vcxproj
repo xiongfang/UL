@@ -89,7 +89,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.15063.0\ucrt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.15063.0\ucrt;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -103,6 +103,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,42 +148,120 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Array.h" />
-    <ClInclude Include="Boolean.h" />
+    <ClInclude Include="Array_Ext.h" />
     <ClInclude Include="Boolean_ExtHeader.h" />
-    <ClInclude Include="Console.h" />
+    <ClInclude Include="Byte_ExtHeader.h" />
+    <ClInclude Include="Char_ExtHeader.h" />
     <ClInclude Include="Console_ExtCpp.h" />
-    <ClInclude Include="IComparable.h" />
-    <ClInclude Include="Int32.h" />
+    <ClInclude Include="Double_ExtHeader.h" />
+    <ClInclude Include="Enum_Ext.h" />
+    <ClInclude Include="HandleManager.h" />
+    <ClInclude Include="Int16_ExtHeader.h" />
     <ClInclude Include="Int32_ExtCpp.h" />
     <ClInclude Include="Int32_ExtHeader.h" />
-    <ClInclude Include="MemberTypes.h" />
-    <ClInclude Include="Object.h" />
+    <ClInclude Include="Int64_ExtHeader.h" />
+    <ClInclude Include="List_Ext.h" />
     <ClInclude Include="Object_ExtCpp.h" />
-    <ClInclude Include="Program.h" />
+    <ClInclude Include="Object_ExtHeader.h" />
+    <ClInclude Include="Ref.h" />
+    <ClInclude Include="SByte_ExtHeader.h" />
+    <ClInclude Include="Single_ExtHeader.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="String.h" />
     <ClInclude Include="String_ExtHeader.h" />
+    <ClInclude Include="System\ArgumentNullException.h" />
+    <ClInclude Include="System\Array.h" />
+    <ClInclude Include="System\Attribute.h" />
+    <ClInclude Include="System\Boolean.h" />
+    <ClInclude Include="System\Byte.h" />
+    <ClInclude Include="System\Char.h" />
+    <ClInclude Include="System\Collections\Generic\t_List.h" />
+    <ClInclude Include="System\Console.h" />
+    <ClInclude Include="System\Delegate.h" />
+    <ClInclude Include="System\Double.h" />
+    <ClInclude Include="System\Enum.h" />
+    <ClInclude Include="System\Exception.h" />
+    <ClInclude Include="System\FormatException.h" />
+    <ClInclude Include="System\IComparable.h" />
+    <ClInclude Include="System\ICustomFormater.h" />
+    <ClInclude Include="System\IFormatProvider.h" />
+    <ClInclude Include="System\Int16.h" />
+    <ClInclude Include="System\Int32.h" />
+    <ClInclude Include="System\Int64.h" />
+    <ClInclude Include="System\Object.h" />
+    <ClInclude Include="System\Reflection\BindingFlags.h" />
+    <ClInclude Include="System\Reflection\MemberFilter.h" />
+    <ClInclude Include="System\Reflection\MemberInfo.h" />
+    <ClInclude Include="System\Reflection\MemberTypes.h" />
+    <ClInclude Include="System\Reflection\TypeFilter.h" />
+    <ClInclude Include="System\SByte.h" />
+    <ClInclude Include="System\Single.h" />
+    <ClInclude Include="System\String.h" />
+    <ClInclude Include="System\Test.h" />
+    <ClInclude Include="System\TestDel.h" />
+    <ClInclude Include="System\Type.h" />
+    <ClInclude Include="System\t_ArrayT.h" />
+    <ClInclude Include="System\UInt16.h" />
+    <ClInclude Include="System\UInt32.h" />
+    <ClInclude Include="System\UInt64.h" />
+    <ClInclude Include="System\ValueType.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TestGeneric.h" />
-    <ClInclude Include="TestInt.h" />
+    <ClInclude Include="UInt16_ExtHeader.h" />
+    <ClInclude Include="UInt32_ExtHeader.h" />
+    <ClInclude Include="UInt64_ExtHeader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Boolean.cpp" />
-    <ClCompile Include="Console.cpp" />
+    <ClCompile Include="Boolean_ExtCpp.cpp" />
+    <ClCompile Include="Byte_ExtCpp.cpp" />
     <ClCompile Include="CppApp.cpp" />
-    <ClCompile Include="IComparable.cpp" />
-    <ClCompile Include="Int32.cpp" />
-    <ClCompile Include="Object.cpp" />
-    <ClCompile Include="Program.cpp" />
+    <ClCompile Include="Delegate_ExtCpp.cpp" />
+    <ClCompile Include="Double_ExtCpp.cpp" />
+    <ClCompile Include="Enum_Ext.cpp" />
+    <ClCompile Include="Int16_ExtCpp.cpp" />
+    <ClCompile Include="Int64_ExtCpp.cpp" />
+    <ClCompile Include="Platform_Windows.cpp" />
+    <ClCompile Include="SByte_ExtCpp.cpp" />
+    <ClCompile Include="Single_ExtCpp.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="String.cpp" />
-    <ClCompile Include="TestInt.cpp" />
+    <ClCompile Include="String_ExtCpp.cpp" />
+    <ClCompile Include="System.cpp" />
+    <ClCompile Include="System\ArgumentNullException.cpp" />
+    <ClCompile Include="System\Array.cpp" />
+    <ClCompile Include="System\Attribute.cpp" />
+    <ClCompile Include="System\Boolean.cpp" />
+    <ClCompile Include="System\Byte.cpp" />
+    <ClCompile Include="System\Char.cpp" />
+    <ClCompile Include="System\Console.cpp" />
+    <ClCompile Include="System\Delegate.cpp" />
+    <ClCompile Include="System\Double.cpp" />
+    <ClCompile Include="System\Enum.cpp" />
+    <ClCompile Include="System\Exception.cpp" />
+    <ClCompile Include="System\FormatException.cpp" />
+    <ClCompile Include="System\IComparable.cpp" />
+    <ClCompile Include="System\ICustomFormater.cpp" />
+    <ClCompile Include="System\IFormatProvider.cpp" />
+    <ClCompile Include="System\Int16.cpp" />
+    <ClCompile Include="System\Int32.cpp" />
+    <ClCompile Include="System\Int64.cpp" />
+    <ClCompile Include="System\Object.cpp" />
+    <ClCompile Include="System\Reflection\MemberFilter.cpp" />
+    <ClCompile Include="System\Reflection\MemberInfo.cpp" />
+    <ClCompile Include="System\Reflection\TypeFilter.cpp" />
+    <ClCompile Include="System\SByte.cpp" />
+    <ClCompile Include="System\Single.cpp" />
+    <ClCompile Include="System\String.cpp" />
+    <ClCompile Include="System\Test.cpp" />
+    <ClCompile Include="System\TestDel.cpp" />
+    <ClCompile Include="System\Type.cpp" />
+    <ClCompile Include="System\UInt16.cpp" />
+    <ClCompile Include="System\UInt32.cpp" />
+    <ClCompile Include="System\UInt64.cpp" />
+    <ClCompile Include="System\ValueType.cpp" />
+    <ClCompile Include="UInt16_ExtCpp.cpp" />
+    <ClCompile Include="UInt32_ExtCpp.cpp" />
+    <ClCompile Include="UInt64_ExtCpp.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

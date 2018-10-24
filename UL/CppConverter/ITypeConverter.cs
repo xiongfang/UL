@@ -15,10 +15,12 @@ namespace CppConverter
     }
     class Project
     {
+        public string converterType = "cpp";
         public TypeConfig[] type_settings;
         public string[] export_namespace;
         public string[] export_type;
-        public string export_dir;
+        public string output_dir;
+        public string dependence_dir;
         public string[] ref_namespace;
         public string precompile_header;
     }
@@ -33,9 +35,19 @@ namespace CppConverter
         TypeConfig GetTypeConfig(Metadata.DB_Type type);
         Project GetProject();
 
-        string ExpressionToString(Metadata.Expression.Exp es);
+        
         ITypeConverter GetTypeConverter(Metadata.DB_Type type);
+
+        IDefaultTypeConverter DefaultTypeConverter { get; }
     }
+
+    interface IDefaultTypeConverter
+    {
+        void ConvertType(Metadata.DB_Type type);
+
+        string ExpressionToString(Metadata.Expression.Exp es, Metadata.Expression.Exp outer);
+    }
+
     interface ITypeConverter
     {
         int priority { get; }

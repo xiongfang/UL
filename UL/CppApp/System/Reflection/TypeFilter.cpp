@@ -1,0 +1,6 @@
+﻿#include "stdafx.h"
+#include "System\Reflection\TypeFilter.h"
+#include "System\Delegate.h"
+#include "System\Boolean.h"
+#include "System\Type.h"
+#include "System\Object.h"

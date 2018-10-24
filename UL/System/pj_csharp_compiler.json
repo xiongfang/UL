@@ -1,0 +1,16 @@
+{
+	"name":"pj",
+	"dirs":
+	[
+    ".",
+    "Exception",
+    "Reflection",
+    "Collections/Generic",
+	],
+	"ref_namespace":
+	[
+	],
+	"ref_type":
+	[
+	]
+}

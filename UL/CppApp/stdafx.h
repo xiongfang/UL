@@ -12,18 +12,49 @@
 
 #include <string.h>
 
-// TODO: 在此处引用程序需要的其他头文件
+#include "HandleManager.h"
+
 template<typename T>
-class Ref
+class Ref;
+
+#include "Ref.h"
+
+class PostfixUnaryHelper
 {
-	T* v;
 public:
-	Ref(T* ptr) { this->v = ptr; }
-	Ref() { v = nullptr; }
-	T* operator->()
+
+	template<typename T>
+	static T op_Increment(T& a)
 	{
-		return v;
+		T temp = a;
+		a = T::op_Increment(a);
+		return temp;
 	}
 
-	T* Get() { return v; }
+	template<typename T>
+	static T op_Decrement(T& a)
+	{
+		T temp = a;
+		a = T::op_Decrement(a);
+		return temp;
+	}
+};
+
+class PrefixUnaryHelper
+{
+public:
+
+	template<typename T>
+	static T op_Increment(T& a)
+	{
+		a = T::op_Increment(a);
+		return a;
+	}
+
+	template<typename T>
+	static T op_Decrement(T& a)
+	{
+		a = T::op_Decrement(a);
+		return a;
+	}
 };

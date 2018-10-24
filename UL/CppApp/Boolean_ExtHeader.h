@@ -1,9 +1,11 @@
+int _v;
 public:
 	operator bool()
 	{
-		return true;
+		return _v!=0;
 	}
-	Boolean(int v)
+	Boolean() { _v = 0; }
+	Boolean(bool v)
 	{
-
+		_v = v?1:0;
 	}

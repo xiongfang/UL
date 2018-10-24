@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3807D92A-23AE-4497-A583-95180B036544}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>System</RootNamespace>
+    <AssemblyName>Lib.System</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Array.cs" />
+    <Compile Include="Attribute.cs" />
+    <Compile Include="Boolean.cs" />
+    <Compile Include="Byte.cs" />
+    <Compile Include="Char.cs" />
+    <Compile Include="Collections\Generic\List.cs" />
+    <Compile Include="Console.cs" />
+    <Compile Include="Double.cs" />
+    <Compile Include="Enum.cs" />
+    <Compile Include="Delegate.cs" />
+    <Compile Include="Exception\ArgumentNullException.cs" />
+    <Compile Include="Exception\Exception.cs" />
+    <Compile Include="Exception\FormatException.cs" />
+    <Compile Include="IComparable.cs" />
+    <Compile Include="IFormatProvider.cs" />
+    <Compile Include="Int16.cs" />
+    <Compile Include="Int32.cs" />
+    <Compile Include="Int64.cs" />
+    <Compile Include="Object.cs" />
+    <Compile Include="Reflection\BindingFlags.cs" />
+    <Compile Include="Reflection\MemberInfo.cs" />
+    <Compile Include="Reflection\MemberTypes.cs" />
+    <Compile Include="Reflection\MethodInfo.cs" />
+    <Compile Include="Reflection\TypeFilter.cs" />
+    <Compile Include="SByte.cs" />
+    <Compile Include="Single.cs" />
+    <Compile Include="String.cs" />
+    <Compile Include="Test.cs" />
+    <Compile Include="Type.cs" />
+    <Compile Include="UInt16.cs" />
+    <Compile Include="UInt32.cs" />
+    <Compile Include="UInt64.cs" />
+    <Compile Include="ValueType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

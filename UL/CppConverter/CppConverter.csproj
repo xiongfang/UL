@@ -8,9 +8,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>CppConverter</RootNamespace>
     <AssemblyName>CppConverter</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -46,8 +47,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CppConverter.cs" />
-    <Compile Include="CustomTypeConverter.cs" />
     <Compile Include="DefaultTypeConverter.cs" />
+    <Compile Include="CustomTypeConverter.cs" />
+    <Compile Include="LuaTypeConverter.cs" />
+    <Compile Include="NewDefaultTypeConverter.cs" />
+    <Compile Include="UE4_TypeConverter.cs" />
     <Compile Include="ITypeConverter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

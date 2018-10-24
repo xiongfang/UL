@@ -2,12 +2,15 @@
 //
 
 #include "stdafx.h"
-#include "Console.h"
-#include "Program.h"
+#include "System/Test.h"
+#include <locale.h>
+
+using namespace System;
 
 int main()
 {
-	HelloWorld::Program::Main();
+	_wsetlocale(LC_ALL, L"chs");
+	Test::Run();
     return 0;
 }
 

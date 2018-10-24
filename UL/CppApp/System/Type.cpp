@@ -1,0 +1,12 @@
+﻿#include "stdafx.h"
+#include "System\Type.h"
+#include "System\Object.h"
+#include "System\String.h"
+#include "System\Boolean.h"
+#include "System\t_ArrayT.h"
+#include "System\Reflection\TypeFilter.h"
+#include "System\Reflection\MemberInfo.h"
+#include "System\Reflection\MemberTypes.h"
+#include "System\Reflection\BindingFlags.h"
+#include "System\Reflection\MemberFilter.h"
+using namespace System::Reflection;
