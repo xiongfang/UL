@@ -14,3 +14,4 @@ function System.Char.TryParse_System_String_System_Char(value,v)
 		end
 	end
 end
+require "Char_ExtHeader"

@@ -14,3 +14,4 @@ function System.Int16.TryParse_System_String_System_Int16(value,v)
 		end
 	end
 end
+require "Int16_ExtHeader"

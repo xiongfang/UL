@@ -121,192 +121,24 @@ namespace CppConverter
                         //depth--;
                     }
 
-                    //TypeConfig tc = Converter.GetTypeConfig(type);
+                    TypeConfig tc = Converter.GetTypeConfig(type);
 
-                    //if (tc != null)
-                    //{
-                    //    if (!string.IsNullOrEmpty(tc.ext_header))
-                    //    {
-                    //        AppendLine("#include \"" + tc.ext_header + "\"");
-                    //    }
-                    //}
-
-                    //AppendLine("};");
-                    //depth--;
-
-
-                    //if (type.is_delegate)
-                    //{
-                    //    Metadata.DB_Member method = type.members.First().Value;
-                    //    AppendLine("template<typename T>");
-
-                    //    AppendLine(string.Format("class {0}__Implement:public {1}", type.name, type.name));
-                    //    AppendLine("{");
-                    //    depth++;
-
-                    //    AppendLine("public:");
-                    //    AppendLine(string.Format("typedef {0}(T::*Type)({1});", GetCppTypeName(Model.GetType(method.type)), MakeMethodDeclareArgs(method)));
-
-                    //    //AppendLine("Ref<T> object;");
-                    //    AppendLine(string.Format("typedef {0}__Implement ThisType;", type.name));
-                    //    AppendLine("Type p;");
-                    //    AppendLine(string.Format("typedef {0}(StaticType)({1});", GetCppTypeName(Model.GetType(method.type)), MakeMethodDeclareArgs(method)));
-                    //    AppendLine("StaticType* static_p;");
-                    //    AppendLine("ThisType(T* o, Type p)");
-                    //    string v1 =
-                    //    @"
-                    //            {
-	                   //             _target = o;
-	                   //             this->p = p;
-	                   //             static_p = nullptr;
-                    //            }";
-                    //    AppendLine(v1);
-                    //    string v2 =
-                    //     @"
-                    //            {
-	                   //             _target = o;
-	                   //             this->static_p = p;
-	                   //             p = nullptr;
-                    //            }";
-                    //    AppendLine("ThisType(T* o, StaticType* p)");
-                    //    AppendLine(v2);
-
-                    //    {
-                    //        Append(string.Format("{1} {2}", "", method.type.IsVoid ? "void" : GetCppTypeWrapName(Model.GetType(method.type)), method.name));
-                    //        sb.AppendFormat("({0})", MakeMethodDeclareArgs(method));
-                    //        sb.AppendLine();
-
-                    //        AppendLine("{");
-                    //        depth++;
-
-                    //        string pre_call = @"
-			                 //   for(int i=0;i<list->get_Count()._v;i++)
-			                 //   {
-				                //    ThisType* thisDel = (ThisType*)list->get_Index(i).Get();
-                    //            ";
-                    //        sb.Append(pre_call);
-                    //        AppendLine(string.Format("thisDel->Invoke({0});", MakeMethodCallArgs(method)));
-                    //        AppendLine("}");
-
-                    //        AppendLine("if (static_p != nullptr)");
-                    //        AppendLine("{");
-                    //        depth++;
-                    //        if (method.type.IsVoid)
-                    //        {
-                    //            AppendLine(string.Format("static_p({0});", MakeMethodCallArgs(method)));
-                    //            AppendLine("return;");
-                    //        }
-                    //        else
-                    //        {
-                    //            AppendLine(string.Format("return static_p({0});", MakeMethodCallArgs(method)));
-                    //        }
-
-                    //        depth--;
-                    //        AppendLine("}");
-
-                    //        if (!method.type.IsVoid)
-                    //        {
-                    //            AppendLine(string.Format("return (((T*)_target.Get())->*p)(v);", MakeMethodCallArgs(method)));
-                    //        }
-                    //        else
-                    //        {
-                    //            AppendLine(string.Format("(((T*)_target.Get())->*p)(v);", MakeMethodCallArgs(method)));
-                    //        }
-
-                    //        depth--;
-                    //        AppendLine("}");
-                    //    }
-
-                    //    depth--;
-                    //    AppendLine("};");
-                    //}
-
-
-
-                    //for (int i = 0; i < nsList.Count; i++)
-                    //{
-                    //    depth--;
-                    //    AppendLine("}");
-                    //}
+                    if (tc != null)
+                    {
+                        if (!string.IsNullOrEmpty(tc.ext_header))
+                        {
+                            AppendLine("require \"" + System.IO.Path.GetFileNameWithoutExtension( tc.ext_header) + "\"");
+                        }
+                    }
+                    
                 }
 
-                //sb.AppendLine("}");
-
-                //System.IO.File.WriteAllText(System.IO.Path.Combine(outputDir, GetTypeHeader(type)), sb.ToString());
                 Model.LeaveType();
                 Model.LeaveNamespace();
-                //return sb.ToString();
             }
 
         }
-        //public bool ConvertTypeCpp(Metadata.DB_Type type)
-        //{
-        //    //cpp文件
-        //    {
-        //        sb.Clear();
-        //        Project cfg = Converter.GetProject();
-        //        if (!type.is_enum && !type.is_generic_type_definition)
-        //        {
-        //            Model.EnterNamespace(type._namespace);
-        //            Model.EnterType(type);
-
-        //            if (!string.IsNullOrEmpty(cfg.precompile_header))
-        //            {
-        //                sb.AppendLine(string.Format("#include \"{0}\"", cfg.precompile_header));
-        //            }
-        //            sb.AppendLine("#include \"" + GetTypeHeader(type) + "\"");
-        //            //sb.AppendLine(string.Format("namespace {0}{{", type._namespace));
-
-        //            //包含依赖的头文件
-        //            HashSet<string> depTypes = Converter.GetMethodBodyDependences(type);
-        //            HashSet<string> headDepTypes = Converter.GetTypeDependences(type);
-        //            foreach (var t in headDepTypes)
-        //            {
-        //                Metadata.DB_Type depType = Model.GetType(t);
-        //                if (!depType.is_generic_paramter && t != type.static_full_name)
-        //                    sb.AppendLine("#include \"" + GetTypeHeader(depType) + "\"");
-        //            }
-        //            foreach (var t in depTypes)
-        //            {
-        //                if (!headDepTypes.Contains(t))
-        //                {
-        //                    Metadata.DB_Type depType = Model.GetType(t);
-        //                    if (!depType.is_generic_paramter && t != type.static_full_name)
-        //                        sb.AppendLine("#include \"" + GetTypeHeader(depType) + "\"");
-        //                }
-        //            }
-
-
-        //            foreach (var us in type.usingNamespace)
-        //            {
-        //                sb.AppendLine("using namespace " + us.Replace(".", "::") + ";");
-        //            }
-
-        //            TypeConfig tc = Converter.GetTypeConfig(type);
-
-        //            if (tc != null)
-        //            {
-        //                if (!string.IsNullOrEmpty(tc.ext_cpp))
-        //                {
-        //                    AppendLine("#include \"" + tc.ext_cpp + "\"");
-        //                }
-        //            }
-
-        //            foreach (var m in type.members.Values)
-        //            {
-        //                ConvertMemberCpp(m);
-        //            }
-
-        //            Model.LeaveType();
-        //            Model.LeaveNamespace();
-        //            return true;
-        //        }
-
-
-        //    }
-
-        //    return false;
-        //}
+        
 
         string GetTypeTableName(Metadata.DB_Type type)
         {

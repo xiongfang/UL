@@ -14,3 +14,4 @@ function System.Single.TryParse_System_String_System_Single(value,v)
 		end
 	end
 end
+require "Single_ExtHeader"

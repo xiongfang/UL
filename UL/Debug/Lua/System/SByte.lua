@@ -14,3 +14,4 @@ function System.SByte.TryParse_System_String_System_SByte(value,v)
 		end
 	end
 end
+require "SByte_ExtHeader"

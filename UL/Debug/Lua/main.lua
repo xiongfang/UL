@@ -1,3 +1,5 @@
+package.path = package.path ..';Lua\\?.lua';
+
 require "System"
 require "System.Object"
 function System.Object:new(...)
@@ -24,7 +26,11 @@ function System.String:new(v)
 	return o;
 end
 
+
+require "System.Test"
+
 function  main( ... )
-	System.Console.Write_System_String(System.String:new("込込1"));
+	--System.Console.Write_System_String(System.String:new("込込1"));
+	System.Test.Run();
 	print("込込");
 end

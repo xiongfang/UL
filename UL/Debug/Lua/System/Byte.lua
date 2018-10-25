@@ -14,3 +14,4 @@ function System.Byte.TryParse_System_String_System_Byte(value,v)
 		end
 	end
 end
+require "Byte_ExtHeader"

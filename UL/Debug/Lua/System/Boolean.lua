@@ -34,3 +34,4 @@ function System.Boolean.TryParse_System_String_System_Boolean(value,v)
 		end
 	end
 end
+require "Boolean_ExtHeader"

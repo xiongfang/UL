@@ -14,3 +14,4 @@ function System.Double.TryParse_System_String_System_Double(value,v)
 		end
 	end
 end
+require "Double_ExtHeader"

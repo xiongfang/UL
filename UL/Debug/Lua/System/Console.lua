@@ -99,3 +99,4 @@ function System.Console.WriteLine_System_Object(value)
 		System.Console.WriteLine();
 	end
 end
+require "Console_ExtHeader"
