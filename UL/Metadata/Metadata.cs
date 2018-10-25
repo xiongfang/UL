@@ -1748,20 +1748,31 @@ namespace Metadata
         public static Dictionary<string, DB_Type> LoadNamespace(string path,string name_space)
         {
             Dictionary<string, DB_Type> results = new Dictionary<string, DB_Type>();
-            string[] files = System.IO.Directory.GetFiles(Path.Combine(path,name_space), "*",SearchOption.TopDirectoryOnly);
-            foreach(var f in files)
+
+            string dir = Path.Combine(path, name_space);
+            if (Directory.Exists(dir))
             {
-                DB_Type t = LoadType(path, f);
-                results.Add(f, t);
+                string[] files = System.IO.Directory.GetFiles(dir, "*", SearchOption.TopDirectoryOnly);
+                foreach (var f in files)
+                {
+                    DB_Type t = LoadType(dir, Path.GetFileName( f));
+                    results.Add(t.static_full_name, t);
+                }
             }
+            
             return results;
         }
 
         public static DB_Type LoadType(string path, string full_name)
         {
+            string[] pathlist = full_name.Split('.');
+            string file_path_name = path;
             //技能类型比较复杂，自行序列化，不走Unity的序列化
-            string file_path_name = Path.Combine(path, full_name);
-            if (File.Exists(file_path_name))
+            for (int i=0;i<pathlist.Length;i++)
+            {
+                file_path_name = Path.Combine(file_path_name, pathlist[i]);
+            }
+            if (Directory.Exists(Path.GetDirectoryName(file_path_name)) && File.Exists(file_path_name))
             {
                 MemoryStream ms = new MemoryStream(File.ReadAllBytes(file_path_name));
                 ms.Position = 0;

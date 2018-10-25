@@ -20,7 +20,7 @@ namespace CppConverter
         public string[] export_namespace;
         public string[] export_type;
         public string output_dir;
-        public string dependence_dir;
+        public string[] search_path;
         public string[] ref_namespace;
         public string precompile_header;
     }

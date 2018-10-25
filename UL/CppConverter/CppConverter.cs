@@ -12,7 +12,7 @@ namespace CppConverter
     class CppConverter : IConverter
     {
 
-        Project project;
+        static Project project;
         Dictionary<string, TypeConfig> configs = new Dictionary<string, TypeConfig>();
         SortedDictionary<int, ITypeConverter> Converters = new SortedDictionary<int, ITypeConverter>();
 
@@ -55,40 +55,77 @@ namespace CppConverter
             this.Converters[tc.priority] = tc;
         }
 
-        class Finder : Metadata.IModelTypeFinder
+        class Model
         {
+            public static Metadata.Model Instance = new Metadata.Model(new TypeFinder());
+        }
+
+        class TypeFinder
+        : Metadata.IModelTypeFinder
+        {
+            //已经加载的类
+            static Dictionary<string, Metadata.DB_Type> types = new Dictionary<string, DB_Type>();
+
+            public static Metadata.DB_Type LoadType(string full_name)
+            {
+                Metadata.DB_Type type = null;
+                foreach (var p in project.search_path)
+                {
+                    type = Metadata.DB.LoadType(p, full_name);
+                    if (type != null)
+                    {
+                        types.Add(full_name, type);
+                        break;
+                    }
+                }
+
+                return type;
+            }
+            public static Dictionary<string,Metadata.DB_Type> LoadNamespace(string namespaceName)
+            {
+                Dictionary<string, Metadata.DB_Type> type = null;
+                foreach (var p in project.search_path)
+                {
+                    type = Metadata.DB.LoadNamespace(p, namespaceName);
+                    if (type != null && type.Count>0)
+                    {
+                        foreach(var t in type)
+                        {
+                            types.Add(t.Key, t.Value);
+                        }
+                        break;
+                    }
+                }
+
+                return type;
+            }
+
+
+
             //查找一个数据库类型
             public Metadata.DB_Type FindType(string full_name)
             {
-                return Model.GetType(full_name);
-            }
-            //查找一个类型，如果是动态类型，构造一个
-            public Metadata.DB_Type FindType(Metadata.Expression.TypeSyntax refType, Metadata.Model model)
-            {
-                return Model.GetType(refType, model);
-            }
-        }
-
-        class Model
-        {
-            public static Dictionary<string, Metadata.DB_Type> types;
-
-            public static Metadata.Model Instance = new Metadata.Model(new Finder());
-
-
-            public static Metadata.DB_Type GetType(string full_name)
-            {
                 if (types.ContainsKey(full_name))
                     return types[full_name];
-                return null;
-            }
 
-            public static Metadata.DB_Type GetType(Metadata.Expression.TypeSyntax typeSyntax,Metadata.Model model)
+                Metadata.DB_Type type = LoadType( full_name);
+                if(type!=null)
+                {
+                    types.Add(full_name, type);
+                } 
+
+                return type;
+            }
+            //查找一个类型，如果是动态类型，构造一个
+            public Metadata.DB_Type FindType(Metadata.Expression.TypeSyntax typeSyntax, Metadata.Model model)
             {
+                if (typeSyntax.IsVoid)
+                    return null;
+
                 if (typeSyntax.isGenericType)
                 {
-                    Metadata.DB_Type ma = GetType(typeSyntax.GetTypeDefinitionFullName());
-                    return Metadata.DB_Type.MakeGenericType(ma, typeSyntax.args, new Metadata.Model(new Finder()));
+                    Metadata.DB_Type ma = FindType(typeSyntax.GetTypeDefinitionFullName());
+                    return Metadata.DB_Type.MakeGenericType(ma, typeSyntax.args, new Metadata.Model(new TypeFinder()));
                 }
 
                 if (typeSyntax.isGenericParameter)
@@ -97,77 +134,9 @@ namespace CppConverter
                     return model.GetIndifierInfo(typeSyntax.Name).type;
                 }
 
-                return GetType(typeSyntax.GetTypeDefinitionFullName());
+                return FindType(typeSyntax.GetTypeDefinitionFullName());
             }
         }
-
-        class FileFinder
-        : Metadata.IModelTypeFinder
-        {
-            string path;
-            public FileFinder(string p) { this.path = p; }
-            //查找一个数据库类型
-            public Metadata.DB_Type FindType(string full_name)
-            {
-                Metadata.DB_Type type = Model.GetType(full_name);
-                if (type == null)
-                {
-                    type = Metadata.DB.LoadType(path, full_name);
-                    Model.types.Add(full_name, type);
-                }
-
-                return type;
-            }
-            //查找一个类型，如果是动态类型，构造一个
-            public Metadata.DB_Type FindType(Metadata.Expression.TypeSyntax refType,Metadata.Model model)
-            {
-                if (refType.IsVoid)
-                    return null;
-                Metadata.DB_Type type = Model.GetType(refType, model);
-                if (type == null)
-                {
-                    type = Metadata.DB.LoadType(path, refType.GetTypeDefinitionFullName());
-                    Model.types.Add(refType.GetTypeDefinitionFullName(), type);
-                    return Model.GetType(refType, model); ;
-                }
-
-                return type;
-            }
-        }
-
-        //class DataBaseFinder
-        //: Metadata.IModelTypeFinder
-        //{
-        //    OdbcConnection _con;
-        //    public DataBaseFinder(OdbcConnection con) { this._con = con; }
-        //    //查找一个数据库类型
-        //    public Metadata.DB_Type FindType(string full_name)
-        //    {
-        //        Metadata.DB_Type type = Model.GetType(full_name);
-        //        if (type == null)
-        //        {
-        //            type = Metadata.DB.LoadType(full_name, _con);
-        //            Model.types.Add(full_name, type);
-        //        }
-
-        //        return type;
-        //    }
-        //    //查找一个类型，如果是动态类型，构造一个
-        //    public Metadata.DB_Type FindType(Metadata.Expression.TypeSyntax refType)
-        //    {
-        //        if (refType.IsVoid)
-        //            return null;
-        //        Metadata.DB_Type type = Model.GetType(refType);
-        //        if (type == null)
-        //        {
-        //            type = Metadata.DB.LoadType(refType.GetStaticFullName(), _con);
-        //            Model.types.Add(refType.GetStaticFullName(), type);
-        //            return Model.GetType(refType); ;
-        //        }
-
-        //        return type;
-        //    }
-        //}
 
         //方法体的类，无需声明
         public class MyCppHeaderTypeNoDeclareFinder : Metadata.ITypeVisitor
@@ -211,7 +180,7 @@ namespace CppConverter
         {
             HashSet<string> set = new HashSet<string>();
 
-            Metadata.Model model = new Metadata.Model(new FileFinder(project.dependence_dir));
+            Metadata.Model model = new Metadata.Model(new TypeFinder());
 
             MyCppHeaderTypeNoDeclareFinder f = new MyCppHeaderTypeNoDeclareFinder(model);
             model.AcceptTypeVisitor(f,type);
@@ -262,7 +231,7 @@ namespace CppConverter
 
         public HashSet<string> GetTypeDependences(Metadata.DB_Type type)
         {
-            Metadata.Model model = new Metadata.Model(new FileFinder(project.dependence_dir));
+            Metadata.Model model = new Metadata.Model(new TypeFinder());
 
             Metadata.MyCppHeaderTypeFinder f = new Metadata.MyCppHeaderTypeFinder(model);
             model.AcceptTypeVisitor( f, type);
@@ -281,12 +250,14 @@ namespace CppConverter
                 }
             }
 
+            set.Remove(type.static_full_name);
+
             return set;
         }
 
         public HashSet<string> GetMethodBodyDependences(Metadata.DB_Type type)
         {
-            Metadata.Model model = new Metadata.Model(new FileFinder(project.dependence_dir));
+            Metadata.Model model = new Metadata.Model(new TypeFinder());
 
             Metadata.MyCppMethodBodyTypeFinder f = new Metadata.MyCppMethodBodyTypeFinder(model);
             model.AcceptTypeVisitor( f, type);
@@ -304,45 +275,45 @@ namespace CppConverter
                     set.Add(l);
                 }
             }
-
+            set.Remove(type.static_full_name);
             return set;
         }
 
-        void LoadTypeDependences(string full_name, Dictionary<string, Metadata.DB_Type> loaded)
-        {
-            Metadata.DB_Type type = null;
-            if (!loaded.ContainsKey(full_name))
-            {
-                type = Metadata.DB.LoadType(project.dependence_dir, full_name);
-                if (type == null)
-                    return;
-                loaded.Add(type.static_full_name, type);
-            }
-            else
-            {
-                type = loaded[full_name];
-            }
+        //void LoadTypeDependences(string full_name, Dictionary<string, Metadata.DB_Type> loaded)
+        //{
+        //    Metadata.DB_Type type = null;
+        //    if (!loaded.ContainsKey(full_name))
+        //    {
+        //        type = Model.Instance.GetType(full_name);
+        //        if (type == null)
+        //            return;
+        //        loaded.Add(type.static_full_name, type);
+        //    }
+        //    else
+        //    {
+        //        type = loaded[full_name];
+        //    }
 
-            HashSet<string> dep = GetTypeDependences(type);
+        //    HashSet<string> dep = GetTypeDependences(type);
 
-            foreach (var t in dep)
-            {
-                //string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
-                if (!loaded.ContainsKey(t))
-                {
-                    LoadTypeDependences(t, loaded);
-                }
-            }
-            HashSet<string> body_Dep = GetMethodBodyDependences(type);
-            foreach (var t in body_Dep)
-            {
-                //string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
-                if (!loaded.ContainsKey(t))
-                {
-                    LoadTypeDependences(t, loaded);
-                }
-            }
-        }
+        //    foreach (var t in dep)
+        //    {
+        //        //string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
+        //        if (!loaded.ContainsKey(t))
+        //        {
+        //            LoadTypeDependences(t, loaded);
+        //        }
+        //    }
+        //    HashSet<string> body_Dep = GetMethodBodyDependences(type);
+        //    foreach (var t in body_Dep)
+        //    {
+        //        //string database_type = Metadata.DB_Type.GetGenericDefinitionName(t);
+        //        if (!loaded.ContainsKey(t))
+        //        {
+        //            LoadTypeDependences(t, loaded);
+        //        }
+        //    }
+        //}
 
         public void GO(string[] args)
         {
@@ -358,7 +329,10 @@ namespace CppConverter
             string pj_dir = System.IO.Path.GetFullPath(args[0]);
             pj_dir = pj_dir.Substring(0, pj_dir.Length - System.IO.Path.GetFileName(pj_dir).Length - 1);
             project.output_dir = System.IO.Path.Combine(pj_dir, project.output_dir);
-            project.dependence_dir = System.IO.Path.Combine(pj_dir, project.dependence_dir);
+            for(int i=0;i<project.search_path.Length;i++)
+            {
+                project.search_path[i] = System.IO.Path.Combine(pj_dir, project.search_path[i]);
+            }
 
             if(project.converterType == "cpp")
             {
@@ -373,33 +347,37 @@ namespace CppConverter
                 DefaultConverter = new UE4_TypeConverter(this);
             }
 
-            Model.types = new Dictionary<string, Metadata.DB_Type>();
-
+            List<DB_Type> types = new List<DB_Type>();
             //加载命名空间和导出的类
             foreach (var ns in project.export_namespace)
             {
-                Dictionary<string, Metadata.DB_Type> nsTypes = Metadata.DB.LoadNamespace(project.dependence_dir,ns);
-                foreach (var t in nsTypes)
-                {
-                    Model.types.Add(t.Value.static_full_name, t.Value);
-                }
+                types.AddRange(TypeFinder.LoadNamespace(ns).Values);
+                //foreach (var t in nsTypes)
+                //{
+                //    Model.types.Add(t.Value.static_full_name, t.Value);
+                //}
             }
             foreach (var ns in project.export_type)
             {
-                Metadata.DB_Type type = Metadata.DB.LoadType(project.dependence_dir,ns);
-                Model.types.Add(type.static_full_name, type);
+                Metadata.DB_Type type = TypeFinder.LoadType(ns);
+                if(type!=null)
+                {
+                    types.Add(type);
+                }
+                //Model.types.Add(type.static_full_name, type);
             }
 
             //加载依赖的类
-            List<Metadata.DB_Type> typeList = new List<Metadata.DB_Type>();
-            typeList.AddRange(Model.types.Values);
-            foreach (var t in typeList)
-            {
-                LoadTypeDependences(t.static_full_name, Model.types);
-            }
+            //List<Metadata.DB_Type> typeList = new List<Metadata.DB_Type>();
+            //typeList.AddRange(Model.types.Values);
+            //Dictionary<string, DB_Type> loaded = new Dictionary<string, DB_Type>(Model.types);
+            //foreach (var t in typeList)
+            //{
+            //    LoadTypeDependences(t.static_full_name, loaded);
+            //}
 
             //导出所有非引用的类型
-            foreach (var t in Model.types.Values)
+            foreach (var t in types)
             {
                 if (!ref_ns.Contains(t._namespace))
                 {

@@ -418,6 +418,8 @@ namespace CppConverter
 
         public string GetTypeHeader(Metadata.DB_Type type)
         {
+            
+
             TypeConfig tc = Converter.GetTypeConfig(type);
             if (tc != null)
             {
@@ -425,27 +427,41 @@ namespace CppConverter
                     return tc.header_path;
             }
 
+            string headler = "";
 
             string[] ns_list = type._namespace.Split('.');
             string path = System.IO.Path.Combine(ns_list);
             if(type.is_generic_type_definition)
             {
-                return System.IO.Path.Combine(path, "t_" +type.name + ".h");
+                headler = System.IO.Path.Combine(path, "t_" +type.name + ".h");
+            }
+            else
+            {
+                headler = System.IO.Path.Combine(path, type.name + ".h");
             }
 
-            return System.IO.Path.Combine(path, type.name + ".h");
+            headler = headler.Replace('\\','/');
+            return headler;
         }
 
         public string GetTypeCppFileName(Metadata.DB_Type type)
         {
             string[] ns_list = type._namespace.Split('.');
             string path = System.IO.Path.Combine(ns_list);
+
+            string cpp = "";
+
             if (type.is_generic_type_definition)
             {
-                return System.IO.Path.Combine(path, "t_" + type.name + ".cpp");
+                cpp = System.IO.Path.Combine(path, "t_" + type.name + ".cpp");
+            }
+            else
+            {
+                cpp = System.IO.Path.Combine(path, type.name + ".cpp");
             }
 
-            return System.IO.Path.Combine(path, type.name + ".cpp");
+            cpp = cpp.Replace('\\', '/');
+            return cpp;
         }
 
         void WriteFile(string path,Metadata.DB_Type type, string content)
