@@ -1,3 +1,3 @@
 ﻿require "System"
-System.ArrayT = System.Array:new()
+System.ArrayT = class('System.ArrayT',System.Array)
 require "Array_ExtHeader"

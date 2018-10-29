@@ -1,5 +1,5 @@
-ï»¿require "System"
-System.Test = System.Object:new()
+require "System"
+System.Test = class('System.Test',System.Object)
 function System.Test.add_notify_System_TestDel(value)
 	do
 		_notify = System.TestDel.op_Addition(_notify,value);
@@ -19,15 +19,15 @@ function System.Test.Run()
 end
 function System.Test.TestInt()
 	do
-		local a = 5;
-		a = System.Int32.op_Addition(a,6);
+		local a = System.Int32.new(5);
+		a = System.Int32.op_Addition(a,System.Int32.new(6));
 		System.Console.WriteLine_System_Int32(a);
-		a = System.Int32.op_Addition(a,7);
+		a = System.Int32.op_Addition(a,System.Int32.new(7));
 		System.Console.WriteLine_System_Int32(a);
-		local b = System.Int32.Int64(a);
+		local b = System.Int32.Int64_System_Int32(a);
 		System.Console.WriteLine_System_Int64(b);
-		System.Console.WriteLine_System_Int32(System.Int32.op_Substraction(a,5));
-		System.Console.WriteLine_System_Int32(System.Int32.op_Modulus(a,5));
+		System.Console.WriteLine_System_Int32(System.Int32.op_Substraction(a,System.Int32.new(5)));
+		System.Console.WriteLine_System_Int32(System.Int32.op_Modulus(a,System.Int32.new(5)));
 		System.Console.WriteLine_System_Int32(System.Int32.op_Increment(a));
 		System.Console.WriteLine_System_Int32(System.Int32.op_Increment(a));
 		System.Console.WriteLine_System_Int32(System.Int32.op_UnaryNegation(a));
@@ -35,28 +35,23 @@ function System.Test.TestInt()
 end
 function System.Test.TestString()
 	do
-		local v = "ä½ å¥½";
+		local v = System.String.new("ÄãºÃ");
 		System.Console.WriteLine_System_String(v);
-		System.Console.WriteLine_System_Int32(v.get_Length());
+		System.Console.WriteLine_System_Int32(v:get_Length());
 	end
 end
 function System.Test.TestDel_System_String(v)
 	do
 		System.Console.WriteLine_System_String(v);
-		return true;
+		return System.Boolean.new(true);
 	end
 end
 function System.Test.TestEvent()
-	do
-		System.Test::add_notify(new System.TestDel__Implement<System.Test>(nullptr,Test_notify));
-		local Ref<System.TestDel> v = new System.TestDel__Implement<System.Test>(nullptr,System.Test.TestDel);
-		System.Test::add_notify(v);
-		_notify:Invoke("ä½ å¥½");
-	end
+
 end
 function System.Test.Test_notify_System_String(v)
 	do
 		System.Console.WriteLine_System_String(v);
-		return true;
+		return System.Boolean.new(true);
 	end
 end

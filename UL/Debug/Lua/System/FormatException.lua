@@ -1,5 +1,5 @@
 ﻿require "System"
-System.FormatException = System.Exception:new()
+System.FormatException = class('System.FormatException',System.Exception)
 FormatException(msg)
 	do
 	end

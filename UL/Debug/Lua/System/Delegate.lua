@@ -1,5 +1,5 @@
 ﻿require "System"
-System.Delegate = System.Object:new()
+System.Delegate = class('System.Delegate',System.Object)
 function System.Delegate:get_Target()
 	do
 		return _target;
@@ -7,7 +7,7 @@ function System.Delegate:get_Target()
 end
 Delegate()
 	do
-		list = System.Collections.Generic.List:new();
+		list = System.Collections.Generic.List.new();
 	end
 end
 function System.Delegate.Combine_System_Delegate_System_Delegate(a,b)
@@ -25,8 +25,8 @@ function System.Delegate.Combine_System_ArrayT(delegates)
 	do
 		local left = nil;
 		do
-			local 			i = 0
-			while System.Int32.op_LessThen(i,delegates.get_Length())
+			local 			i = System.Int32.new(0)
+			while System.Int32.op_LessThen(i,delegates:get_Length())
 				do
 					do
 						left = System.Delegate.Combine_System_Delegate_System_Delegate(left,delegates.get_Index(i));
@@ -73,19 +73,19 @@ end
 function System.Delegate:CombineImpl_System_Delegate(d)
 	do
 		list:Add_System_Delegate(d);
-		return this;
+		return self;
 	end
 end
 function System.Delegate.op_Equality(d1,d2)
 	do
 		if(System.Object.ReferenceEquals_System_Object_System_Object(d1,d2))
-			return true;
+			return System.Boolean.new(true);
 		end
 		if(System.Object.ReferenceEquals_System_Object_System_Object(d1,nil))
-			return false;
+			return System.Boolean.new(false);
 		end
 		if(System.Object.ReferenceEquals_System_Object_System_Object(d2,nil))
-			return false;
+			return System.Boolean.new(false);
 		end
 		return d1:Equals_System_Object(d2);
 	end

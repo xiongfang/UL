@@ -1,5 +1,5 @@
 ﻿require "System"
-System.Exception = System.Object:new()
+System.Exception = class('System.Exception',System.Object)
 function System.Exception:get_Message()
 	do
 		return _msg;
@@ -12,6 +12,6 @@ Exception(msg)
 end
 Exception()
 	do
-		_msg = "";
+		_msg = System.String.new("");
 	end
 end

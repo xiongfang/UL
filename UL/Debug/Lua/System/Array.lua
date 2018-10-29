@@ -1,2 +1,4 @@
 ﻿require "System"
-System.Array = System.Object:new()
+System.Array = class('System.Array',System.Object)
+function System.Array:get_Length()
+end

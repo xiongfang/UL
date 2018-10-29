@@ -1,2 +1,2 @@
 ﻿require "System_Reflection"
-System.Reflection.BindingFlags = System.Enum:new()
+System.Reflection.BindingFlags = class('System.Reflection.BindingFlags',System.Enum)

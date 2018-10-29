@@ -1,5 +1,7 @@
 ﻿require "System"
-System.Console = System.Object:new()
+System.Console = class('System.Console',System.Object)
+function System.Console.Write_System_String(value)
+end
 function System.Console.Write_System_Object(value)
 	do
 		System.Console.Write_System_String(value:ToString());
@@ -42,7 +44,7 @@ function System.Console.Write_System_Byte(value)
 end
 function System.Console.WriteLine()
 	do
-		System.Console.Write_System_String("\r\n");
+		System.Console.Write_System_String(System.String.new("\r\n"));
 	end
 end
 function System.Console.WriteLine_System_Char(value)

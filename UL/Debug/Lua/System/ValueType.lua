@@ -1,2 +1,2 @@
 ﻿require "System"
-System.ValueType = System.Object:new()
+System.ValueType = class('System.ValueType',System.Object)

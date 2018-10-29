@@ -72,18 +72,18 @@ namespace CppConverter
 
                     if (!type.base_type.IsVoid /*&& !type.is_value_type*/ || type.interfaces.Count > 0)
                     {
-                        Append(string.Format("{0} = {1}:new(", GetTypeTableName(type),  GetTypeTableName(Model.GetType(type.base_type))));
-                        for(int i=0;i<type.interfaces.Count;i++)
-                        {
-                            sb.Append(",");
-                            sb.Append(GetTypeTableName(Model.GetType(type.interfaces[i])));
-                        }
-                        sb.Append(")");
+                        Append(string.Format("{0} = class('{1}',{2})", GetTypeTableName(type), GetTypeTableName(type), GetTypeTableName(Model.GetType(type.base_type))));
+                        //for(int i=0;i<type.interfaces.Count;i++)
+                        //{
+                        //    sb.Append(",");
+                        //    sb.Append(GetTypeTableName(Model.GetType(type.interfaces[i])));
+                        //}
+                        //sb.Append(")");
                         sb.AppendLine();
                     }
                     else
                     {
-                        AppendLine(string.Format("{0} = {{}}", GetTypeTableName(type)));
+                        AppendLine(string.Format("{0} = class('{1}')", GetTypeTableName(type), GetTypeTableName(type)));
                     }
                     //}
 
@@ -169,11 +169,11 @@ namespace CppConverter
 
             if (System.IO.File.Exists(path))
             {
-                if (System.IO.File.ReadAllText(path, Encoding.UTF8) == content)
+                if (System.IO.File.ReadAllText(path, Encoding.Default) == content)
                     return;
             }
 
-            System.IO.File.WriteAllText(path, content, Encoding.UTF8);
+            System.IO.File.WriteAllText(path, content, Encoding.Default);
 
         }
 
@@ -418,27 +418,11 @@ namespace CppConverter
             }
             else if (member.member_type == (int)Metadata.MemberTypes.Method)
             {
-                if (member.method_body == null)
-                    return;
+                //if (member.method_body == null)
+                //    return;
                 Model.EnterMethod(member);
 
                 Metadata.DB_Type declare_type = Model.GetType(member.declaring_type);
-
-                //AppendLine(GetModifierString(member.modifier) + ":");
-
-
-                //属性
-                //AppendLine(ConvertCppAttribute(member.attributes));
-
-                //if (member.is_static)
-                //    Append("static ");
-                //else
-                //    Append("");
-
-                //if (member.method_abstract || member.method_virtual || declare_type.is_delegate)
-                //{
-                //    sb.Append("virtual ");
-                //}
 
                 if (!member.method_is_constructor)
                 {
@@ -734,15 +718,30 @@ namespace CppConverter
 
         void ConvertStatement(Metadata.DB_TryStatementSyntax ss)
         {
-            AppendLine("try");
+            AppendLine(@"try(
+        function()");
+            depth++;
             ConvertStatement(ss.Block);
+            depth--;
+            AppendLine("end,");
 
             for (int i = 0; i < ss.Catches.Count; i++)
             {
-                AppendLine(string.Format("catch({0} {1})", GetCppTypeName(Model.GetType(ss.Catches[i].Type)), ss.Catches[i].Identifier));
-
+                AppendLine("{");
+                depth++;
+                AppendLine(string.Format("type=\"{0}\",", GetCppTypeName(Model.GetType(ss.Catches[i].Type)), ss.Catches[i].Identifier));
+                AppendLine("func= function()");
+                depth++;
                 ConvertStatement(ss.Catches[i].Block);
+                depth--;
+                AppendLine("end");
+                depth--;
+                //AppendLine(@"end");
+                AppendLine("}");
+                if (i < ss.Catches.Count-1)
+                    Append(",");
             }
+            AppendLine(");");
         }
 
         void ConvertStatement(Metadata.DB_ThrowStatementSyntax ss)
@@ -848,7 +847,7 @@ namespace CppConverter
                 Metadata.DB_Member operatorMethod = right_type.FindMethod(left_type.name, args, Model);
                 if (operatorMethod != null && operatorMethod.method_is_conversion_operator)
                 {
-                    stringBuilder.Append(string.Format("{0}.{1}({2})", GetCppTypeName(right_type), operatorMethod.name, ExpressionToString(right)));
+                    stringBuilder.Append(string.Format("{0}.{1}({2})", GetCppTypeName(right_type), GetMethodUniqueName(operatorMethod), ExpressionToString(right)));
                 }
                 else
                 {
@@ -1015,9 +1014,7 @@ namespace CppConverter
             Metadata.DB_Member method = null;
 
             if (es.Caller is Metadata.Expression.IndifierExp)
-            {
-                
-
+            { 
                 Metadata.Expression.IndifierExp ie = es.Caller as Metadata.Expression.IndifierExp;
                 Metadata.Model.IndifierInfo ii = Model.GetIndifierInfo(ie.Name);
                 caller_type = ii.type;
@@ -1051,7 +1048,7 @@ namespace CppConverter
                             else
                             {
                                 stringBuilder.Append("self");
-                                stringBuilder.Append(".");
+                                stringBuilder.Append(":");
                             }
                         }
 
@@ -1078,53 +1075,23 @@ namespace CppConverter
             }
 
             stringBuilder.Append(ExpressionToString(es, method));
-
-            //stringBuilder.Append("(");
-            //if (es.Args != null)
-            //{
-            //    for (int i = 0; i < es.Args.Count; i++)
-            //    {
-            //        //实际参数类型
-            //        Metadata.DB_Type arg_type = args[i];
-            //        //实际参数是this
-            //        if (es.Args[i] is Metadata.Expression.ThisExp)
-            //        {
-            //            if (arg_type.is_value_type)
-            //            {
-            //                stringBuilder.Append("*");
-            //            }
-            //        }
-
-
-            //        //形式参数类型
-            //        Metadata.DB_Type me_argType = Model.GetType(method.method_args[i].type);
-
-            //        string ArgString = GetExpConversion(me_argType, arg_type, es.Args[i]);
-
-
-            //        if (me_argType.is_class && arg_type.is_class && arg_type.GetRefType() != me_argType.GetRefType())
-            //        {
-            //            stringBuilder.Append(string.Format("Ref<{1}>({0}.Get())", ArgString, GetCppTypeName(me_argType)));
-            //        }
-            //        else
-            //        {
-            //            stringBuilder.Append(ArgString);
-            //        }
-
-            //        if (i < es.Args.Count - 1)
-            //            stringBuilder.Append(",");
-            //    }
-            //}
-            //stringBuilder.Append(")");
-
             return stringBuilder.ToString();
         }
         string ExpressionToString(Metadata.Expression.ConstExp es, Metadata.Expression.Exp outer)
         {
+            
             if (es.value == "null")
             {
                 return "nil";
             }
+
+            Metadata.DB_Type type = Model.GetExpType(es, outer);
+
+            if(type!=null)
+            {
+                return string.Format("{0}.new({1})", GetCppTypeName(type),es.value);
+            }
+
             //if (!string.IsNullOrEmpty(es.value))
             //{
             //    if (es.value.Length > 0 && es.value[0] == '"')
@@ -1194,7 +1161,10 @@ namespace CppConverter
                     {
                         if (caller_type.is_class)
                         {
-                            stringBuilder.Append(".");
+                            if(caller_type.FindProperty(es.Name,Model)!=null)   //属性，方法调用
+                                stringBuilder.Append(":");
+                            else
+                                stringBuilder.Append(".");
                         }
                         else
                         {
@@ -1266,7 +1236,7 @@ namespace CppConverter
             StringBuilder ExpSB = new StringBuilder();
             //
             ExpSB.Append(GetCppTypeName(Model.GetType(es.Type)));
-            ExpSB.Append(":new");
+            ExpSB.Append(".new");
             ExpSB.Append("(");
             if (es.Args != null)
             {
@@ -1493,7 +1463,7 @@ namespace CppConverter
 
         string ExpressionToString(Metadata.Expression.ThisExp exp, Metadata.Expression.Exp outer)
         {
-            return "this";
+            return "self";
         }
         string ExpressionToString(Metadata.Expression.AssignmentExpressionSyntax exp, Metadata.Expression.Exp outer)
         {

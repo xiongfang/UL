@@ -1,36 +1,105 @@
 package.path = package.path ..';Lua\\?.lua';
 
+function clone(object)
+    local lookup_table = {}
+    local function _copy(object)
+        if type(object) ~= "table" then
+            return object
+        elseif lookup_table[object] then
+            return lookup_table[object]
+        end
+        local new_table = {}
+        lookup_table[object] = new_table
+        for key, value in pairs(object) do
+            new_table[_copy(key)] = _copy(value)
+        end
+        return setmetatable(new_table, getmetatable(object))
+    end
+    return _copy(object)
+end
+
+--Create an class.
+function class(classname, super)
+    local superType = type(super)
+    local cls
+
+    if superType ~= "function" and superType ~= "table" then
+        superType = nil
+        super = nil
+    end
+
+    if superType == "function" or (super and super.__ctype == 1) then
+        -- inherited from native C++ Object
+        cls = {}
+
+        if superType == "table" then
+            -- copy fields from super
+            for k,v in pairs(super) do cls[k] = v end
+            cls.__create = super.__create
+            cls.super    = super
+        else
+            cls.__create = super
+        end
+
+        cls.ctor    = function() end
+        cls.__cname = classname
+        cls.__ctype = 1
+
+        function cls.new(...)
+            local instance = cls.__create(...)
+            -- copy fields from class to native object
+            for k,v in pairs(cls) do instance[k] = v end
+            instance.class = cls
+            instance:ctor(...)
+            return instance
+        end
+
+    else
+        -- inherited from Lua Object
+        if super then
+            cls = clone(super)
+            cls.super = super
+        else
+            cls = {ctor = function() end}
+        end
+
+        cls.__cname = classname
+        cls.__ctype = 2 -- lua
+        cls.__index = cls
+
+        function cls.new(...)
+            local instance = setmetatable({}, cls)
+            instance.class = cls
+            instance:ctor(...)
+            return instance
+        end
+    end
+
+    return cls
+end
+
+function try(func,...)
+	local arg = {...};
+	local e = func();
+	if e ~= nil then
+		for k,v in pairs(arg) do
+			if v.type.GetType().IsSubclassOf(e.GetType()) then
+				v.func(e);
+				break;
+			end
+		end
+	end
+end
+
 require "System"
 require "System.Object"
-function System.Object:new(...)
-      local o = {}
-      setmetatable(o, self)
-      self.__index = self
-      o:ctor(...)
-      return o
-end
-function System.Object.ctor()
-end
-
 require "System.Console"
-function System.Console.Write_System_String(v)
-    print(v._v);
-end
-
+require "System.Int32"
+require "System.Int64"
 require "System.String"
-
-
-function System.String:new(v)
-	local o = System.Object:new(v);
-    o._v = v;
-	return o;
-end
-
 
 require "System.Test"
 
 function  main( ... )
-	--System.Console.Write_System_String(System.String:new("込込1"));
 	System.Test.Run();
-	print("込込");
 end

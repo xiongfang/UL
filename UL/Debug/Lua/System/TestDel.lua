@@ -1,2 +1,4 @@
 ﻿require "System"
-System.TestDel = System.Delegate:new()
+System.TestDel = class('System.TestDel',System.Delegate)
+function System.TestDel:Invoke_System_String(v)
+end

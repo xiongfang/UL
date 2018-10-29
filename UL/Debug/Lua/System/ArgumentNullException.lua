@@ -1,5 +1,5 @@
 ﻿require "System"
-System.ArgumentNullException = System.Exception:new()
+System.ArgumentNullException = class('System.ArgumentNullException',System.Exception)
 ArgumentNullException(msg)
 	do
 	end

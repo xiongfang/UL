@@ -1,2 +1,2 @@
 ﻿require "System"
-System.Attribute = System.Object:new()
+System.Attribute = class('System.Attribute',System.Object)
