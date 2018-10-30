@@ -1,4 +1,4 @@
-﻿require "System"
+require "System"
 System.Byte = class('System.Byte',System.ValueType)
 function System.Byte.Parse_System_String(value)
 end

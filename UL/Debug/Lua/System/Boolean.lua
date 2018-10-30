@@ -1,20 +1,20 @@
-﻿require "System"
+require "System"
 System.Boolean = class('System.Boolean',System.ValueType)
 function System.Boolean.Parse_System_String(value)
 	do
-		if(System.String.op_Equality(value,nil))
+		if(System.String.op_Equality(value,nil)) then
 		do
-			throw System.ArgumentNullException.new();
+			return System.ArgumentNullException.new();
 		end
 		end
-		if(System.String.op_Equality(value,TrueString))
+		if(System.String.op_Equality(value,TrueString)) then
 			return System.Boolean.new(true);
 		else
-			if(System.String.op_Equality(value,FalseString))
+			if(System.String.op_Equality(value,FalseString)) then
 				return System.Boolean.new(false);
 			else
 			do
-				throw System.FormatException.new(value);
+				return System.FormatException.new(value);
 			end
 			end
 		end

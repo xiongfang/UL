@@ -1,4 +1,4 @@
-﻿require "System"
+require "System"
 System.UInt64 = class('System.UInt64',System.ValueType)
 function System.UInt64.Parse_System_String(value)
 end

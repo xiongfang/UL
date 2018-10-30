@@ -318,13 +318,15 @@ namespace CppConverter
         public void GO(string[] args)
         {
             project = Metadata.DB.ReadJsonObject<Project>(System.IO.File.ReadAllText(args[0]));
+            if(project.type_settings!=null)
             foreach (var c in project.type_settings)
             {
                 configs[c.name] = c;
             }
 
             List<string> ref_ns = new List<string>();
-            ref_ns.AddRange(project.ref_namespace);
+            if(project.ref_namespace!=null)
+                ref_ns.AddRange(project.ref_namespace);
 
             string pj_dir = System.IO.Path.GetFullPath(args[0]);
             pj_dir = pj_dir.Substring(0, pj_dir.Length - System.IO.Path.GetFileName(pj_dir).Length - 1);

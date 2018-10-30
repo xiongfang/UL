@@ -1,4 +1,4 @@
-﻿require "System"
+require "System"
 System.Double = class('System.Double',System.ValueType)
 function System.Double.Parse_System_String(value)
 end

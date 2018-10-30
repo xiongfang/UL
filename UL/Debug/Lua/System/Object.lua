@@ -1,4 +1,4 @@
-﻿require "System"
+require "System"
 System.Object = class('System.Object')
 function System.Object:GetType()
 end

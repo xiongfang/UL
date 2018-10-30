@@ -1,4 +1,4 @@
-﻿require "System"
+require "System"
 System.Int16 = class('System.Int16',System.ValueType)
 function System.Int16.Parse_System_String(value)
 end

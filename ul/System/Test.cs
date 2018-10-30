@@ -45,6 +45,10 @@ namespace System
             Console.WriteLine(a ++);
             Console.WriteLine(++a);
             Console.WriteLine(-a);
+
+            Int32 tempV;
+            if(Int32.TryParse("5",out tempV))
+                Console.WriteLine(tempV);
         }
 
         static void TestString()

@@ -1,4 +1,4 @@
-﻿require "System"
+require "System"
 System.Single = class('System.Single',System.ValueType)
 function System.Single.Parse_System_String(value)
 end

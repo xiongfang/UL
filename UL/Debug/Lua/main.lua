@@ -91,13 +91,37 @@ function try(func,...)
 	end
 end
 
+PostfixUnaryHelper = {}
+function PostfixUnaryHelper.op_Increment(a,func)
+	local temp = clone(a);
+	a = a:op_Increment();
+	return temp,func(a);
+end
+function PostfixUnaryHelper.op_Decrement(a,func)
+	local temp = clone(a);
+	a:op_Decrement();
+	return temp,func(a);
+end
+
+PrefixUnaryHelper = {}
+function PrefixUnaryHelper.op_Increment(a,func)
+	a = a:op_Increment();
+	return a,func(a);
+end
+function PrefixUnaryHelper.op_Decrement(a,func)
+	a = a:op_Decrement();
+	return a,func(a);
+end
+
+
+
 require "System"
 require "System.Object"
 require "System.Console"
 require "System.Int32"
 require "System.Int64"
 require "System.String"
-
+require "System.Boolean"
 require "System.Test"
 
 function  main( ... )

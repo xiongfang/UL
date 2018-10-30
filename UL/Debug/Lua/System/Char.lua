@@ -1,4 +1,4 @@
-﻿require "System"
+require "System"
 System.Char = class('System.Char',System.ValueType)
 function System.Char.Parse_System_String(value)
 end

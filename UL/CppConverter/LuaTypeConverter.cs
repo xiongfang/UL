@@ -545,7 +545,7 @@ namespace CppConverter
             }
             else if (ss is Metadata.DB_ReturnStatementSyntax)
             {
-                AppendLine("return " + ExpressionToString(((Metadata.DB_ReturnStatementSyntax)ss).Expression) + ";");
+                ConvertStatement((Metadata.DB_ReturnStatementSyntax)ss);
             }
             else if (ss is Metadata.DB_TryStatementSyntax)
             {
@@ -586,9 +586,21 @@ namespace CppConverter
                 depth--;
         }
 
+
+        void ConvertStatement(Metadata.DB_ReturnStatementSyntax bs)
+        {
+            //Metadata.DB_Type retType = Model.GetExpType(bs.Expression);
+            //if(retType.is_value_type)
+            //{
+            //    AppendLine("return clone(" + ExpressionToString(bs.Expression) + ");");
+            //}
+            //else
+                AppendLine("return " + ExpressionToString(bs.Expression) + ";");
+        }
+
         void ConvertStatement(Metadata.DB_IfStatementSyntax bs)
         {
-            AppendLine("if(" + ExpressionToString(bs.Condition) + ")");
+            AppendLine("if(" + ExpressionToString(bs.Condition) + ") then");
             CheckEnter(bs.Statement);
             ConvertStatement(bs.Statement);
             CheckOut(bs.Statement);
@@ -746,7 +758,7 @@ namespace CppConverter
 
         void ConvertStatement(Metadata.DB_ThrowStatementSyntax ss)
         {
-            Append("throw ");
+            Append("return ");
             sb.Append(ExpressionToString(ss.Expression));
             sb.AppendLine(";");
         }
@@ -880,6 +892,9 @@ namespace CppConverter
             stringBuilder.Append("(");
             if (es.Args != null)
             {
+                //引用参数计数
+                List<int> refArgs = new List<int>();
+
                 for (int i = 0; i < es.Args.Count; i++)
                 {
                     //实际参数类型
@@ -893,6 +908,8 @@ namespace CppConverter
                         }
                     }
 
+                    if (method.method_args[i].is_out || method.method_args[i].is_ref)
+                        refArgs.Add(i);
 
                     //形式参数类型
                     Metadata.DB_Type me_argType = Model.GetType(method.method_args[i].type);
@@ -900,11 +917,11 @@ namespace CppConverter
                     string ArgString = GetExpConversion(me_argType, arg_type, es.Args[i], es);
 
 
-                    //if (me_argType.is_class && arg_type.is_class && arg_type.GetRefType() != me_argType.GetRefType())
-                    //{
-                    //    stringBuilder.Append(string.Format("Ref<{1}>({0}.Get())", ArgString, GetCppTypeName(me_argType)));
-                    //}
-                    //else
+                    if (me_argType.is_value_type)
+                    {
+                        stringBuilder.Append(string.Format("clone({0})", ArgString));
+                    }
+                    else
                     {
                         stringBuilder.Append(ArgString);
                     }
@@ -912,6 +929,32 @@ namespace CppConverter
                     if (i < es.Args.Count - 1)
                         stringBuilder.Append(",");
                 }
+
+                if(refArgs.Count> 0)
+                {
+                    stringBuilder.AppendLine(",");
+                    stringBuilder.Append("function(");
+
+                    for(int i=0;i< refArgs.Count;i++)
+                    {
+                        stringBuilder.Append(method.method_args[refArgs[i]].name);
+                        if (i < refArgs.Count - 1)
+                            stringBuilder.Append(",");
+                    }
+
+                    stringBuilder.Append(")");
+
+                    stringBuilder.AppendLine();
+
+
+                    for (int i = 0; i < refArgs.Count; i++)
+                    {
+                        stringBuilder.AppendLine(string.Format("{0}={1}", ExpressionToString( es.Args[refArgs[i]]), method.method_args[refArgs[i]].name));
+                    }
+
+                    stringBuilder.AppendLine("end");
+                }
+
             }
             stringBuilder.Append(")");
 
@@ -1618,20 +1661,21 @@ namespace CppConverter
                 stringBuilder.Append(string.Format("{0}.{1}(", GetCppTypeName(left_type), GetOperatorFuncName(exp.OperatorToken, argTypes.Count)));
             }
 
-            //if (left_type.is_class && method.method_args[0].type != left_type.GetRefType())
-            //{
-            //    stringBuilder.Append(string.Format("Ref<{0}>({1})", GetCppTypeName(Model.GetType(method.method_args[0].type)), ExpressionToString(exp.Left, exp)));
-            //}
-            //else
+            if (left_type.is_value_type)
+            {
+                stringBuilder.Append(string.Format("clone({0})", ExpressionToString(exp.Left, exp)));
+            }
+            else
             {
                 stringBuilder.Append(ExpressionToString(exp.Left, exp));
             }
             stringBuilder.Append(",");
-            //if (right_type.is_class && method.method_args[1].type != right_type.GetRefType())
-            //{
-            //    stringBuilder.Append(string.Format("Ref<{0}>({1})", GetCppTypeName(Model.GetType(method.method_args[1].type)), ExpressionToString(exp.Right, exp)));
-            //}
-            //else
+
+            if (right_type.is_value_type)
+            {
+                stringBuilder.Append(string.Format("clone({0})", ExpressionToString(exp.Right, exp)));
+            }
+            else
             {
                 stringBuilder.Append(ExpressionToString(exp.Right, exp));
             }
@@ -1654,9 +1698,9 @@ namespace CppConverter
                 Metadata.DB_Type caller = Model.GetExpType(exp.Operand);
                 Metadata.DB_Member func = caller.FindMethod(exp.OperatorToken, new List<Metadata.DB_Type>() { caller }, Model);
 
-                //if (exp.OperatorToken == "++" || exp.OperatorToken == "--")
-                //    stringBuilder.Append(string.Format("PostfixUnaryHelper::{0}<{1}>({2})", funcName, GetCppTypeName(caller), ExpressionToString(exp.Operand, exp)));
-                //else
+                if (exp.OperatorToken == "++" || exp.OperatorToken == "--")
+                    stringBuilder.Append(string.Format("PostfixUnaryHelper.{0}({1},function(v) {1} = v end)", funcName, ExpressionToString(exp.Operand, exp)));
+                else
                     stringBuilder.Append(string.Format("{0}.{1}({2})", GetCppTypeName(caller), funcName, ExpressionToString(exp.Operand, exp)));
 
             }
@@ -1678,9 +1722,9 @@ namespace CppConverter
                 Metadata.DB_Type caller = Model.GetExpType(exp.Operand);
                 Metadata.DB_Member func = caller.FindMethod(exp.OperatorToken, new List<Metadata.DB_Type>() { caller }, Model);
 
-                //if (exp.OperatorToken == "++" || exp.OperatorToken == "--")
-                //    stringBuilder.Append(string.Format("PrefixUnaryHelper::{0}<{1}>({2})", funcName, GetCppTypeName(caller), ExpressionToString(exp.Operand, exp)));
-                //else
+                if (exp.OperatorToken == "++" || exp.OperatorToken == "--")
+                    stringBuilder.Append(string.Format("PrefixUnaryHelper.{0}({1},function(v) {1} = v end)", funcName,  ExpressionToString(exp.Operand, exp)));
+                else
                     stringBuilder.Append(string.Format("{0}.{1}({2})", GetCppTypeName(caller), funcName, ExpressionToString(exp.Operand, exp)));
 
             }
