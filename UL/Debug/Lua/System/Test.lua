@@ -56,7 +56,10 @@ function System.Test.TestDel_System_String(v)
 end
 function System.Test.TestEvent()
 	do
-
+		System.Test::add_notify(new System.TestDel__Implement<System.Test>(nullptr,Test_notify));
+		local Ref<System.TestDel> v = new System.TestDel__Implement<System.Test>(nullptr,System.Test.TestDel);
+		System.Test::add_notify(v);
+		_notify:Invoke(System.String.new("ÄãºÃ"));
 	end
 end
 function System.Test.Test_notify_System_String(v)

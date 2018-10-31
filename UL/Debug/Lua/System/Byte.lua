@@ -4,12 +4,13 @@ function System.Byte.Parse_System_String(value)
 end
 function System.Byte:ToString()
 end
-function System.Byte.TryParse_System_String_System_Byte(value,v)
+function System.Byte.TryParse_System_String_System_Byte(value,v,func)
 	do
 		try(
         function()
 			do
 				v = System.Byte.Parse_System_String(value);
+				func(value);
 				return System.Boolean.new(true);
 			end
 		end,
@@ -18,6 +19,7 @@ function System.Byte.TryParse_System_String_System_Byte(value,v)
 			func= function()
 				do
 					v = System.Int32.Byte_System_Int32(System.Int32.new(0));
+					func(value);
 					return System.Boolean.new(false);
 				end
 			end

@@ -357,10 +357,12 @@ namespace CppConverter
         string MakeMethodDeclareArgs(Metadata.DB_Member member)
         {
             StringBuilder stringBuilder = new StringBuilder();
-
+            bool outP = false;
             if (member.method_args != null)
                 for (int i = 0; i < member.method_args.Length; i++)
                 {
+                    if (member.method_args[i].is_out || member.method_args[i].is_ref)
+                        outP = true;
                     Metadata.DB_Type arg_Type = Model.GetType(member.method_args[i].type);
                     //string typeName = GetCppTypeName(arg_Type);
                     stringBuilder.Append(string.Format("{0}",member.method_args[i].name));
@@ -368,6 +370,10 @@ namespace CppConverter
                         stringBuilder.Append(",");
                 }
 
+            if(outP)
+            {
+                stringBuilder.Append(",func");
+            }
             return stringBuilder.ToString();
         }
 
@@ -589,13 +595,34 @@ namespace CppConverter
 
         void ConvertStatement(Metadata.DB_ReturnStatementSyntax bs)
         {
-            //Metadata.DB_Type retType = Model.GetExpType(bs.Expression);
-            //if(retType.is_value_type)
-            //{
-            //    AppendLine("return clone(" + ExpressionToString(bs.Expression) + ");");
-            //}
-            //else
-                AppendLine("return " + ExpressionToString(bs.Expression) + ";");
+            
+            if(this.current_member !=null)
+            {
+                List<int> refArgs = new List<int>();
+                for (int i=0;i<current_member.method_args.Length;i++)
+                {
+                    if(current_member.method_args[i].is_out || current_member.method_args[i].is_ref)
+                    {
+                        refArgs.Add(i);
+                    }
+                }
+
+                if(refArgs.Count>0)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("func(");
+                    for(int i=0;i< refArgs.Count;i++)
+                    {
+                        sb.Append(current_member.method_args[i].name);
+                        if (i < refArgs.Count - 1)
+                            sb.Append(",");
+                    }
+                    sb.Append(");");
+                    AppendLine(sb.ToString());
+                }
+            }
+
+            AppendLine("return " + ExpressionToString(bs.Expression) + ";");
         }
 
         void ConvertStatement(Metadata.DB_IfStatementSyntax bs)

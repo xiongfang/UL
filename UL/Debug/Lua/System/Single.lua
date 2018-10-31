@@ -4,12 +4,13 @@ function System.Single.Parse_System_String(value)
 end
 function System.Single:ToString()
 end
-function System.Single.TryParse_System_String_System_Single(value,v)
+function System.Single.TryParse_System_String_System_Single(value,v,func)
 	do
 		try(
         function()
 			do
 				v = System.Single.Parse_System_String(value);
+				func(value);
 				return System.Boolean.new(true);
 			end
 		end,
@@ -18,6 +19,7 @@ function System.Single.TryParse_System_String_System_Single(value,v)
 			func= function()
 				do
 					v = System.Int32.Single_System_Int32(System.Int32.new(0));
+					func(value);
 					return System.Boolean.new(false);
 				end
 			end

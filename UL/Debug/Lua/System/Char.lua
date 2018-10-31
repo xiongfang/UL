@@ -4,12 +4,13 @@ function System.Char.Parse_System_String(value)
 end
 function System.Char:ToString()
 end
-function System.Char.TryParse_System_String_System_Char(value,v)
+function System.Char.TryParse_System_String_System_Char(value,v,func)
 	do
 		try(
         function()
 			do
 				v = System.Char.Parse_System_String(value);
+				func(value);
 				return System.Boolean.new(true);
 			end
 		end,
@@ -18,6 +19,7 @@ function System.Char.TryParse_System_String_System_Char(value,v)
 			func= function()
 				do
 					v = System.Char.new('\0');
+					func(value);
 					return System.Boolean.new(false);
 				end
 			end

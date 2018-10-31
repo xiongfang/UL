@@ -22,12 +22,13 @@ function System.Boolean.Parse_System_String(value)
 end
 function System.Boolean:ToString()
 end
-function System.Boolean.TryParse_System_String_System_Boolean(value,v)
+function System.Boolean.TryParse_System_String_System_Boolean(value,v,func)
 	do
 		try(
         function()
 			do
 				v = System.Boolean.Parse_System_String(value);
+				func(value);
 				return System.Boolean.new(true);
 			end
 		end,
@@ -36,6 +37,7 @@ function System.Boolean.TryParse_System_String_System_Boolean(value,v)
 			func= function()
 				do
 					v = System.Boolean.new(false);
+					func(value);
 					return System.Boolean.new(false);
 				end
 			end

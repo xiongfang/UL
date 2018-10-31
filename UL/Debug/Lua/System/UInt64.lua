@@ -4,12 +4,13 @@ function System.UInt64.Parse_System_String(value)
 end
 function System.UInt64:ToString()
 end
-function System.UInt64.TryParse_System_String_System_UInt64(value,v)
+function System.UInt64.TryParse_System_String_System_UInt64(value,v,func)
 	do
 		try(
         function()
 			do
 				v = System.UInt64.Parse_System_String(value);
+				func(value);
 				return System.Boolean.new(true);
 			end
 		end,
@@ -18,6 +19,7 @@ function System.UInt64.TryParse_System_String_System_UInt64(value,v)
 			func= function()
 				do
 					v = System.Int32.UInt64_System_Int32(System.Int32.new(0));
+					func(value);
 					return System.Boolean.new(false);
 				end
 			end
