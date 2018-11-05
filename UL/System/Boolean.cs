@@ -1,42 +1,45 @@
-﻿namespace System
+﻿namespace ul
 {
-    public struct Boolean
+    namespace System
     {
-        public static readonly string FalseString = "false";
-        public static readonly string TrueString = "true";
-
-        public static bool Parse(string value)
+        public struct Boolean
         {
-            if (value == null)
+            public static readonly string FalseString = "false";
+            public static readonly string TrueString = "true";
+
+            public static bool Parse(string value)
             {
-                throw new ArgumentNullException();
+                if (value == null)
+                {
+                    throw new ArgumentNullException();
+                }
+                if (value == TrueString)
+                    return true;
+                else if (value == FalseString)
+                    return false;
+                else
+                {
+                    throw new FormatException(value);
+                }
             }
-            if (value == TrueString)
-                return true;
-            else if (value == FalseString)
-                return false;
-            else
+
+            public extern override string ToString();
+
+            public static bool TryParse(string value, out bool v)
             {
-                throw new FormatException(value);
+                try
+                {
+                    v = Parse(value);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    v = false;
+                    return false;
+                }
             }
+
+            public extern static Boolean operator !(Boolean a);
         }
-
-        public extern override string ToString();
-
-        public static bool TryParse(string value, out bool v)
-        {
-            try
-            {
-                v = Parse(value);
-                return true;
-            }
-            catch (Exception e)
-            {
-                v = false;
-                return false;
-            }
-        }
-
-        public extern static Boolean operator !(Boolean a);
     }
 }

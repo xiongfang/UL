@@ -4,83 +4,83 @@
   "search_path": [ "Data" ],
   "type_settings": [
     {
-      "name": "System.Boolean",
+      "name": "ul.System.Boolean",
       "ext_header": "Boolean_ExtHeader.lua"
     },
     {
-      "name": "System.Byte",
+      "name": "ul.System.Byte",
       "ext_header": "Byte_ExtHeader.lua"
     },
     {
-      "name": "System.SByte",
+      "name": "ul.System.SByte",
       "ext_header": "SByte_ExtHeader.lua"
     },
     {
-      "name": "System.Char",
+      "name": "ul.System.Char",
       "ext_header": "Char_ExtHeader.lua"
     },
     {
-      "name": "System.Double",
+      "name": "ul.System.Double",
       "ext_header": "Double_ExtHeader.lua"
     },
     {
-      "name": "System.Single",
+      "name": "ul.System.Single",
       "ext_header": "Single_ExtHeader.lua"
     },
     {
-      "name": "System.Int16",
+      "name": "ul.System.Int16",
       "ext_header": "Int16_ExtHeader.lua"
     },
 
     {
-      "name": "System.Int32",
+      "name": "ul.System.Int32",
       "ext_header": "Int32_ExtHeader.lua",
       "ext_cpp": "Int32_ExtCpp.h"
     },
     {
-      "name": "System.Int64",
+      "name": "ul.System.Int64",
       "ext_header": "Int64_ExtHeader.lua"
     },
     {
-      "name": "System.UInt16",
+      "name": "ul.System.UInt16",
       "ext_header": "UInt16_ExtHeader.lua"
     },
 
     {
-      "name": "System.UInt32",
+      "name": "ul.System.UInt32",
       "ext_header": "UInt32_ExtHeader.lua"
     },
     {
-      "name": "System.UInt64",
+      "name": "ul.System.UInt64",
       "ext_header": "UInt64_ExtHeader.lua"
     },
     {
-      "name": "System.String",
+      "name": "ul.System.String",
       "ext_header": "String_ExtHeader.lua"
     },
     {
-      "name": "System.Console",
+      "name": "ul.System.Console",
       "ext_header": "Console_ExtHeader.lua"
     },
     {
-      "name": "System.Object",
+      "name": "ul.System.Object",
       "ext_header": "Object_ExtHeader.lua"
     },
     {
-      "name": "System.Enum",
+      "name": "ul.System.Enum",
       "ext_header": "Enum_ExtHeader.lua"
     },
     {
-      "name": "System.ArrayT[1]",
+      "name": "ul.System.ArrayT[1]",
       "ext_header": "Array_ExtHeader.lua"
     },
     {
-      "name": "System.Collections.Generic.List[1]",
+      "name": "ul.System.Collections.Generic.List[1]",
       "ext_header": "List_ExtHeader.lua"
     }
   ],
 
-  "export_namespace": [ "System", "System.Reflection", "System.Collections.Generic" ],
+  "export_namespace": [ "ul.System", "ul.System.Reflection", "ul.System.Reflection.Metadata", "ul.System.Collections.Generic" ],
   "export_type": [],
   "ref_namespace": [],
   "precompile_header": ""

@@ -996,6 +996,7 @@ namespace CppConverter
 
         string ExpressionToString(Metadata.Expression.IndifierExp es)
         {
+            Console.WriteLine(es.Name);
             Metadata.Model.IndifierInfo info = Model.GetIndifierInfo(es.Name);
             if(info.is_type)
             {

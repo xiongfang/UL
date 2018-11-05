@@ -1,19 +1,22 @@
-﻿namespace System
+﻿namespace ul
 {
-    public class Object
+    namespace System
     {
-        public virtual Type GetType();
-
-        public virtual bool Equals(object v);
-
-        public virtual string ToString();
-
-        public static bool operator==(Object a, Object b);
-        public static bool operator !=(Object a, Object b)
+        public class Object
         {
-            return !(a == b);
-        }
+            public extern virtual Type GetType();
 
-        public extern static bool ReferenceEquals(Object a, Object b);
+            public extern virtual bool Equals(object v);
+
+            public extern virtual string ToString();
+
+            public extern static bool operator ==(Object a, Object b);
+            public static bool operator !=(Object a, Object b)
+            {
+                return !(a == b);
+            }
+
+            public extern static bool ReferenceEquals(Object a, Object b);
+        }
     }
 }

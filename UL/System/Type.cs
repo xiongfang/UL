@@ -1,80 +1,115 @@
-﻿using System.Reflection;
-namespace System
+﻿namespace ul
 {
-    public abstract class Type
+    using ul.System.Reflection;
+    namespace System
     {
-        public abstract Type BaseType
+        public class Type
         {
-            get;
+            ul.System.Reflection.Metadata.Type _type;
+
+            public static extern Type GetType(string fullName);
+
+            public Type BaseType
+            {
+                get
+                {
+                    return GetType(_type.Namespace + "." + _type.Name);
+                }
+            }
+
+            public string FullName
+            {
+                get
+                {
+                    return _type.Namespace + "." + _type.Name;
+                }
+            }
+
+            public bool IsAbstract
+            {
+                get
+                {
+                    return _type.IsAbstract; 
+                }
+            }
+
+            public bool IsClass
+            {
+                get
+                {
+                    return _type.TypeID == 2;
+
+                }
+            }
+
+            public bool IsEnum
+            {
+                get
+                {
+                    return _type.TypeID == 3;
+                }
+            }
+
+            public bool IsGenericType
+            {
+                get
+                {
+                    return _type.IsGenericTypeDefinition;
+                }
+            }
+
+            public bool IsInterface
+            {
+                get
+                {
+                    return _type.TypeID == 1;
+                }
+            }
+
+            public bool IsPublic
+            {
+                get
+                {
+                    return _type.Modifier == 0;
+                }
+            }
+
+            public bool IsValueType
+            {
+                get
+                {
+                    return _type.TypeID == 0;
+                }
+            }
+
+            public string Name
+            {
+                get
+                {
+                    return _type.Name;
+                }
+            }
+
+            public string Namespace
+            {
+                get
+                {
+                    return _type.Namespace;
+                }
+            }
+
+            public bool IsChildOf(Type type)
+            {
+                Type baseType = BaseType;
+                while (baseType !=null)
+                {
+                    if (baseType == type)
+                        return true;
+                    baseType = baseType.BaseType;
+                }
+
+                return false;
+            }
         }
-
-        public abstract Type DeclaringType
-        {
-            get;
-        }
-
-        public abstract string FullName
-        {
-            get;
-        }
-
-        public abstract bool IsAbstract
-        {
-            get;
-        }
-
-        public abstract bool IsClass
-        {
-            get;
-        }
-
-        public abstract bool IsEnum
-        {
-            get;
-        }
-
-        public abstract bool IsGenericType
-        {
-            get;
-        }
-
-        public abstract bool IsInterface
-        {
-            get;
-        }
-
-        public abstract bool IsPublic
-        {
-            get;
-        }
-
-        public abstract bool IsValueType
-        {
-            get;
-        }
-
-        public abstract string Name
-        {
-            get;
-        }
-
-        public abstract string Namespace
-        {
-            get;
-        }
-
-        public abstract Type[] FindInterfaces(
-            TypeFilter filter,
-            object filterCriteria
-        );
-
-        public abstract MemberInfo[] FindMembers(
-            MemberTypes memberType,
-            BindingFlags bindingAttr,
-            MemberFilter filter,
-            object filterCriteria
-        );
-
-
     }
 }

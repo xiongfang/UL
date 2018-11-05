@@ -1,9 +1,11 @@
-﻿
-namespace System
+﻿namespace ul
 {
-    public class FormatException:Exception
+    namespace System
     {
-        public FormatException(string msg) : base(msg) { }
-        public FormatException() { }
+        public class FormatException : Exception
+        {
+            public FormatException(string msg) : base(msg) { }
+            public FormatException() { }
+        }
     }
 }

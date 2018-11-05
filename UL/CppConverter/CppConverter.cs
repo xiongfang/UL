@@ -109,10 +109,6 @@ namespace CppConverter
                     return types[full_name];
 
                 Metadata.DB_Type type = LoadType( full_name);
-                if(type!=null)
-                {
-                    types.Add(full_name, type);
-                } 
 
                 return type;
             }

@@ -1,15 +1,17 @@
-﻿
-namespace System
+﻿namespace ul
 {
-    public class Exception
+    namespace System
     {
-        private string _msg;
-        public Exception(string msg) { _msg = msg; }
-        public Exception() { _msg = ""; }
-
-        public string Message
+        public class Exception
         {
-            get { return _msg; }
+            private string _msg;
+            public Exception(string msg) { _msg = msg; }
+            public Exception() { _msg = ""; }
+
+            public string Message
+            {
+                get { return _msg; }
+            }
         }
     }
 }

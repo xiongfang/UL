@@ -1,21 +1,25 @@
-﻿namespace System
+﻿namespace ul
 {
-    public abstract class Array
+    namespace System
     {
-        public abstract int Length
+        public abstract class Array
         {
-            get;
+            public abstract int Length
+            {
+                get;
+            }
+        }
+
+        public class ArrayT<T> : Array
+        {
+            public ArrayT(int len);
+
+            public extern T this[int i]
+            {
+                get;
+                set;
+            }
         }
     }
 
-    public class ArrayT<T>:Array
-    {
-        public ArrayT(int len);
-
-        public extern T this[int i]
-        {
-            get;
-            set;
-        }
-    }
 }

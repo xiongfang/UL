@@ -1,26 +1,29 @@
-﻿namespace System
+﻿namespace ul
 {
-    public struct Char
+    namespace System
     {
-        public static readonly char MaxValue = 0xFFFF;
-        public static readonly char MinValue = 0;
-
-
-        public extern static Char Parse(string value);
-
-        public extern override string ToString();
-
-        public static bool TryParse(string value, out Char v)
+        public struct Char
         {
-            try
+            public static readonly char MaxValue = 0xFFFF;
+            public static readonly char MinValue = 0;
+
+
+            public extern static Char Parse(string value);
+
+            public extern override string ToString();
+
+            public static bool TryParse(string value, out Char v)
             {
-                v = Parse(value);
-                return true;
-            }
-            catch (Exception e)
-            {
-                v = '\0';
-                return false;
+                try
+                {
+                    v = Parse(value);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    v = '\0';
+                    return false;
+                }
             }
         }
     }

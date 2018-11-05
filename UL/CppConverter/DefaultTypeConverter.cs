@@ -385,10 +385,10 @@ namespace CppConverter
                     }
 
 
-                    foreach (var us in type.usingNamespace)
-                    {
-                        sb.AppendLine("using namespace " + us.Replace(".","::") + ";");
-                    }
+                    //foreach (var us in type.usingNamespace)
+                    //{
+                    //    sb.AppendLine("using namespace " + us.Replace(".","::") + ";");
+                    //}
 
                     TypeConfig tc = Converter.GetTypeConfig(type);
 

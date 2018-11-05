@@ -24,8 +24,8 @@ namespace Metadata
         public IModelTypeFinder Finder;
 
         //当前类的命名空间
-        public HashSet<string> usingNamespace = new HashSet<string>();
-        public string outNamespace;
+        //public HashSet<string> usingNamespace = new HashSet<string>();
+        public Stack<string> outNamespace = new Stack<string>();
         //当前处理的类型
         public Metadata.DB_Type currentType;
         Metadata.DB_Member currentMethod;
@@ -35,30 +35,46 @@ namespace Metadata
 
         public Model(IModelTypeFinder finder) { Finder = finder; }
 
-        public void StartUsing(List<string> usingList)
+        public string CurrentNameSpace
         {
-            foreach (var ns in usingList)
-                usingNamespace.Add(ns);
+            get
+            {
+                string ns = "";
+                for(int i= outNamespace.Count-1; i>=0;i--)
+                {
+                    ns += outNamespace.ElementAt(i);
+                    if (i >0)
+                        ns += ".";
+                }
+
+                return ns;
+            }
         }
 
-        public void ClearUsing()
-        {
-            usingNamespace.Clear();
-        }
+        //public void StartUsing(List<string> usingList)
+        //{
+        //    foreach (var ns in usingList)
+        //        usingNamespace.Add(ns);
+        //}
+
+        //public void ClearUsing()
+        //{
+        //    usingNamespace.Clear();
+        //}
 
         public void EnterNamespace(string ns)
         {
-            outNamespace = ns;
+            outNamespace.Push(ns);
         }
 
         public void LeaveNamespace()
         {
-            outNamespace = null;
+            outNamespace.Pop();
         }
 
         public void EnterType(Metadata.DB_Type type)
         {
-            if(string.IsNullOrEmpty(outNamespace))
+            if(outNamespace.Count==0)
             {
                 Console.Error.WriteLine("未指定外部命名空间");
             }
@@ -119,44 +135,44 @@ namespace Metadata
                 int int_v;
                 if (int.TryParse(e.value, out int_v))
                 {
-                    return GetType("System.Int32");
+                    return GetType("ul.System.Int32");
                 }
 
                 long long_v;
                 if (long.TryParse(e.value, out long_v))
                 {
-                    return GetType("System.Int64");
+                    return GetType("ul.System.Int64");
                 }
 
                 bool b_v;
                 if (bool.TryParse(e.value, out b_v))
                 {
-                    return GetType("System.Boolean");
+                    return GetType("ul.System.Boolean");
                 }
 
                 float single_v;
                 if (float.TryParse(e.value, out single_v))
                 {
-                    return GetType("System.Single");
+                    return GetType("ul.System.Single");
                 }
 
                 double double_v;
                 if (double.TryParse(e.value, out double_v))
                 {
-                    return GetType("System.Double");
+                    return GetType("ul.System.Double");
                 }
 
                 if (e.value == "null")
                 {
-                    return GetType("System.Object");
+                    return GetType("ul.System.Object");
                 }
 
                 if(e.value.StartsWith("'"))
                 {
-                    return GetType("System.Char");
+                    return GetType("ul.System.Char");
                 }
 
-                return GetType("System.String");
+                return GetType("ul.System.String");
             }
 
             else if (exp is Metadata.Expression.FieldExp)
@@ -385,7 +401,7 @@ namespace Metadata
             IF_All = IF_Local| IF_Type| IF_Method
         }
 
-        public IndifierInfo GetIndifierInfo(string name,string name_space="", EIndifierFlag flag = EIndifierFlag.IF_All)
+        public virtual IndifierInfo GetIndifierInfo(string name,string name_space="", EIndifierFlag flag = EIndifierFlag.IF_All)
         {
             IndifierInfo info = new IndifierInfo();
 
@@ -484,45 +500,9 @@ namespace Metadata
                     {
                         //泛型实例，已经被替换了参数，所以无需查找
                     }
-                    //当前命名空间查找
-                    foreach (var nsName in currentType.usingNamespace)
-                    {
-                        DB_Type type = FindTypeInNamespace(name, nsName);
-                        if (type != null)
-                        {
-                            info.is_type = true;
-                            info.type = type;
-                            return info;
-                        }
-                    }
                 }
 
                     
-            }
-
-            if ((flag & EIndifierFlag.IF_Type) != 0)
-            {
-                //当前命名空间查找
-                if (!string.IsNullOrEmpty(outNamespace))
-                {
-                    DB_Type type = FindTypeInNamespace(name, outNamespace);
-                    if (type != null)
-                    {
-                        info.is_type = true;
-                        info.type = type;
-                        return info;
-                    }
-                }
-                foreach (var nsName in usingNamespace)
-                {
-                    DB_Type type = FindTypeInNamespace(name, nsName);
-                    if (type != null)
-                    {
-                        info.is_type = true;
-                        info.type = type;
-                        return info;
-                    }
-                }
             }
             return null;
         }

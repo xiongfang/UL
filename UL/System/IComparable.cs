@@ -1,7 +1,10 @@
-﻿namespace System
+﻿namespace ul
 {
-    public interface IComparable
+    namespace System
     {
-        int CompareTo(object obj);
+        public interface IComparable
+        {
+            int CompareTo(object obj);
+        }
     }
 }

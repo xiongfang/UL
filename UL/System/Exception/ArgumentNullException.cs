@@ -1,8 +1,11 @@
-﻿namespace System
+﻿namespace ul
 {
-    public class ArgumentNullException :Exception
+    namespace System
     {
-        public ArgumentNullException(string msg) : base(msg) { }
-        public ArgumentNullException() { }
+        public class ArgumentNullException : Exception
+        {
+            public ArgumentNullException(string msg) : base(msg) { }
+            public ArgumentNullException() { }
+        }
     }
 }

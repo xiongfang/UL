@@ -60,7 +60,7 @@ namespace Metadata
 
         void VisitType(DB_Type type, ITypeVisitor visitor)
         {
-            StartUsing(type.usingNamespace);
+            //StartUsing(type.usingNamespace);
             EnterNamespace(type._namespace);
             EnterType(type);
 
@@ -68,7 +68,7 @@ namespace Metadata
 
             LeaveType();
             LeaveNamespace();
-            ClearUsing();
+            //ClearUsing();
         }
 
 

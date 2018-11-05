@@ -1,8 +1,11 @@
-﻿
-namespace System
+﻿namespace ul
 {
-    public class ValueType
+    namespace System
     {
-        //public override Boolean Equals(Object obj);
+        public class ValueType
+        {
+            //public override Boolean Equals(Object obj);
+        }
     }
+
 }

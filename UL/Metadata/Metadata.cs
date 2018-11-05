@@ -19,7 +19,7 @@ namespace Metadata
         public Expression.TypeSyntax constraint;    //类型约束
         public GenericSyntax()
         {
-            constraint = new Metadata.Expression.TypeSyntax() { Name = "Object", name_space = "System" };
+            constraint = new Metadata.Expression.TypeSyntax() { Name = "Object", name_space = "ul.System" };
         }
     }
     [ProtoBuf.ProtoContract]
@@ -96,8 +96,8 @@ namespace Metadata
         public bool is_abstract;
         [ProtoBuf.ProtoMember(7)]
         public Expression.TypeSyntax base_type = Expression.TypeSyntax.Void;
-        [ProtoBuf.ProtoMember(8)]
-        public List<string> usingNamespace = new List<string>();
+        //[ProtoBuf.ProtoMember(8)]
+        //public List<string> usingNamespace = new List<string>();
 
         public string ext = "";
 
@@ -1222,7 +1222,7 @@ namespace Metadata
             {
                 get
                 {
-                    return new TypeSyntax() { Name = "void", name_space = "System" };
+                    return new TypeSyntax() { Name = "void", name_space = "ul.System" };
                 }
             }
 
@@ -1755,7 +1755,7 @@ namespace Metadata
                 string[] files = System.IO.Directory.GetFiles(dir, "*", SearchOption.TopDirectoryOnly);
                 foreach (var f in files)
                 {
-                    DB_Type t = LoadType(dir, Path.GetFileName( f));
+                    DB_Type t = LoadType(path, name_space+"."+ Path.GetFileName( f));
                     results.Add(t.static_full_name, t);
                 }
             }
@@ -1765,13 +1765,15 @@ namespace Metadata
 
         public static DB_Type LoadType(string path, string full_name)
         {
-            string[] pathlist = full_name.Split('.');
-            string file_path_name = path;
-            //技能类型比较复杂，自行序列化，不走Unity的序列化
-            for (int i=0;i<pathlist.Length;i++)
-            {
-                file_path_name = Path.Combine(file_path_name, pathlist[i]);
-            }
+            string namespaceName = full_name.Substring(0, full_name.LastIndexOf('.'));
+            string name = full_name.Substring(full_name.LastIndexOf('.')+1);
+            //string[] pathlist = full_name.Split('.');
+            string file_path_name = Path.Combine(path, namespaceName,name);
+            ////技能类型比较复杂，自行序列化，不走Unity的序列化
+            //for (int i=0;i<pathlist.Length;i++)
+            //{
+            //    file_path_name = Path.Combine(file_path_name, pathlist[i]);
+            //}
             if (Directory.Exists(Path.GetDirectoryName(file_path_name)) && File.Exists(file_path_name))
             {
                 MemoryStream ms = new MemoryStream(File.ReadAllBytes(file_path_name));
