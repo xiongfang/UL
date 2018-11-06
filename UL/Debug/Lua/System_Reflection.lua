@@ -1,2 +1,0 @@
-﻿require "System"
-System.Reflection = {}

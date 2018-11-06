@@ -70,7 +70,7 @@ function class(classname, super)
         function cls.new(...)
             local instance = setmetatable({}, cls)
             instance.class = cls
-            instance:ctor(...)
+			instance:ctor(...)
             return instance
         end
     end
@@ -78,17 +78,23 @@ function class(classname, super)
     return cls
 end
 
+function Construct(obj,constructorName,...)
+	return obj[constructorName](...);
+end
+
 function try(func,...)
 	local arg = {...};
-	local e = func();
+	local r,e = func();
 	if e ~= nil then
 		for k,v in pairs(arg) do
-			if v.type.GetType().IsSubclassOf(e.GetType()) then
+			if _G[v.type]:GetType().IsSubclassOf(e:GetType()) then
 				v.func(e);
 				break;
 			end
 		end
 	end
+
+	return r;
 end
 
 PostfixUnaryHelper = {}
@@ -115,15 +121,16 @@ end
 
 
 
-require "System"
-require "System.Object"
-require "System.Console"
-require "System.Int32"
-require "System.Int64"
-require "System.String"
-require "System.Boolean"
-require "System.Test"
+require "ul.System"
+require "ul.System.Object"
+require "ul.System.Console"
+require "ul.System.Int32"
+require "ul.System.Int64"
+require "ul.System.String"
+require "ul.System.Boolean"
+require "ul.System.Test"
+require "ul.System.Exception"
 
 function  main( ... )
-	System.Test.Run();
+	ul.System.Test.Run();
 end

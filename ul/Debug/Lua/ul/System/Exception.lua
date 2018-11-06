@@ -1,17 +1,17 @@
-require "ul_System"
+require "ul.System"
 ul.System.Exception = class('ul.System.Exception',ul.System.Object)
 function ul.System.Exception:get_Message()
 	do
-		return _msg;
+		return self._msg;
 	end
 end
-Exception(msg)
+function ul.System.Exception:Exception_ul_System_String(msg)
 	do
-		_msg = msg;
+		self._msg = msg;
 	end
 end
-Exception()
+function ul.System.Exception:Exception()
 	do
-		_msg = ul.System.String.new("");
+		self._msg = ul.System.String.new("");
 	end
 end

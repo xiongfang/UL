@@ -710,10 +710,6 @@ namespace Metadata
                     
                     return sb.ToString();
                 }
-                else if(member_type == (int)MemberTypes.EnumMember)
-                {
-                    return name;
-                }
                 else
                 {
                     Console.Error.Write("未知的类型 "+member_type);
@@ -763,115 +759,7 @@ namespace Metadata
             return false;
         }
     }
-
-
-    //public class JsonConverterType<TBase>:Newtonsoft.Json.JsonConverter where TBase:class
-    //{
-    //    //
-    //    // 摘要:
-    //    //     Determines whether this instance can convert the specified object type.
-    //    //
-    //    // 参数:
-    //    //   objectType:
-    //    //     Type of the object.
-    //    //
-    //    // 返回结果:
-    //    //     true if this instance can convert the specified object type; otherwise, false.
-    //    public override bool CanConvert(Type objectType)
-    //    {
-    //        if (objectType.IsArray)
-    //            return false;
-    //        return typeof(TBase).IsAssignableFrom(objectType);
-    //    }
-    //    public override bool CanWrite
-    //    {
-    //        get
-    //        {
-    //            return false;   
-    //        }
-    //    }
-    //    //
-    //    // 摘要:
-    //    //     Reads the JSON representation of the object.
-    //    //
-    //    // 参数:
-    //    //   reader:
-    //    //     The Newtonsoft.Json.JsonReader to read from.
-    //    //
-    //    //   objectType:
-    //    //     Type of the object.
-    //    //
-    //    //   existingValue:
-    //    //     The existing value of object being read.
-    //    //
-    //    //   serializer:
-    //    //     The calling serializer.
-    //    //
-    //    // 返回结果:
-    //    //     The object value.
-    //    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-    //    {
-    //        var jsonObject = JObject.Load(reader);
-    //        var target = Create(objectType, jsonObject);
-    //        if (target == null)
-    //            return null;
-    //        serializer.Populate(jsonObject.CreateReader(), target);
-    //        return target;
-    //    }
-
-    //    object Create(Type objectType, JObject jsonObject)
-    //    {
-    //        JToken jToken = null;
-    //        if(jsonObject.TryGetValue("$Type",out jToken))
-    //        {
-    //            string typeName = jToken.ToString();
-    //            Type trueType = Type.GetType(typeName);
-    //            object trueObject = System.Activator.CreateInstance(trueType);
-    //            //if(!(trueObject is TBase))
-    //            //{
-    //            //    Console.WriteLine(string.Format("无法转换 {0} => {1}", trueObject.GetType().FullName,typeof(TBase).FullName));
-    //            //}
-    //            return trueObject;
-    //        }
-    //        return System.Activator.CreateInstance(objectType);
-    //    }
-
-    //    //
-    //    // 摘要:
-    //    //     Writes the JSON representation of the object.
-    //    //
-    //    // 参数:
-    //    //   writer:
-    //    //     The Newtonsoft.Json.JsonWriter to write to.
-    //    //
-    //    //   value:
-    //    //     The value.
-    //    //
-    //    //   serializer:
-    //    //     The calling serializer.
-    //    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-    //    {
-    //        throw new NotImplementedException();
-    //        //serializer.Serialize(writer, value);
-    //        //JObject jo = JObject.FromObject(value);
-    //        //jo.Add("$type", value.GetType().FullName);
-    //        //jo.WriteTo(writer, serializer.Converters.ToArray());
-    //    }
-    //}
-
-    //[JsonConverter(typeof(JsonConverterType<DB_Syntax>))]
-    //public class DB_Syntax
-    //{
-    //    [JsonProperty("$Type")]
-    //    public string JsonType
-    //    {
-    //        get
-    //        {
-    //            return GetType().FullName;
-    //        }
-    //    }
-    //}
-
+    
     //语句
     [ProtoBuf.ProtoContract]
     [ProtoBuf.ProtoInclude(1,typeof(DB_BlockSyntax))]
@@ -1153,6 +1041,7 @@ namespace Metadata
         {
             [ProtoBuf.ProtoMember(1)]
             public string Name;
+            
         }
 
         //常量表达式(分为字符常量或者数值常量)
@@ -1600,10 +1489,6 @@ namespace Metadata
     {
         //
         // 摘要:
-        //     指定该成员是一个构造函数
-        //Constructor = 1,
-        //
-        // 摘要:
         //     指定该成员是一个事件。
         Event,
         //
@@ -1618,15 +1503,6 @@ namespace Metadata
         // 摘要:
         //     指定成员是属性。
         Property,
-        //
-        // 摘要:
-        //     指定该成员是一种类型。
-        TypeInfo,
-        //
-        // 摘要:
-        //     指定该成员是自定义成员的指针类型。
-        EnumMember
-        
     }
 
     public enum Modifier

@@ -390,6 +390,7 @@ namespace Metadata
             public bool is_method;
             public List<DB_Member> methods;
             public Metadata.DB_Type type;
+            public DB_Member field;
         }
 
         public enum EIndifierFlag
@@ -401,14 +402,14 @@ namespace Metadata
             IF_All = IF_Local| IF_Type| IF_Method
         }
 
-        public virtual IndifierInfo GetIndifierInfo(string name,string name_space="", EIndifierFlag flag = EIndifierFlag.IF_All)
+        public virtual IndifierInfo GetIndifierInfo(string name,EIndifierFlag flag = EIndifierFlag.IF_All)
         {
             IndifierInfo info = new IndifierInfo();
 
             //在指定的命名空间查找标示符
-            if(!string.IsNullOrEmpty(name_space))
+            if (name.Contains('.') && (flag & EIndifierFlag.IF_Type) != 0)
             {
-                DB_Type type = Finder.FindType(name_space + "." + name);
+                DB_Type type = Finder.FindType(name);
                 if (type != null)
                 {
                     info.is_type = true;
@@ -453,19 +454,22 @@ namespace Metadata
                     if (currentType.FindField(name, this) != null)
                     {
                         info.is_field = true;
-                        info.type = GetType(currentType.FindField(name, this).typeName);
+                        info.field = currentType.FindField(name, this);
+                        info.type = GetType(info.field.typeName);
                         return info;
                     }
                     if (currentType.FindProperty(name, this) != null)
                     {
                         info.is_property = true;
-                        info.type = GetType(currentType.FindProperty(name, this).typeName);
+                        info.field = currentType.FindProperty(name, this);
+                        info.type = GetType(info.field.typeName);
                         return info;
                     }
                     if (currentType.FindEvent(name, this) != null)
                     {
                         info.is_event = true;
-                        info.type = GetType(currentType.FindEvent(name, this).typeName);
+                        info.field = currentType.FindEvent(name, this);
+                        info.type = GetType(info.field.typeName);
                         return info;
                     }
                 }

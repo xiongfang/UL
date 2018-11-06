@@ -1,4 +1,4 @@
-require "ul_System"
+require "ul.System"
 ul.System.Console = class('ul.System.Console',ul.System.Object)
 function ul.System.Console.Write_ul_System_String(value)
 end

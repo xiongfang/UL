@@ -1,99 +1,96 @@
-﻿namespace ul.System.Test
+﻿namespace ul.System
 {
-    //namespace System
+    public delegate bool TestDel(string v);
+
+
+    class Test
     {
-
-        public delegate bool TestDel(string v);
-        class Test
+        
+        static event TestDel _notify;
+        public static event TestDel notify
         {
-
-
-            static event TestDel _notify;
-            public static event TestDel notify
+            add
             {
-                add
-                {
-                    _notify += value;
-                }
-
-                remove
-                {
-                    _notify -= value;
-                }
+                _notify += value;
             }
 
-            public static void Run()
+            remove
             {
-                TestInt();
-                TestString();
-                TestEvent();
-                //TestDel();
+                _notify -= value;
             }
+        }
 
-            static void TestInt()
-            {
-                Int32 a = 5;
-                a = a + 6;
-                Console.WriteLine(a);
-                a += 7;
-                Console.WriteLine(a);
+        public static void Run()
+        {
+            TestInt();
+            TestString();
+            TestEvent();
+            //TestDel();
+        }
 
-                Int64 b = a;
-                Console.WriteLine(b);
+        static void TestInt()
+        {
+            Int32 a = 5;
+            a = a + 6;
+            Console.WriteLine(a);
+            a += 7;
+            Console.WriteLine(a);
 
-                Console.WriteLine(a - 5);
-                Console.WriteLine(a % 5);
-                Console.WriteLine(a++);
-                Console.WriteLine(++a);
-                Console.WriteLine(-a);
+            Int64 b = a;
+            Console.WriteLine(b);
 
-                Int32 tempV;
-                if (Int32.TryParse("5", out tempV))
-                    Console.WriteLine(tempV);
-            }
+            Console.WriteLine(a - 5);
+            Console.WriteLine(a % 5);
+            Console.WriteLine(a++);
+            Console.WriteLine(++a);
+            Console.WriteLine(-a);
 
-            static void TestString()
-            {
-                string v = "你好";
-                Console.WriteLine(v);
-                Console.WriteLine(v.Length);
-            }
+            Int32 tempV;
+            if (Int32.TryParse("5", out tempV))
+                Console.WriteLine(tempV);
+        }
 
-            //static void TestDel()
-            //{
-            //    TestDel v = Test.TestDel;
-            //    v("测试委托");
-            //    Test t = new Test();
-            //    TestDel v2 = t.TestDel2;
-            //    v2("测试委托2");
-            //}
+        static void TestString()
+        {
+            string v = "你好";
+            Console.WriteLine(v);
+            Console.WriteLine(v.Length);
+        }
 
-            static bool TestDel(string v)
-            {
-                Console.WriteLine(v);
-                return true;
-            }
+        //static void TestDel()
+        //{
+        //    TestDel v = Test.TestDel;
+        //    v("测试委托");
+        //    Test t = new Test();
+        //    TestDel v2 = t.TestDel2;
+        //    v2("测试委托2");
+        //}
 
-            //bool TestDel2(string v)
-            //{
-            //    Console.WriteLine(v);
-            //    return true;
-            //}
+        static bool TestDel(string v)
+        {
+            Console.WriteLine(v);
+            return true;
+        }
 
-            static void TestEvent()
-            {
-                notify += Test_notify;
+        //bool TestDel2(string v)
+        //{
+        //    Console.WriteLine(v);
+        //    return true;
+        //}
 
-                TestDel v = Test.TestDel;
-                notify += v;
-                _notify("你好");
-            }
+        static void TestEvent()
+        {
+            notify += Test_notify;
 
-            private static bool Test_notify(string v)
-            {
-                Console.WriteLine(v);
-                return true;
-            }
+            TestDel v = Test.TestDel;
+            notify += v;
+            _notify("你好");
+        }
+
+        private static bool Test_notify(string v)
+        {
+            Console.WriteLine(v);
+            return true;
         }
     }
 }

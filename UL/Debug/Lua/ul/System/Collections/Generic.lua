@@ -1,2 +1,2 @@
-require "ul_System_Collections"
+require "ul.System.Collections"
 ul.System.Collections.Generic = {}

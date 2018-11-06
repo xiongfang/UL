@@ -1,16 +1,16 @@
-require "ul_System"
+require "ul.System"
 ul.System.Byte = class('ul.System.Byte',ul.System.ValueType)
 function ul.System.Byte.Parse_ul_System_String(value)
 end
 function ul.System.Byte:ToString()
 end
-function ul.System.Byte.TryParse_ul_System_String_ul_System_Byte(value,v,func)
+function ul.System.Byte.TryParse_ul_System_String_ul_System_Byte(value,v,ref_func)
 	do
-		try(
+		local __ret_v = try(
         function()
 			do
 				v = ul.System.Byte.Parse_ul_System_String(value);
-				func(value);
+				ref_func(v);
 				return ul.System.Boolean.new(true);
 			end
 		end,
@@ -19,12 +19,13 @@ function ul.System.Byte.TryParse_ul_System_String_ul_System_Byte(value,v,func)
 			func= function()
 				do
 					v = ul.System.Int32.Byte_ul_System_Int32(ul.System.Int32.new(0));
-					func(value);
+					ref_func(v);
 					return ul.System.Boolean.new(false);
 				end
 			end
 		}
 		);
+		if __ret_v~= nil then return __ret_v end 
 	end
 end
 function ul.System.Byte.op_Addition(a,b)

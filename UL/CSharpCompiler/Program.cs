@@ -41,9 +41,9 @@ namespace CSharpCompiler
             usingStack.Pop();
         }
 
-        public override IndifierInfo GetIndifierInfo(string name, string name_space = "", EIndifierFlag flag = EIndifierFlag.IF_All)
+        public override IndifierInfo GetIndifierInfo(string name,  EIndifierFlag flag = EIndifierFlag.IF_All)
         {
-            IndifierInfo info = base.GetIndifierInfo(name, name_space, flag);
+            IndifierInfo info = base.GetIndifierInfo(name, flag);
             if (info != null)
                 return info;
 
@@ -248,7 +248,7 @@ namespace CSharpCompiler
             return null;
         }
 
-        public static Metadata.Expression.TypeSyntax GetTypeSyntax(TypeSyntax typeSyntax,string ns = "")
+        public static Metadata.Expression.TypeSyntax GetTypeSyntax(TypeSyntax typeSyntax,string ns="")
         {
             if (typeSyntax == null)
                 return null;
@@ -268,7 +268,7 @@ namespace CSharpCompiler
             else if (typeSyntax is ArrayTypeSyntax)
             {
                 ArrayTypeSyntax ts = typeSyntax as ArrayTypeSyntax;
-                Metadata.Expression.TypeSyntax elementType = GetTypeSyntax(ts.ElementType,"");
+                Metadata.Expression.TypeSyntax elementType = GetTypeSyntax(ts.ElementType);
                 List<Metadata.Expression.TypeSyntax> parameters = new List<Metadata.Expression.TypeSyntax>();
                 parameters.Add(elementType);
                 Metadata.Expression.TypeSyntax gns = new Metadata.Expression.TypeSyntax();
@@ -289,7 +289,7 @@ namespace CSharpCompiler
             else if (typeSyntax is IdentifierNameSyntax)
             {
                 IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
-                Metadata.DB_Type type = CSharpModel.Instance.GetIndifierInfo(ts.Identifier.Text,ns,Metadata.Model.EIndifierFlag.IF_Type).type;
+                Metadata.DB_Type type = CSharpModel.Instance.GetIndifierInfo(ts.Identifier.Text,Metadata.Model.EIndifierFlag.IF_Type).type;
     
 
                 //Metadata.DB_Type type = CSharpModel.Instance.GetIndifierInfo(Identifier).type;
@@ -321,7 +321,7 @@ namespace CSharpCompiler
                 List<Metadata.Expression.TypeSyntax> parameters = new List<Metadata.Expression.TypeSyntax>();
                 foreach (var p in ts.TypeArgumentList.Arguments)
                 {
-                    parameters.Add(GetTypeSyntax(p,""));
+                    parameters.Add(GetTypeSyntax(p));
                 }
                 Metadata.Expression.TypeSyntax gns = new Metadata.Expression.TypeSyntax();
                 gns.Name = Name;
@@ -343,9 +343,7 @@ namespace CSharpCompiler
                 {
                     ns = name_space;
                 }
-                //Metadata.Expression.QualifiedNameSyntax my_qns = new Metadata.Expression.QualifiedNameSyntax();
-                //my_qns.Left = GetTypeSyntax(qns.Left) as Metadata.Expression.NameSyntax;
-                Metadata.Expression.TypeSyntax ts = GetTypeSyntax(qns.Right, ns);
+                Metadata.Expression.TypeSyntax ts = GetTypeSyntax(qns.Right);
                 ts.name_space = ns;
                 return ts;
             }
@@ -864,7 +862,7 @@ namespace CSharpCompiler
                     dB_Member.name = v.Identifier.Text;
                     dB_Member.is_static = false;
                     dB_Member.declaring_type = type.static_full_name;
-                    dB_Member.member_type = (int)Metadata.MemberTypes.EnumMember;
+                    dB_Member.member_type = (int)Metadata.MemberTypes.Field;
                     //dB_Member.modifier = GetModifier(type, v.Modifiers);
                     //dB_Member.field_type = v_type.GetRefType();
                     //dB_Member.order = order++;
@@ -2241,7 +2239,7 @@ namespace CSharpCompiler
         static Metadata.Expression.Exp ExportExp(IdentifierNameSyntax es)
         {
             string name = es.Identifier.Text;
-            Metadata.Model.IndifierInfo info = CSharpModel.Instance.GetIndifierInfo(name,"", Metadata.Model.EIndifierFlag.IF_Type);
+            Metadata.Model.IndifierInfo info = CSharpModel.Instance.GetIndifierInfo(name, Metadata.Model.EIndifierFlag.IF_Type);
             if(info!=null && info.is_type)
             {
                 Metadata.Expression.IndifierExp db_les = new Metadata.Expression.IndifierExp();

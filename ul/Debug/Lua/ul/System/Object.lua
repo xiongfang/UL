@@ -1,4 +1,4 @@
-require "ul_System"
+require "ul.System"
 ul.System.Object = class('ul.System.Object')
 function ul.System.Object:GetType()
 end

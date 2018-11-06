@@ -1,4 +1,4 @@
-require "ul_System"
+require "ul.System"
 ul.System.Enum = class('ul.System.Enum',ul.System.ValueType)
 function ul.System.Enum:Equals_ul_System_Object(obj)
 end

@@ -1,16 +1,16 @@
-require "ul_System"
+require "ul.System"
 ul.System.UInt32 = class('ul.System.UInt32',ul.System.ValueType)
 function ul.System.UInt32.Parse_ul_System_String(value)
 end
 function ul.System.UInt32:ToString()
 end
-function ul.System.UInt32.TryParse_ul_System_String_ul_System_UInt32(value,v,func)
+function ul.System.UInt32.TryParse_ul_System_String_ul_System_UInt32(value,v,ref_func)
 	do
-		try(
+		local __ret_v = try(
         function()
 			do
 				v = ul.System.UInt32.Parse_ul_System_String(value);
-				func(value);
+				ref_func(v);
 				return ul.System.Boolean.new(true);
 			end
 		end,
@@ -19,12 +19,13 @@ function ul.System.UInt32.TryParse_ul_System_String_ul_System_UInt32(value,v,fun
 			func= function()
 				do
 					v = ul.System.Int32.UInt32_ul_System_Int32(ul.System.Int32.new(0));
-					func(value);
+					ref_func(v);
 					return ul.System.Boolean.new(false);
 				end
 			end
 		}
 		);
+		if __ret_v~= nil then return __ret_v end 
 	end
 end
 function ul.System.UInt32.op_Addition(a,b)

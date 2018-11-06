@@ -1,4 +1,4 @@
-require "ul_System"
+require "ul.System"
 ul.System.String = class('ul.System.String',ul.System.Object)
 function ul.System.String:get_Length()
 end

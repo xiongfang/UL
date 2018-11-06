@@ -1,13 +1,13 @@
-require "ul_System"
+require "ul.System"
 ul.System.Delegate = class('ul.System.Delegate',ul.System.Object)
 function ul.System.Delegate:get_Target()
 	do
-		return _target;
+		return self._target;
 	end
 end
-Delegate()
+function ul.System.Delegate:Delegate()
 	do
-		list = ul.System.Collections.Generic.List.new();
+		self.list = ul.System.Collections.Generic.List.new();
 	end
 end
 function ul.System.Delegate.Combine_ul_System_Delegate_ul_System_Delegate(a,b)
@@ -67,12 +67,12 @@ function ul.System.Delegate.RemoveAll_ul_System_Delegate_ul_System_Delegate(sour
 end
 function ul.System.Delegate:GetInvocationList()
 	do
-		return list:ToArray();
+		return self.list:ToArray();
 	end
 end
 function ul.System.Delegate:CombineImpl_ul_System_Delegate(d)
 	do
-		list:Add_ul_System_Delegate(d);
+		self.list:Add_ul_System_Delegate(d);
 		return self;
 	end
 end

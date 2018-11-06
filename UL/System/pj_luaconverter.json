@@ -77,6 +77,10 @@
     {
       "name": "ul.System.Collections.Generic.List[1]",
       "ext_header": "List_ExtHeader.lua"
+    },
+    {
+      "name": "ul.System.Type",
+      "ext_header": "Type_ExtHeader.lua"
     }
   ],
 

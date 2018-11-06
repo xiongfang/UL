@@ -1,16 +1,16 @@
-require "ul_System"
+require "ul.System"
 ul.System.Single = class('ul.System.Single',ul.System.ValueType)
 function ul.System.Single.Parse_ul_System_String(value)
 end
 function ul.System.Single:ToString()
 end
-function ul.System.Single.TryParse_ul_System_String_ul_System_Single(value,v,func)
+function ul.System.Single.TryParse_ul_System_String_ul_System_Single(value,v,ref_func)
 	do
-		try(
+		local __ret_v = try(
         function()
 			do
 				v = ul.System.Single.Parse_ul_System_String(value);
-				func(value);
+				ref_func(v);
 				return ul.System.Boolean.new(true);
 			end
 		end,
@@ -19,12 +19,13 @@ function ul.System.Single.TryParse_ul_System_String_ul_System_Single(value,v,fun
 			func= function()
 				do
 					v = ul.System.Int32.Single_ul_System_Int32(ul.System.Int32.new(0));
-					func(value);
+					ref_func(v);
 					return ul.System.Boolean.new(false);
 				end
 			end
 		}
 		);
+		if __ret_v~= nil then return __ret_v end 
 	end
 end
 function ul.System.Single.op_Addition(a,b)

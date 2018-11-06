@@ -1,10 +1,10 @@
-require "ul_System"
+require "ul.System"
 ul.System.FormatException = class('ul.System.FormatException',ul.System.Exception)
-FormatException(msg)
+function ul.System.FormatException:FormatException_ul_System_String(msg)
 	do
 	end
 end
-FormatException()
+function ul.System.FormatException:FormatException()
 	do
 	end
 end

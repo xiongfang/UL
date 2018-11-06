@@ -1,2 +1,2 @@
-require "ul_System_Reflection"
+require "ul.System.Reflection"
 ul.System.Reflection.Metadata = {}
