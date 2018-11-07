@@ -81,6 +81,12 @@
     {
       "name": "ul.System.Type",
       "ext_header": "Type_ExtHeader.lua"
+    },
+
+
+    {
+      "name": "ul.System.Reflection.Metadata.Type",
+      "ext_header": "Metadata_Type_ExtHeader.lua"
     }
   ],
 

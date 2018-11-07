@@ -1,13 +1,13 @@
 function ul.System.Boolean:ctor(v)
-	self.v = false;
+	self._v = false;
 	if(v~= nil ) then
-		self.v = v;
+		self._v = v;
 	end
 end
 
 function ul.System.Boolean:ToString()
-	return System.String.new(tostring(self.v));
+	return ul.System.String.new(tostring(self._v));
 end
 function ul.System.Boolean.op_LogicNot(a)
-	return System.Boolean.new(not a.v);
+	return ul.System.Boolean.new(not a._v);
 end

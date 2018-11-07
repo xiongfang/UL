@@ -6,12 +6,10 @@ function ul.System.Int32:ctor(v)
 	end
 end
 function ul.System.Int32.Parse_ul_System_String(value)
-	local v = tonumber(value)
+	local v = tonumber(value._v)
 	if(v == nil) then
-		return ul.System.Exception:new(ul.System.String.new("Int32.Parse"));
+		error(Construct(ul.System.Exception:new(),"Exception_ul_System_String",ul.System.String.new("Int32.Parse Exception")));
 	end
-	
-	print("ParseOK "+v)
 
 	return ul.System.Int32.new(v);
 

@@ -13,7 +13,7 @@
             {
                 get
                 {
-                    return GetType(_type.Namespace + "." + _type.Name);
+                    return GetType(_type.Parent);
                 }
             }
 

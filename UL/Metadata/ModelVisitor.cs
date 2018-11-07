@@ -10,13 +10,11 @@ namespace Metadata
     public interface ITypeVisitor
     {
         void VisitType(DB_Type type);
-        //IMemberVisitor GetMemberVisitor();
     }
 
     public interface IMemberVisitor
     {
         void VisitMember(DB_Type type, DB_Member member);
-        //IMethodVisitor GetMethodVisitor();
     }
 
     public interface IMethodVisitor
@@ -48,6 +46,8 @@ namespace Metadata
         void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ThrowExp exp, Expression.Exp outer);
         void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.IndifierExp exp, Expression.Exp outer);
         void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ElementAccessExp exp, Expression.Exp outer);
+
+        void VisitTryCatchClauseSyntax(IMethodVisitor visitor, DB_Type type, DB_Member method, CatchClauseSyntax catchClauseSyntax, DB_TryStatementSyntax outer);
     }
 
 
@@ -71,11 +71,6 @@ namespace Metadata
             //ClearUsing();
         }
 
-
-
-
-        //public IMemberVisitor GetMemberVisitor() { return this; }
-
         public void AcceptMemberVisitor(IMemberVisitor visitor, DB_Type type, DB_Member member)
         {
             IMemberVisitor memberVisitor = visitor;
@@ -94,203 +89,15 @@ namespace Metadata
                 }
             }
         }
-
-        //public IMethodVisitor GetMethodVisitor() { return this; }
-
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_BreakStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_BlockSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    EnterBlock();
-        //    foreach (var s in statement.List)
-        //    {
-        //        VisitStatement(type, member,s, statement);
-        //    }
-        //    LeaveBlock();
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_DoStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    DB_DoStatementSyntax ss = statement as DB_DoStatementSyntax;
-        //    VisitExp(type, member, statement, ss.Condition,null);
-        //    VisitStatement(type, member, ss.Statement,ss);
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_ExpressionStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    VisitExp(type, member, statement, statement.Exp, null);
-        //}
-
-
-        //void VisitDeclareVairable(DB_Type type, DB_Member method, DB_StatementSyntax statement, VariableDeclarationSyntax Declaration)
-        //{
-        //    foreach (var e in Declaration.Variables)
-        //    {
-        //        AddLocal(e.Identifier, Finder.FindType(Declaration.Type));
-        //        VisitExp(type, method, statement, e.Initializer,null);
-        //    }
-        //}
-
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_ForStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    EnterBlock();
-        //    DB_ForStatementSyntax ss = statement as DB_ForStatementSyntax;
-        //    if (ss.Declaration != null)
-        //    {
-        //        VisitDeclareVairable(type, member, statement, ss.Declaration);
-        //    }
-        //    VisitExp(type, member, statement, ss.Condition,null);
-        //    foreach (var inc in ss.Incrementors)
-        //        VisitExp(type, member, statement, inc,null);
-
-        //    VisitStatement(type, member, ss.Statement,statement);
-
-        //    LeaveBlock();
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_IfStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    DB_IfStatementSyntax ss = statement as DB_IfStatementSyntax;
-        //    VisitExp(type, member, statement, ss.Condition,null);
-        //    VisitStatement(type, member, ss.Statement,ss);
-        //    if (ss.Else != null)
-        //    {
-        //        VisitStatement(type, member, ss.Else,ss);
-        //    }
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_LocalDeclarationStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    DB_LocalDeclarationStatementSyntax ss = statement as DB_LocalDeclarationStatementSyntax;
-        //    VisitDeclareVairable(type, member, statement, ss.Declaration);
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_ReturnStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    DB_ReturnStatementSyntax ss = statement as DB_ReturnStatementSyntax;
-        //    if (ss.Expression != null)
-        //    {
-        //        VisitExp(type, member, ss, ss.Expression,null);
-        //    }
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_SwitchStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    VisitExp(type, member, statement, statement.Expression,null);
-        //    EnterBlock();
-        //    foreach (var sec in statement.Sections)
-        //    {
-        //        foreach (var l in sec.Labels)
-        //        {
-        //            VisitExp(type, member, statement, l,null);
-        //        }
-        //        foreach (var s in sec.Statements)
-        //        {
-        //            VisitStatement(type, member, s, statement);
-        //        }
-        //    }
-        //    LeaveBlock();
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_ThrowStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    VisitExp(type, member, statement, statement.Expression,null);
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_TryStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    DB_TryStatementSyntax ss = statement as DB_TryStatementSyntax;
-        //    VisitStatement(type, member, ss.Block,statement);
-        //    foreach (var c in ss.Catches)
-        //    {
-        //        VisitStatement(type, member, c.Block, statement);
-        //    }
-        //    if (ss.Finally != null)
-        //        VisitStatement(type, member, ss.Finally.Block, statement);
-        //}
-        //public void VisitStatement(DB_Type type, DB_Member member, DB_WhileStatementSyntax statement, DB_StatementSyntax outer)
-        //{
-        //    methodVisitor.VisitStatement(type, member, statement, outer);
-        //    VisitExp(type, member, statement, statement.Condition,null);
-        //    VisitStatement(type, member, statement.Statement, statement);
-        //}
-
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.AssignmentExpressionSyntax exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.BaseExp exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.BinaryExpressionSyntax exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ConstExp exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.FieldExp exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.MethodExp exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-
-        //    VisitExp(type, member, statement, exp.Caller,exp);
-        //    List<DB_Type> argTypes = new List<DB_Type>();
-        //    foreach (var a in exp.Args)
-        //    {
-        //        VisitExp(type, member, statement, a,null);
-        //    }
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ObjectCreateExp exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-
-        //    foreach (var a in exp.Args)
-        //    {
-        //        VisitExp(type, member, statement, a, exp);
-        //    }
-
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ParenthesizedExpressionSyntax exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.PostfixUnaryExpressionSyntax exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.PrefixUnaryExpressionSyntax exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ThisExp exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.ThrowExp exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
-
-        //public void VisitExp(DB_Type type, DB_Member member, DB_StatementSyntax statement, Expression.IndifierExp exp, Expression.Exp outer)
-        //{
-        //    methodVisitor.VisitExp(type, member, statement, exp, outer);
-        //}
+        
 
         public void VisitStatement(IMethodVisitor visitor,DB_Type type, DB_Member method, DB_StatementSyntax statement, DB_StatementSyntax outer)
         {
             if (statement is DB_BlockSyntax)
             {
+                EnterBlock();
                 visitor.VisitStatement(type, method, statement as DB_BlockSyntax, outer);
+                LeaveBlock();
             }
             else if (statement is DB_IfStatementSyntax)
             {
@@ -298,10 +105,23 @@ namespace Metadata
             }
             else if (statement is DB_ForStatementSyntax)
             {
+                EnterBlock();
+                VariableDeclarationSyntax Declaration = ((DB_ForStatementSyntax)statement).Declaration;
+                foreach (var e in Declaration.Variables)
+                {
+                    AddLocal(e.Identifier, Finder.FindType(Declaration.Type, this));
+                }
                 visitor.VisitStatement(type, method, statement as DB_ForStatementSyntax, outer);
+                LeaveBlock();
             }
             else if (statement is DB_LocalDeclarationStatementSyntax)
             {
+                DB_LocalDeclarationStatementSyntax ss = statement as DB_LocalDeclarationStatementSyntax;
+                VariableDeclarationSyntax Declaration = ss.Declaration;
+                foreach (var e in Declaration.Variables)
+                {
+                    AddLocal(e.Identifier,Finder.FindType(Declaration.Type, this));
+                }
                 visitor.VisitStatement(type, method, statement as DB_LocalDeclarationStatementSyntax, outer);
             }
             else if (statement is DB_DoStatementSyntax)
@@ -403,28 +223,14 @@ namespace Metadata
 
         }
 
-        //public void VisitTypeStart(DB_Type type)
-        //{
-        //    if(typeVisitor!=null)
-        //        typeVisitor.VisitTypeStart(type);
-        //}
+        public void VisitTryCatchClauseSyntax(IMethodVisitor visitor, DB_Type type, DB_Member method, CatchClauseSyntax catchClauseSyntax, DB_TryStatementSyntax outer)
+        {
+            EnterBlock();
+            AddLocal(catchClauseSyntax.Identifier, Finder.FindType(catchClauseSyntax.Type, this));
+            visitor.VisitTryCatchClauseSyntax(visitor, type, method, catchClauseSyntax, outer);
+            LeaveBlock();
+        }
 
-        //public void VisitTypeEnd(DB_Type type)
-        //{
-        //    if (typeVisitor != null)
-        //        typeVisitor.VisitTypeEnd(type);
-        //}
 
-        //public void VisitMethodStart(DB_Type type, DB_Member member)
-        //{
-        //    if (methodVisitor != null)
-        //        methodVisitor.VisitMethodStart(type, member);
-        //}
-
-        //public void VisitMethodEnd(DB_Type type, DB_Member member)
-        //{
-        //    if (methodVisitor != null)
-        //        methodVisitor.VisitMethodEnd(type, member);
-        //}
     }
 }

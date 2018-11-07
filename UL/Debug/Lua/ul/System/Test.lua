@@ -32,12 +32,21 @@ function ul.System.Test.TestInt()
 		ul.System.Console.WriteLine_ul_System_Int32(clone(PrefixUnaryHelper.op_Increment(a,function(v) a = v end)));
 		ul.System.Console.WriteLine_ul_System_Int32(clone(ul.System.Int32.op_UnaryNegation(a)));
 		local tempV;
-		if(ul.System.Int32.TryParse_ul_System_String_ul_System_Int32(ul.System.String.new("5"),clone(tempV),
+		if (ul.System.Int32.TryParse_ul_System_String_ul_System_Int32(ul.System.String.new("5"),clone(tempV),
 function(v)
 tempV=v
 end
-)) then
+))._v then
 			ul.System.Console.WriteLine_ul_System_Int32(clone(tempV));
+		end
+		if (ul.System.Int32.TryParse_ul_System_String_ul_System_Int32(ul.System.String.new("sadas"),clone(tempV),
+function(v)
+tempV=v
+end
+))._v then
+			ul.System.Console.WriteLine_ul_System_Int32(clone(tempV));
+		else
+			ul.System.Console.WriteLine_ul_System_String(ul.System.String.new("TryParse Error"));
 		end
 	end
 end

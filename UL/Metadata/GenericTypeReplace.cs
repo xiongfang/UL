@@ -51,12 +51,10 @@ namespace Metadata
 
         public void VisitStatement(DB_Type type, DB_Member member, DB_BlockSyntax statement, DB_StatementSyntax outer)
         {
-            model.EnterBlock();
             foreach (var s in statement.List)
             {
                 model.VisitStatement(this, type, member, s, statement);
             }
-            model.LeaveBlock();
         }
 
         public void VisitStatement(DB_Type type, DB_Member member, DB_DoStatementSyntax statement, DB_StatementSyntax outer)
@@ -75,7 +73,6 @@ namespace Metadata
 
             statement.Declaration.Type = ReplaceType(type, statement.Declaration.Type);
 
-            model.EnterBlock();
             DB_ForStatementSyntax ss = statement as DB_ForStatementSyntax;
             if (ss.Declaration != null)
             {
@@ -87,7 +84,6 @@ namespace Metadata
 
             model.VisitStatement(this, type, member, ss.Statement, statement);
 
-            model.LeaveBlock();
         }
 
         public void VisitStatement(DB_Type type, DB_Member member, DB_IfStatementSyntax statement, DB_StatementSyntax outer)
@@ -107,7 +103,6 @@ namespace Metadata
         {
             foreach (var e in Declaration.Variables)
             {
-                model.AddLocal(e.Identifier, model.Finder.FindType(Declaration.Type, model));
                 model.VisitExp(this, type, method, statement, e.Initializer, null);
             }
         }
@@ -147,7 +142,7 @@ namespace Metadata
             }
             foreach (var c in statement.Catches)
             {
-                model.VisitStatement(this, type, member, c.Block, statement);
+                model.VisitTryCatchClauseSyntax(this, type, member, c, statement);
             }
             if (statement.Finally != null)
                 model.VisitStatement(this, type, member, statement.Finally.Block, statement);
@@ -316,6 +311,11 @@ namespace Metadata
                 model.VisitExp(this, type, member, statement, e, exp);
             }
 
+        }
+
+        public void VisitTryCatchClauseSyntax(IMethodVisitor visitor, DB_Type type, DB_Member method, CatchClauseSyntax catchClauseSyntax, DB_TryStatementSyntax outer)
+        {
+            model.VisitStatement(this, type, method, catchClauseSyntax.Block, outer);
         }
     }
 }

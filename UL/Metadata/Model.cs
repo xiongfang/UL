@@ -51,28 +51,17 @@ namespace Metadata
             }
         }
 
-        //public void StartUsing(List<string> usingList)
-        //{
-        //    foreach (var ns in usingList)
-        //        usingNamespace.Add(ns);
-        //}
-
-        //public void ClearUsing()
-        //{
-        //    usingNamespace.Clear();
-        //}
-
-        public void EnterNamespace(string ns)
+        public virtual void EnterNamespace(string ns)
         {
             outNamespace.Push(ns);
         }
 
-        public void LeaveNamespace()
+        public virtual void LeaveNamespace()
         {
             outNamespace.Pop();
         }
 
-        public void EnterType(Metadata.DB_Type type)
+        public virtual void EnterType(Metadata.DB_Type type)
         {
             if(outNamespace.Count==0)
             {
@@ -80,12 +69,12 @@ namespace Metadata
             }
             currentType = type;
         }
-        public void LeaveType()
+        public virtual void LeaveType()
         {
             currentType = null;
         }
 
-        public void EnterMethod(Metadata.DB_Member member)
+        public virtual void EnterMethod(Metadata.DB_Member member)
         {
             currentMethod = member;
             EnterBlock();
@@ -94,23 +83,23 @@ namespace Metadata
                 AddLocal(arg.name, GetType(arg.type));
             }
         }
-        public void LeaveMethod()
+        public virtual void LeaveMethod()
         {
             LeaveBlock();
             currentMethod = null;
         }
 
-        public void EnterBlock()
+        public virtual void EnterBlock()
         {
             stackLocalVariables.Push(new Dictionary<string, Metadata.DB_Type>());
         }
 
-        public void LeaveBlock()
+        public virtual void LeaveBlock()
         {
             stackLocalVariables.Pop();
         }
 
-        public void AddLocal(string name, Metadata.DB_Type type)
+        public virtual void AddLocal(string name, Metadata.DB_Type type)
         {
             stackLocalVariables.Peek().Add(name, type);
         }
@@ -578,12 +567,12 @@ namespace Metadata
 
         public void VisitStatement(DB_Type type, DB_Member member, DB_BlockSyntax statement, DB_StatementSyntax outer)
         {
-            model.EnterBlock();
+            //model.EnterBlock();
             foreach(var s in statement.List)
             {
                 model.VisitStatement(this, type, member, s, statement);
             }
-            model.LeaveBlock();
+            //model.LeaveBlock();
         }
 
         public void VisitStatement(DB_Type type, DB_Member member, DB_DoStatementSyntax statement, DB_StatementSyntax outer)
@@ -601,7 +590,7 @@ namespace Metadata
         {
             typeRef.Add(statement.Declaration.Type);
 
-            model.EnterBlock();
+            //model.EnterBlock();
             DB_ForStatementSyntax ss = statement as DB_ForStatementSyntax;
             if (ss.Declaration != null)
             {
@@ -613,7 +602,7 @@ namespace Metadata
 
             model.VisitStatement(this, type, member, ss.Statement, statement);
 
-            model.LeaveBlock();
+            //model.LeaveBlock();
         }
 
         public void VisitStatement(DB_Type type, DB_Member member, DB_IfStatementSyntax statement, DB_StatementSyntax outer)
@@ -633,7 +622,7 @@ namespace Metadata
         {
             foreach (var e in Declaration.Variables)
             {
-                model.AddLocal(e.Identifier, model.Finder.FindType(Declaration.Type, model));
+                //model.AddLocal(e.Identifier, model.Finder.FindType(Declaration.Type, model));
                 model.VisitExp(this,type, method, statement, e.Initializer, null);
             }
         }
@@ -673,7 +662,7 @@ namespace Metadata
             }
             foreach (var c in statement.Catches)
             {
-                model.VisitStatement(this,type, member, c.Block, statement);
+                model.VisitTryCatchClauseSyntax(this, type, member, c, statement);
             }
             if (statement.Finally != null)
                 model.VisitStatement(this, type, member, statement.Finally.Block, statement);
@@ -826,6 +815,11 @@ namespace Metadata
                 model.VisitExp(this, type, member, statement, e, exp);
             }
             
+        }
+
+        public void VisitTryCatchClauseSyntax(IMethodVisitor visitor, DB_Type type, DB_Member method, CatchClauseSyntax catchClauseSyntax, DB_TryStatementSyntax outer)
+        {
+            model.VisitStatement(this, type, method, catchClauseSyntax.Block, outer);
         }
     }
 }

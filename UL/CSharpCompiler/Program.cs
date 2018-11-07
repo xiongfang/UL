@@ -31,6 +31,7 @@ namespace CSharpCompiler
         Stack<List<string>> usingStack = new Stack<List<string>>();
 
         public CSharpModel(Metadata.IModelTypeFinder finder) : base(finder) { }
+        
 
         public void StartUsing(List<string> namespaceList)
         {

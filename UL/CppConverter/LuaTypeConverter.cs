@@ -149,42 +149,42 @@ namespace CppConverter
 
         public void ConvertTypeMetadata(Metadata.DB_Type type)
         {
-            AppendLine("{0}={{",GetTypeTableName(type));
-
+            AppendLine("{0}_Metadata={{",GetTypeTableName(type));
+            depth++;
             AppendLine("Name=\"{0}\",", type.name);
             AppendLine("Namespace=\"{0}\",", type._namespace);
             AppendLine("Comments=\"{0}\",", type.comments);
             AppendLine("Modifier={0},", type.modifier);
-            AppendLine("TypeID=\"{0}\",", type.type);
-            AppendLine("IsAbstract=\"{0}\",", type.is_abstract);
-            AppendLine("IsGenericTypeDefinition=\"{0}\",", type.is_generic_type_definition);
-            AppendLine("Parent=\"{0}\",", GetTypeSyntaxObject(type.base_type));
-
+            AppendLine("TypeID={0},", type.type);
+            AppendLine("IsAbstract={0},", type.is_abstract?"true":"false");
+            AppendLine("IsGenericTypeDefinition={0},", type.is_generic_type_definition ? "true" : "false");
+            AppendLine("Parent=\"{0}\"", type.base_type.GetTypeDefinitionFullName());
+            depth--;
             AppendLine("}");
 
         }
 
-        string GetTypeSyntaxObject(Metadata.Expression.TypeSyntax typeSyntax)
-        {
-            StringBuilder sb = new StringBuilder();
-            if(typeSyntax.args.Length>0)
-            {
-                sb.Append("{");
-                for(int i=0;i<typeSyntax.args.Length;i++)
-                {
-                    sb.Append(GetTypeSyntaxObject(typeSyntax.args[i]));
-                    if(i<typeSyntax.args.Length-1)
-                    {
-                        sb.Append(",");
-                    }
-                }
+        //string GetTypeSyntaxObject(Metadata.Expression.TypeSyntax typeSyntax)
+        //{
+        //    StringBuilder sb = new StringBuilder();
+        //    if(typeSyntax.args.Length>0)
+        //    {
+        //        sb.Append("{");
+        //        for(int i=0;i<typeSyntax.args.Length;i++)
+        //        {
+        //            sb.Append(GetTypeSyntaxObject(typeSyntax.args[i]));
+        //            if(i<typeSyntax.args.Length-1)
+        //            {
+        //                sb.Append(",");
+        //            }
+        //        }
 
-                sb.Append("}");
-            }
-            return string.Format("ui.System.Metadata.TypeSyntax:new({0},{1},{2},{3},{4},{5})",
-                typeSyntax.Name, typeSyntax.name_space, typeSyntax.isGenericParameter, typeSyntax.isGenericType, typeSyntax.isGenericTypeDefinition, sb.ToString());
+        //        sb.Append("}");
+        //    }
+        //    return string.Format("ui.System.Metadata.TypeSyntax:new(\"{0}\",\"{1}\",{2},{3},{4},{5})",
+        //        typeSyntax.Name, typeSyntax.name_space, typeSyntax.isGenericParameter?"true":"false", typeSyntax.isGenericType?"true":"false", typeSyntax.isGenericTypeDefinition ? "true" : "false", sb.Length==0?"nil":sb.ToString());
 
-        }
+        //}
 
 
         string GetTypeTableName(Metadata.DB_Type type)
@@ -300,9 +300,9 @@ namespace CppConverter
 
             }
 
-            //sb.Clear();
-            //ConvertTypeMetadata(type);
-            //WriteFile(System.IO.Path.Combine(outputDir, GetTypeHeaderPathName(type) + "_Metadata.lua"), sb.ToString());
+            sb.Clear();
+            ConvertTypeMetadata(type);
+            WriteFile(System.IO.Path.Combine(outputDir, GetTypeHeaderPathName(type) + "_Metadata.lua"), sb.ToString());
         }
 
         string GetTypeHeaderPathName(Metadata.DB_Type type)
@@ -700,7 +700,7 @@ namespace CppConverter
 
         void ConvertStatement(Metadata.DB_IfStatementSyntax bs)
         {
-            AppendLine("if(" + ExpressionToString(bs.Condition) + ") then");
+            AppendLine("if (" + ExpressionToString(bs.Condition) + ")._v then");
             CheckEnter(bs.Statement);
             ConvertStatement(bs.Statement);
             CheckOut(bs.Statement);
@@ -723,31 +723,23 @@ namespace CppConverter
 
         void ConvertStatement(Metadata.DB_LocalDeclarationStatementSyntax bs)
         {
-            //Metadata.DB_Type type = Model.GetType(bs.Declaration.Type);
-            //if (type.is_class)
-            //    Append("Ref<" + GetCppTypeName(type) + "> ");
-            //else
-            //    Append(GetCppTypeName(type) + " ");
+            foreach (var d in bs.Declaration.Variables)
+                Model.AddLocal(d.Identifier, Model.GetType(bs.Declaration.Type));
 
             sb.Append(ExpressionToString(bs.Declaration));
-            //for (int i = 0; i < bs.Declaration.Variables.Count; i++)
-            //{
-            //    sb.Append(ExpressionToString(bs.Declaration.Variables[i]));
-            //    if (i < bs.Declaration.Variables.Count - 2)
-            //    {
-            //        sb.Append(",");
-            //    }
-            //    Model.AddLocal(bs.Declaration.Variables[i].Identifier, Model.GetType(bs.Declaration.Type));
-            //}
+
             sb.AppendLine(";");
         }
         void ConvertStatement(Metadata.DB_ForStatementSyntax bs)
         {
             Model.EnterBlock();
+            foreach(var d in bs.Declaration.Variables)
+                Model.AddLocal(d.Identifier, Model.GetType(bs.Declaration.Type));
+
             AppendLine("do");
             depth++;
             AppendLine(ExpressionToString(bs.Declaration));
-            AppendLine("while "+ ExpressionToString(bs.Condition));
+            AppendLine("while ("+ ExpressionToString(bs.Condition) +")._v");
             depth++;
 
             AppendLine("do");
@@ -786,14 +778,14 @@ namespace CppConverter
             Append("until ");
             sb.Append("(");
             sb.Append(ExpressionToString(bs.Condition));
-            sb.AppendLine(");");
+            sb.AppendLine(")._v;");
         }
         void ConvertStatement(Metadata.DB_WhileStatementSyntax bs)
         {
             Append("while");
-            sb.Append("(");
+            sb.Append(" (");
             sb.Append(ExpressionToString(bs.Condition));
-            sb.AppendLine(")");
+            sb.AppendLine(")._v");
             AppendLine("do");
             ConvertStatement(bs.Statement);
             AppendLine("end");
@@ -839,10 +831,12 @@ namespace CppConverter
 
             for (int i = 0; i < ss.Catches.Count; i++)
             {
+                Model.AddLocal(ss.Catches[i].Identifier, Model.GetType(ss.Catches[i].Type));
+
                 AppendLine("{");
                 depth++;
                 AppendLine(string.Format("type=\"{0}\",", GetCppTypeName(Model.GetType(ss.Catches[i].Type)), ss.Catches[i].Identifier));
-                AppendLine("func= function()");
+                AppendLine(string.Format("func= function({0})",ss.Catches[i].Identifier));
                 depth++;
                 ConvertStatement(ss.Catches[i].Block);
                 depth--;
@@ -1275,26 +1269,7 @@ namespace CppConverter
                     Metadata.Model.IndifierInfo ii = Model.GetIndifierInfo(ie.Name);
                     caller_type = ii.type;
 
-
-
-                    if (ii.is_method || ii.is_field || ii.is_property)
-                    {
-                        if (current_member != null)
-                        {
-                            if (current_member.is_static)
-                            {
-                                stringBuilder.Append(GetCppTypeName(Model.GetType(current_member.declaring_type)));
-                                stringBuilder.Append(".");
-                            }
-                            else
-                            {
-                                stringBuilder.Append("self");
-                                stringBuilder.Append(".");
-                            }
-                        }
-
-                    }
-
+                    
                     stringBuilder.Append(ExpressionToString(es.Caller, es));
 
                     if (ii.is_namespace || ii.is_type)
@@ -1337,45 +1312,51 @@ namespace CppConverter
                     }
                 }
 
-
-
-                bool property = false;
-                if (caller_type != null)
-                {
-                    Metadata.DB_Member member = caller_type.FindMember(es.Name, Model);
-                    if (member != null)
-                    {
-                        if (member.member_type == (int)Metadata.MemberTypes.Property)
-                        {
-                            property = true;
-                            bool lefgValue = false;
-                            if (right != null && right is Metadata.Expression.AssignmentExpressionSyntax)
-                            {
-                                Metadata.Expression.AssignmentExpressionSyntax aes = right as Metadata.Expression.AssignmentExpressionSyntax;
-                                if (aes.Left == es)
-                                {
-                                    lefgValue = true;
-                                }
-                            }
-
-                            if (!lefgValue)
-                                stringBuilder.Append(member.property_get + "()");
-                            else
-                                stringBuilder.Append(member.property_set + "(" + ExpressionToString(right) + ")");
-
-                        }
-                        
-                    }
-                }
-                if (!property)
-                {
-                    stringBuilder.Append(es.Name);
-
-                }
-
+                stringBuilder.Append(ExportProperty(es.Name, caller_type, es, right));
                 return stringBuilder.ToString();
             }
         }
+
+        string ExportProperty(string Name, Metadata.DB_Type caller_type, Metadata.Expression.Exp This, Metadata.Expression.Exp outer)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            bool property = false;
+            if (caller_type != null)
+            {
+                Metadata.DB_Member member = caller_type.FindMember(Name, Model);
+                if (member != null)
+                {
+                    if (member.member_type == (int)Metadata.MemberTypes.Property)
+                    {
+                        property = true;
+                        bool lefgValue = false;
+                        if (outer != null && outer is Metadata.Expression.AssignmentExpressionSyntax)
+                        {
+                            Metadata.Expression.AssignmentExpressionSyntax aes = outer as Metadata.Expression.AssignmentExpressionSyntax;
+                            if (aes.Left == This)
+                            {
+                                lefgValue = true;
+                            }
+                        }
+
+                        if (!lefgValue)
+                            stringBuilder.Append(member.property_get + "()");
+                        else
+                            stringBuilder.Append(member.property_set + "(" + ExpressionToString(outer) + ")");
+
+                    }
+
+                }
+            }
+            if (!property)
+            {
+                stringBuilder.Append(Name);
+
+            }
+
+            return stringBuilder.ToString();
+        }
+
         string ExpressionToString(Metadata.Expression.ObjectCreateExp es, Metadata.Expression.Exp outer)
         {
             StringBuilder ExpSB = new StringBuilder();
@@ -1552,8 +1533,6 @@ namespace CppConverter
             //stringBuilder.Append(" ");
             for (int i = 0; i < es.Variables.Count; i++)
             {
-                Model.AddLocal(es.Variables[i].Identifier, Model.GetType(es.Type));
-
                 if (!type.is_delegate)
                 {
                     Metadata.VariableDeclaratorSyntax esVar = es.Variables[i];
@@ -1641,6 +1620,20 @@ namespace CppConverter
                     return "self."+es.Name;
                 }
             }
+            else if(info.is_property)
+            {
+                if (info.field.is_static)
+                {
+                    
+
+                    return GetCppTypeName(Model.currentType) + "." + ExportProperty(es.Name, Model.currentType, es, outer);
+                }
+                else
+                {
+                    return "self:" + ExportProperty(es.Name, Model.currentType, es, outer);
+                }
+            }
+
             return es.Name;
         }
 

@@ -79,22 +79,29 @@ function class(classname, super)
 end
 
 function Construct(obj,constructorName,...)
-	return obj[constructorName](...);
+	local func = obj[constructorName];
+	func(obj,...)
+	return obj
 end
 
 function try(func,...)
 	local arg = {...};
-	local r,e = func();
-	if e ~= nil then
+	local error,result = pcall( func );
+	if (not error) then
 		for k,v in pairs(arg) do
-			if _G[v.type]:GetType().IsSubclassOf(e:GetType()) then
-				v.func(e);
+			local t = get_type_by_table_name(v.type)
+			if t:GetType():IsChildOf_ul_System_Type(result:GetType()) then
+				v.func(result);
 				break;
 			end
 		end
 	end
 
-	return r;
+	return result;
+end
+
+function get_type_by_table_name(name)
+	return load("return "..name)();
 end
 
 PostfixUnaryHelper = {}
@@ -130,7 +137,20 @@ require "ul.System.String"
 require "ul.System.Boolean"
 require "ul.System.Test"
 require "ul.System.Exception"
-
+require "ul.System.Type"
+require "ul.System.Type_Metadata"
+require "ul.System.Object_Metadata"
+require "ul.System.Console_Metadata"
+require "ul.System.Int32_Metadata"
+require "ul.System.Int64_Metadata"
+require "ul.System.String_Metadata"
+require "ul.System.Boolean_Metadata"
+require "ul.System.Test_Metadata"
+require "ul.System.Exception_Metadata"
+require "ul.System.Type_Metadata"
+require "ul.System.Reflection.Metadata.Type"
+require "ul.System.Reflection.Metadata.TypeSyntax"
+require "ul.System.Reflection.Metadata.Member"
 function  main( ... )
 	ul.System.Test.Run();
 end

@@ -8,7 +8,7 @@ namespace ul.System.Reflection.Metadata
         string _comments;
         int _modifier;
         int _type;
-        TypeSyntax _parent;
+        string _parent;
         bool _is_abstract;
         bool _is_generic_type_definition;
 
@@ -20,22 +20,24 @@ namespace ul.System.Reflection.Metadata
             get { return _modifier; }
         }
         public int TypeID { get { return _type; } }
-        public Type Parent { get { return GetType(_parent); } }
+        public string Parent { get { return _parent; } }
         public bool IsAbstract { get { return _is_abstract; } }
         public bool IsGenericTypeDefinition { get { return _is_generic_type_definition; } }
 
-        public extern static Type GetType(TypeSyntax typeSyntax);
     }
 
-    public class TypeSyntax
-    {
-        string _name;
-        string _name_space;
-        TypeSyntax[] args;
-        bool isGenericType;
-        bool isGenericTypeDefinition;
-        bool isGenericParameter;
-    }
+    //public class TypeSyntax
+    //{
+    //    string _name;
+    //    string _name_space;
+    //    TypeSyntax[] args;
+    //    bool isGenericType;
+    //    bool isGenericTypeDefinition;
+    //    bool isGenericParameter;
+
+    //    public TypeSyntax(string n,string ns,bool a,bool b,bool c)
+
+    //}
 
     public class Member
     {
