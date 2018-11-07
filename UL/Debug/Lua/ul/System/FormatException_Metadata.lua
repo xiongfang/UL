@@ -1,0 +1,10 @@
+ul.System.FormatException_Metadata={
+	Name="FormatException",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=2,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.Exception"
+}

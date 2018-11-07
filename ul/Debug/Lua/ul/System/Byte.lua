@@ -16,7 +16,7 @@ function ul.System.Byte.TryParse_ul_System_String_ul_System_Byte(value,v,ref_fun
 		end,
 		{
 			type="ul.System.Exception",
-			func= function()
+			func= function(e)
 				do
 					v = ul.System.Int32.Byte_ul_System_Int32(ul.System.Int32.new(0));
 					ref_func(v);

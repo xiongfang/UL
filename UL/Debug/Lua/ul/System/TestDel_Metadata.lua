@@ -1,0 +1,10 @@
+ul.System.TestDel_Metadata={
+	Name="TestDel",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=4,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.Delegate"
+}

@@ -1,0 +1,10 @@
+ul.System.UInt16_Metadata={
+	Name="UInt16",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=0,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.ValueType"
+}

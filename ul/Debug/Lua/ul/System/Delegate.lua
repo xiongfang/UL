@@ -12,10 +12,10 @@ function ul.System.Delegate:Delegate()
 end
 function ul.System.Delegate.Combine_ul_System_Delegate_ul_System_Delegate(a,b)
 	do
-		if(ul.System.Delegate.op_Equality(a,nil)) then
+		if (ul.System.Delegate.op_Equality(a,nil))._v then
 			return b;
 		end
-		if(ul.System.Delegate.op_Equality(b,nil)) then
+		if (ul.System.Delegate.op_Equality(b,nil))._v then
 			return a;
 		end
 		return a:CombineImpl_ul_System_Delegate(b);
@@ -26,7 +26,7 @@ function ul.System.Delegate.Combine_ul_System_ArrayT(delegates)
 		local left = nil;
 		do
 			local 			i = ul.System.Int32.new(0)
-			while ul.System.Int32.op_LessThen(clone(i),clone(delegates:get_Length()))
+			while (ul.System.Int32.op_LessThen(clone(i),clone(delegates:get_Length())))._v
 				do
 					do
 						left = ul.System.Delegate.Combine_ul_System_Delegate_ul_System_Delegate(left,delegates.get_Index(i));
@@ -43,10 +43,10 @@ function ul.System.Delegate.Combine_ul_System_ArrayT(delegates)
 end
 function ul.System.Delegate.Remove_ul_System_Delegate_ul_System_Delegate(source,value)
 	do
-		if(ul.System.Delegate.op_Equality(source,nil)) then
+		if (ul.System.Delegate.op_Equality(source,nil))._v then
 			return nil;
 		end
-		if(ul.System.Delegate.op_Equality(value,nil)) then
+		if (ul.System.Delegate.op_Equality(value,nil))._v then
 			return source;
 		end
 		source.list:Remove_ul_System_Delegate(value);
@@ -55,10 +55,10 @@ function ul.System.Delegate.Remove_ul_System_Delegate_ul_System_Delegate(source,
 end
 function ul.System.Delegate.RemoveAll_ul_System_Delegate_ul_System_Delegate(source,value)
 	do
-		if(ul.System.Delegate.op_Equality(source,nil)) then
+		if (ul.System.Delegate.op_Equality(source,nil))._v then
 			return nil;
 		end
-		if(ul.System.Delegate.op_Equality(value,nil)) then
+		if (ul.System.Delegate.op_Equality(value,nil))._v then
 			return source;
 		end
 		source.list:RemoveAll_ul_System_Delegate(value);
@@ -78,13 +78,13 @@ function ul.System.Delegate:CombineImpl_ul_System_Delegate(d)
 end
 function ul.System.Delegate.op_Equality(d1,d2)
 	do
-		if(ul.System.Object.ReferenceEquals_ul_System_Object_ul_System_Object(d1,d2)) then
+		if (ul.System.Object.ReferenceEquals_ul_System_Object_ul_System_Object(d1,d2))._v then
 			return ul.System.Boolean.new(true);
 		end
-		if(ul.System.Object.ReferenceEquals_ul_System_Object_ul_System_Object(d1,nil)) then
+		if (ul.System.Object.ReferenceEquals_ul_System_Object_ul_System_Object(d1,nil))._v then
 			return ul.System.Boolean.new(false);
 		end
-		if(ul.System.Object.ReferenceEquals_ul_System_Object_ul_System_Object(d2,nil)) then
+		if (ul.System.Object.ReferenceEquals_ul_System_Object_ul_System_Object(d2,nil))._v then
 			return ul.System.Boolean.new(false);
 		end
 		return d1:Equals_ul_System_Object(d2);

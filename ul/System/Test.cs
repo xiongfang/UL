@@ -48,6 +48,11 @@
             Int32 tempV;
             if (Int32.TryParse("5", out tempV))
                 Console.WriteLine(tempV);
+
+            if (Int32.TryParse("sadas", out tempV))
+                Console.WriteLine(tempV);
+            else
+                Console.WriteLine("TryParse Error");
         }
 
         static void TestString()

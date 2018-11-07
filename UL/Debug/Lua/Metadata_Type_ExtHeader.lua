@@ -1,0 +1,11 @@
+function ul.System.Reflection.Metadata.Type:ctor(typeName)
+	local metadata =  get_type_by_table_name(typeName.."_Metadata")
+	self._name = ul.System.String.new(metadata.Name)
+	self._namespace = ul.System.String.new(metadata.Namespace)
+	self._comments = ul.System.String.new(metadata.Comments)
+	self._modifier = ul.System.Int32.new(metadata.Modifier)
+	self._type = ul.System.Int32.new(metadata.TypeID)
+	self._parent = ul.System.String.new(metadata.Parent)
+	self._is_abstract = ul.System.Boolean.new(metadata.IsAbstract)
+	self._is_generic_type_definition = ul.System.Boolean.new(metadata.IsGenericTypeDefinition)
+end

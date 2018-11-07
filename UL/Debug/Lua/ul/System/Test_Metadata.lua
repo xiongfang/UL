@@ -1,0 +1,10 @@
+ul.System.Test_Metadata={
+	Name="Test",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=1,
+	TypeID=2,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.Object"
+}

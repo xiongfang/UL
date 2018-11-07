@@ -1,0 +1,10 @@
+ul.System.Exception_Metadata={
+	Name="Exception",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=2,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.Object"
+}

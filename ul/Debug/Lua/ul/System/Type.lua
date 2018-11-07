@@ -2,68 +2,68 @@ require "ul.System"
 ul.System.Type = class('ul.System.Type',ul.System.Object)
 function ul.System.Type:get_BaseType()
 	do
-		return ul.System.Type.GetType_ul_System_String(ul.System.String.op_Addition(ul.System.String.op_Addition(self.self._type:get_Namespace(),ul.System.String.new(".")),self.self._type:get_Name()));
+		return ul.System.Type.GetType_ul_System_String(self._type:get_Parent());
 	end
 end
 function ul.System.Type:get_FullName()
 	do
-		return ul.System.String.op_Addition(ul.System.String.op_Addition(self.self._type:get_Namespace(),ul.System.String.new(".")),self.self._type:get_Name());
+		return ul.System.String.op_Addition(ul.System.String.op_Addition(self._type:get_Namespace(),ul.System.String.new(".")),self._type:get_Name());
 	end
 end
 function ul.System.Type:get_IsAbstract()
 	do
-		return self.self._type:get_IsAbstract();
+		return self._type:get_IsAbstract();
 	end
 end
 function ul.System.Type:get_IsClass()
 	do
-		return ul.System.Int32.op_Equality(clone(self.self._type:get_TypeID()),clone(ul.System.Int32.new(2)));
+		return ul.System.Int32.op_Equality(clone(self._type:get_TypeID()),clone(ul.System.Int32.new(2)));
 	end
 end
 function ul.System.Type:get_IsEnum()
 	do
-		return ul.System.Int32.op_Equality(clone(self.self._type:get_TypeID()),clone(ul.System.Int32.new(3)));
+		return ul.System.Int32.op_Equality(clone(self._type:get_TypeID()),clone(ul.System.Int32.new(3)));
 	end
 end
 function ul.System.Type:get_IsGenericType()
 	do
-		return self.self._type:get_IsGenericTypeDefinition();
+		return self._type:get_IsGenericTypeDefinition();
 	end
 end
 function ul.System.Type:get_IsInterface()
 	do
-		return ul.System.Int32.op_Equality(clone(self.self._type:get_TypeID()),clone(ul.System.Int32.new(1)));
+		return ul.System.Int32.op_Equality(clone(self._type:get_TypeID()),clone(ul.System.Int32.new(1)));
 	end
 end
 function ul.System.Type:get_IsPublic()
 	do
-		return ul.System.Int32.op_Equality(clone(self.self._type:get_Modifier()),clone(ul.System.Int32.new(0)));
+		return ul.System.Int32.op_Equality(clone(self._type:get_Modifier()),clone(ul.System.Int32.new(0)));
 	end
 end
 function ul.System.Type:get_IsValueType()
 	do
-		return ul.System.Int32.op_Equality(clone(self.self._type:get_TypeID()),clone(ul.System.Int32.new(0)));
+		return ul.System.Int32.op_Equality(clone(self._type:get_TypeID()),clone(ul.System.Int32.new(0)));
 	end
 end
 function ul.System.Type:get_Name()
 	do
-		return self.self._type:get_Name();
+		return self._type:get_Name();
 	end
 end
 function ul.System.Type:get_Namespace()
 	do
-		return self.self._type:get_Namespace();
+		return self._type:get_Namespace();
 	end
 end
 function ul.System.Type.GetType_ul_System_String(fullName)
 end
 function ul.System.Type:IsChildOf_ul_System_Type(type)
 	do
-		local baseType = BaseType;
-		while(ul.System.Type.op_Inequality(baseType,nil))
+		local baseType = self:get_BaseType();
+		while (ul.System.Type.op_Inequality(baseType,nil))._v
 		do
 		do
-			if(ul.System.Type.op_Equality(baseType,type)) then
+			if (ul.System.Type.op_Equality(baseType,type))._v then
 				return ul.System.Boolean.new(true);
 			end
 			baseType = baseType:get_BaseType();

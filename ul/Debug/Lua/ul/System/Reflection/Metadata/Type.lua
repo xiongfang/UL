@@ -27,7 +27,7 @@ function ul.System.Reflection.Metadata.Type:get_TypeID()
 end
 function ul.System.Reflection.Metadata.Type:get_Parent()
 	do
-		return ul.System.Reflection.Metadata.Type.GetType_ul_System_Reflection_Metadata_TypeSyntax(self._parent);
+		return self._parent;
 	end
 end
 function ul.System.Reflection.Metadata.Type:get_IsAbstract()
@@ -40,5 +40,4 @@ function ul.System.Reflection.Metadata.Type:get_IsGenericTypeDefinition()
 		return self._is_generic_type_definition;
 	end
 end
-function ul.System.Reflection.Metadata.Type.GetType_ul_System_Reflection_Metadata_TypeSyntax(typeSyntax)
-end
+require "Metadata_Type_ExtHeader"

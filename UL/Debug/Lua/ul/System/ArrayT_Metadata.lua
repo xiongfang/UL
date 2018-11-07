@@ -1,0 +1,10 @@
+ul.System.ArrayT_Metadata={
+	Name="ArrayT",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=2,
+	IsAbstract=false,
+	IsGenericTypeDefinition=true,
+	Parent="ul.System.Array"
+}

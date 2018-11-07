@@ -1,0 +1,10 @@
+ul.System.Int64_Metadata={
+	Name="Int64",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=0,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.ValueType"
+}

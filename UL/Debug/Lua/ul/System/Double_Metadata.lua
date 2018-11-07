@@ -1,0 +1,10 @@
+ul.System.Double_Metadata={
+	Name="Double",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=0,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.ValueType"
+}

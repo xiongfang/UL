@@ -1,0 +1,10 @@
+ul.System.IComparable_Metadata={
+	Name="IComparable",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=1,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.void"
+}

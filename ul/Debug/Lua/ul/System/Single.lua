@@ -16,7 +16,7 @@ function ul.System.Single.TryParse_ul_System_String_ul_System_Single(value,v,ref
 		end,
 		{
 			type="ul.System.Exception",
-			func= function()
+			func= function(e)
 				do
 					v = ul.System.Int32.Single_ul_System_Int32(ul.System.Int32.new(0));
 					ref_func(v);

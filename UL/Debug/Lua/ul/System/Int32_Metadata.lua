@@ -1,0 +1,10 @@
+ul.System.Int32_Metadata={
+	Name="Int32",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=0,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.ValueType"
+}

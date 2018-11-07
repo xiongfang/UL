@@ -1,0 +1,10 @@
+ul.System.ArgumentNullException_Metadata={
+	Name="ArgumentNullException",
+	Namespace="ul.System",
+	Comments="",
+	Modifier=0,
+	TypeID=2,
+	IsAbstract=false,
+	IsGenericTypeDefinition=false,
+	Parent="ul.System.Exception"
+}
