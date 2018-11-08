@@ -5,6 +5,6 @@ ul.System.ArrayT_Metadata={
 	Modifier=0,
 	TypeID=2,
 	IsAbstract=false,
-	IsGenericTypeDefinition=true,
+	IsGenericTypeDefinition=false,
 	Parent="ul.System.Array"
 }

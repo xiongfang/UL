@@ -136,6 +136,8 @@ require "ul.System.Int64"
 require "ul.System.String"
 require "ul.System.Boolean"
 require "ul.System.Test"
+require "ul.System.Delegate"
+require "ul.System.TestDel"
 require "ul.System.Exception"
 require "ul.System.Type"
 require "ul.System.Type_Metadata"
@@ -151,6 +153,30 @@ require "ul.System.Type_Metadata"
 require "ul.System.Reflection.Metadata.Type"
 require "ul.System.Reflection.Metadata.TypeSyntax"
 require "ul.System.Reflection.Metadata.Member"
+require "ul.System.Collections.Generic.List"
+require "ul.System.Array"
+require "ul.System.ArrayT"
+
+
+function ul.System.TestDel:Invoke(...)
+	for i,v in ipairs(self.list.__objs) do                    
+		local thisDel = self.list:get_Index(ul.System.Int32.new(i-1));
+        thisDel:Invoke(...);
+	end
+
+	if(self.__o == nil) then
+		self.__method(...)
+	else
+		self.__method(self.__o,...)
+	end
+end
+
+
+function ul.System.TestDel:ctor(...)
+	local args = { ... }
+	self.__o = args[1];
+	self.__method = args[2];
+end
 function  main( ... )
 	ul.System.Test.Run();
 end

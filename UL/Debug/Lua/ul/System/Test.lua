@@ -65,7 +65,10 @@ function ul.System.Test.TestDel_ul_System_String(v)
 end
 function ul.System.Test.TestEvent()
 	do
-
+		ul.System.Test.add_notify_ul_System_TestDel(Construct( ul.System.TestDel.new(nil,ul.System.Test.Test_notify_ul_System_String) ,"Delegate",nil) );
+		local v = Construct( ul.System.TestDel.new(nil,ul.System.Test.TestDel_ul_System_String),"Delegate",nil) ;
+		ul.System.Test.add_notify_ul_System_TestDel(v);
+		_notify:Invoke(ul.System.String.new("ÄãºÃ"));
 	end
 end
 function ul.System.Test.Test_notify_ul_System_String(v)

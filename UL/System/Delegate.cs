@@ -116,7 +116,7 @@
             //
             //   T:System.ArgumentException:
             //     委托类型不匹配。
-            public extern static Delegate Remove(Delegate source, Delegate value)
+            public static Delegate Remove(Delegate source, Delegate value)
             {
                 if (source == null)
                     return null;
@@ -126,7 +126,7 @@
                 return source;
             }
 
-            public extern static Delegate RemoveAll(Delegate source, Delegate value)
+            public static Delegate RemoveAll(Delegate source, Delegate value)
             {
                 if (source == null)
                     return null;
@@ -239,7 +239,7 @@
             //
             // 返回结果:
             //     如果 d1 不等于 d2，则为 true；否则为 false。
-            public extern static bool operator !=(Delegate d1, Delegate d2)
+            public static bool operator !=(Delegate d1, Delegate d2)
             {
                 return !(d1 == d2);
             }

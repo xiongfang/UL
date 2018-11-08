@@ -295,6 +295,17 @@ namespace CppConverter
             else
             {
                 sb.Clear();
+
+                if(type.is_generic_type_definition)
+                {
+                    Metadata.Expression.TypeSyntax ts = type.GetRefType();
+                    for(int i=0;i<ts.args.Length;i++)
+                    {
+                        ts.args[i] = new Metadata.Expression.TypeSyntax() { name_space = "ul.System", Name = "Object" };
+                    }
+                    type = Model.GetType(ts);
+                }
+
                 ConvertTypeHeader(type);
                 WriteFile(System.IO.Path.Combine(outputDir, GetTypeHeaderPathName(type) + ".lua"), sb.ToString());
 
@@ -502,15 +513,15 @@ namespace CppConverter
 
                 Metadata.DB_Type declare_type = Model.GetType(member.declaring_type);
 
-                //if (!member.method_is_constructor)
+                if (!Model.currentType.is_delegate)
                 {
                     string method_name = GetMethodUniqueName(member);
                     sb.Append(string.Format("function {0}{1}{2}",GetCppTypeWrapName(declare_type), member.is_static?".":":", method_name));
                 }
-                //else
-                //{
-                //    sb.Append(string.Format("{0}", member.name));
-                //}
+                else
+                {
+                    sb.Append(string.Format("function {0}{1}{2}", GetCppTypeWrapName(declare_type), member.is_static ? "." : ":", member.name));
+                }
 
                 sb.AppendFormat("({0})", MakeMethodDeclareArgs(member));
                 sb.AppendLine();
@@ -740,6 +751,7 @@ namespace CppConverter
             depth++;
             AppendLine(ExpressionToString(bs.Declaration));
             AppendLine("while ("+ ExpressionToString(bs.Condition) +")._v");
+            AppendLine("do");
             depth++;
 
             AppendLine("do");
@@ -1111,6 +1123,12 @@ namespace CppConverter
             {
                 return GetOperatorFuncName(method.name, method.method_args.Length);
             }
+
+            if(Model.GetType(method.declaring_type).is_generic_type)
+            {
+                return method.name;
+            }
+
             StringBuilder sb = new StringBuilder();
             sb.Append(method.name);
             if(method.method_args.Length>0)
@@ -1437,19 +1455,19 @@ namespace CppConverter
 
             if (right_method.is_static)
             {
-                stringBuilder.Append(string.Format("new {0}__Implement<{1}>(nullptr,{2})", GetCppTypeName(type), GetCppTypeName(caller), ExpressionToString(exp)));
+                stringBuilder.Append(string.Format("{0}.new(nil,{1})", GetCppTypeName(type), ExpressionToString(exp)));
             }
             else
             {
                 if (exp is Metadata.Expression.FieldExp)
                 {
                     Metadata.Expression.FieldExp fe = exp as Metadata.Expression.FieldExp;
-                    stringBuilder.Append(string.Format("new {0}__Implement<{1}>({2},&{3}::{4})", GetCppTypeName(type), GetCppTypeName(caller), ExpressionToString(fe.Caller), GetCppTypeName(caller), fe.Name));
+                    stringBuilder.Append(string.Format("{0}.new({2},{3}.{4})", GetCppTypeName(type), GetCppTypeName(caller), ExpressionToString(fe.Caller), GetCppTypeName(caller), ExpressionToString(exp)));
                 }
                 else if (exp is Metadata.Expression.IndifierExp)
                 {
                     Metadata.Expression.IndifierExp fe = exp as Metadata.Expression.IndifierExp;
-                    stringBuilder.Append(string.Format("new {0}__Implement<{1}>({2},&{3}::{4})", GetCppTypeName(type), GetCppTypeName(caller), "this", GetCppTypeName(caller), fe.Name));
+                    stringBuilder.Append(string.Format("{0}.new({2},{3}.{4})", GetCppTypeName(type), GetCppTypeName(caller), "self", GetCppTypeName(caller), ExpressionToString(exp) ));
                 }
             }
 
@@ -1579,12 +1597,12 @@ namespace CppConverter
                         Metadata.DB_Member right_method = GetExpDelegateMethod(delegateMethod, esVar.Initializer);
                         Metadata.DB_Type caller = Model.GetType(right_method.declaring_type);
 
-                        stringBuilder.Append(string.Format("Ref<{0}> {1} = ", GetCppTypeName(type), esVar.Identifier));
+                        stringBuilder.Append(string.Format("{1} = ", GetCppTypeName(type), esVar.Identifier));
                         stringBuilder.Append(MakeDelegate(delegateMethod, esVar.Initializer));
                     }
                     else
                     {
-                        stringBuilder.Append(string.Format("Ref<{0}> {1}", GetCppTypeName(type), esVar.Identifier));
+                        stringBuilder.Append(string.Format("{1}", GetCppTypeName(type), esVar.Identifier));
                     }
 
                 }
@@ -1631,6 +1649,17 @@ namespace CppConverter
                 else
                 {
                     return "self:" + ExportProperty(es.Name, Model.currentType, es, outer);
+                }
+            }
+            else if(info.is_method)
+            {
+                if (info.methods[0].is_static)
+                {
+                    return GetCppTypeName(Model.currentType) + "." + GetMethodUniqueName(info.methods[0]);
+                }
+                else
+                {
+                    return "self:" + info.methods[0].name;
                 }
             }
 
@@ -1708,12 +1737,12 @@ namespace CppConverter
                         Metadata.DB_Member delegateMethod = delegateType.members.First().Value;
                         if (exp.OperatorToken == "+=")
                         {
-                            stringBuilder.AppendFormat("{0}::{1}({2})", GetCppTypeName(declareType), eventMember.property_add, MakeDelegate(delegateMethod, exp.Right));
+                            stringBuilder.AppendFormat("{0}.{1}({2})", GetCppTypeName(declareType),GetMethodUniqueName( Model.currentType.FindMethod(  eventMember.property_add,Model)[0]), MakeDelegate(delegateMethod, exp.Right));
                             return stringBuilder.ToString();
                         }
                         else if (exp.OperatorToken == "-=")
                         {
-                            stringBuilder.AppendFormat("{0}::{1}({2})", GetCppTypeName(declareType), eventMember.property_remove, MakeDelegate(delegateMethod, exp.Right));
+                            stringBuilder.AppendFormat("{0}.{1}({2})", GetCppTypeName(declareType), GetMethodUniqueName(Model.currentType.FindMethod(eventMember.property_remove,Model)[0]), MakeDelegate(delegateMethod, exp.Right));
                             return stringBuilder.ToString();
                         }
                     }
