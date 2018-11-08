@@ -1338,7 +1338,7 @@ namespace CppConverter
         string ExportProperty(string Name, Metadata.DB_Type caller_type, Metadata.Expression.Exp This, Metadata.Expression.Exp outer)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            bool property = false;
+
             if (caller_type != null)
             {
                 Metadata.DB_Member member = caller_type.FindMember(Name, Model);
@@ -1346,7 +1346,6 @@ namespace CppConverter
                 {
                     if (member.member_type == (int)Metadata.MemberTypes.Property)
                     {
-                        property = true;
                         bool lefgValue = false;
                         if (outer != null && outer is Metadata.Expression.AssignmentExpressionSyntax)
                         {
@@ -1363,13 +1362,15 @@ namespace CppConverter
                             stringBuilder.Append(member.property_set + "(" + ExpressionToString(outer) + ")");
 
                     }
-
+                    else if(member.member_type == (int)Metadata.MemberTypes.Method)
+                    {
+                        stringBuilder.Append(GetMethodUniqueName(member));
+                    }
+                    else
+                    {
+                        stringBuilder.Append(Name);
+                    }
                 }
-            }
-            if (!property)
-            {
-                stringBuilder.Append(Name);
-
             }
 
             return stringBuilder.ToString();
@@ -1455,19 +1456,19 @@ namespace CppConverter
 
             if (right_method.is_static)
             {
-                stringBuilder.Append(string.Format("{0}.new(nil,{1})", GetCppTypeName(type), ExpressionToString(exp)));
+                stringBuilder.Append(string.Format("Construct({0}.new(nil,{1}),\"Delegate\")", GetCppTypeName(type), ExpressionToString(exp)));
             }
             else
             {
                 if (exp is Metadata.Expression.FieldExp)
                 {
                     Metadata.Expression.FieldExp fe = exp as Metadata.Expression.FieldExp;
-                    stringBuilder.Append(string.Format("{0}.new({2},{3}.{4})", GetCppTypeName(type), GetCppTypeName(caller), ExpressionToString(fe.Caller), GetCppTypeName(caller), ExpressionToString(exp)));
+                    stringBuilder.Append(string.Format("Construct({0}.new({2},{3}.{4}),\"Delegate\")", GetCppTypeName(type), GetCppTypeName(caller), ExpressionToString(fe.Caller), GetCppTypeName(caller), ExpressionToString(exp)));
                 }
                 else if (exp is Metadata.Expression.IndifierExp)
                 {
                     Metadata.Expression.IndifierExp fe = exp as Metadata.Expression.IndifierExp;
-                    stringBuilder.Append(string.Format("{0}.new({2},{3}.{4})", GetCppTypeName(type), GetCppTypeName(caller), "self", GetCppTypeName(caller), ExpressionToString(exp) ));
+                    stringBuilder.Append(string.Format("Construct({0}.new({2},{3}.{4}),\"Delegate\")", GetCppTypeName(type), GetCppTypeName(caller), "self", GetCppTypeName(caller), ExpressionToString(exp) ));
                 }
             }
 
