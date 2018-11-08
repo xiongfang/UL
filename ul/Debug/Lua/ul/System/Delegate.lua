@@ -27,6 +27,7 @@ function ul.System.Delegate.Combine_ul_System_ArrayT(delegates)
 		do
 			local 			i = ul.System.Int32.new(0)
 			while (ul.System.Int32.op_LessThen(clone(i),clone(delegates:get_Length())))._v
+			do
 				do
 					do
 						left = ul.System.Delegate.Combine_ul_System_Delegate_ul_System_Delegate(left,delegates.get_Index(i));
@@ -49,7 +50,7 @@ function ul.System.Delegate.Remove_ul_System_Delegate_ul_System_Delegate(source,
 		if (ul.System.Delegate.op_Equality(value,nil))._v then
 			return source;
 		end
-		source.list:Remove_ul_System_Delegate(value);
+		source.list:Remove(value);
 		return source;
 	end
 end
@@ -61,7 +62,7 @@ function ul.System.Delegate.RemoveAll_ul_System_Delegate_ul_System_Delegate(sour
 		if (ul.System.Delegate.op_Equality(value,nil))._v then
 			return source;
 		end
-		source.list:RemoveAll_ul_System_Delegate(value);
+		source.list:RemoveAll(value);
 		return source;
 	end
 end
@@ -72,7 +73,7 @@ function ul.System.Delegate:GetInvocationList()
 end
 function ul.System.Delegate:CombineImpl_ul_System_Delegate(d)
 	do
-		self.list:Add_ul_System_Delegate(d);
+		self.list:Add(d);
 		return self;
 	end
 end
