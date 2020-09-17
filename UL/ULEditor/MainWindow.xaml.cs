@@ -19,7 +19,7 @@ namespace WpfApp1
 {
     class TypeNodeItem:TreeViewItem
     {
-        public Model.TypeInfo type;
+        public Model.ULTypeInfo type;
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ namespace WpfApp1
             return null;
         }
 
-        void AddType(Model.TypeInfo type)
+        void AddType(Model.ULTypeInfo type)
         {
             var ns_list = type.Namespace.Split('.');
             ItemCollection lastCollection = treeView.Items;
@@ -89,7 +89,7 @@ namespace WpfApp1
 
         private void OnClick_AddType(object sender, RoutedEventArgs e)
         {
-            var t = new Model.TypeInfo();
+            var t = new Model.ULTypeInfo();
             t.Namespace = "globle";
             t.Name = "NewClass";
             t.SetGUID(Guid.NewGuid().ToString());
@@ -103,6 +103,18 @@ namespace WpfApp1
             if (typeNode != null)
             {
                 this.propertyGrid.SelectedObject = typeNode.type;
+                switch( tabControl.SelectedIndex)
+                {
+                    case 0:
+                        cs_richTextBox.Text = (Model.ULToCS.To(typeNode.type));
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        break;
+                }
             }
         }
     }

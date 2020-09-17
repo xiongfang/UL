@@ -88,6 +88,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\CSToUL.cs" />
+    <Compile Include="Model\ULToCpp.cs" />
+    <Compile Include="Model\ULToCS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

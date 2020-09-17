@@ -7,7 +7,7 @@ namespace Model
 
     public class ModelData
     {
-        public static Dictionary<string, TypeInfo> Types = new Dictionary<string, TypeInfo>();
+        public static Dictionary<string, ULTypeInfo> Types = new Dictionary<string, ULTypeInfo>();
 
         public static void Save()
         {
@@ -26,7 +26,7 @@ namespace Model
 
             var bf = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             var fs = new System.IO.FileStream("model.dat", System.IO.FileMode.Open);
-            Types = bf.Deserialize(fs) as Dictionary<string, TypeInfo>;
+            Types = bf.Deserialize(fs) as Dictionary<string, ULTypeInfo>;
             fs.Close();
         }
     }
@@ -39,7 +39,7 @@ namespace Model
     }
 
     [Serializable]
-    public class TypeInfo
+    public class ULTypeInfo
     {
         string _guid;
 
@@ -51,11 +51,11 @@ namespace Model
 
         public EExportType ExportType { get; set; }
 
-        public Dictionary<string,MemberInfo> Members = new Dictionary<string, MemberInfo>();
+        public Dictionary<string,ULMemberInfo> Members = new Dictionary<string, ULMemberInfo>();
 
     }
     [Serializable]
-    public class MemberInfo
+    public class ULMemberInfo
     {
         public string ReflectTypeId;
         public string MemberTypeId;
@@ -74,12 +74,12 @@ namespace Model
         
     }
     [Serializable]
-    public class Statement
+    public class ULStatement
     {
 
     }
     [Serializable]
-    public class Exp
+    public class ULExp
     {
 
     }

@@ -37,20 +37,34 @@
             <TabItem Header="C#">
                 <Grid Background="#FFE5E5E5">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="57*"/>
-                        <ColumnDefinition Width="162*"/>
-                        <ColumnDefinition Width="77*"/>
+                        <ColumnDefinition Width="41*"/>
+                        <ColumnDefinition Width="272*"/>
                     </Grid.ColumnDefinitions>
+                    <TextBox x:Name="cs_richTextBox" Margin="0" Padding="1" Grid.ColumnSpan="2">
+
+                    </TextBox>
                 </Grid>
             </TabItem>
             <TabItem Header="Lua">
-                <Grid Background="#FFE5E5E5"/>
+                <Grid Background="#FFE5E5E5">
+                    <TextBox x:Name="lua_richTextBox" Margin="0">
+
+                    </TextBox>
+                </Grid>
             </TabItem>
             <TabItem Header="C++">
-                <Grid Background="#FFE5E5E5"/>
+                <Grid Background="#FFE5E5E5">
+                    <TextBox x:Name="cpp_richTextBox" Margin="0">
+
+                    </TextBox>
+                </Grid>
             </TabItem>
             <TabItem Header="Blueprint">
-                <Grid Background="#FFE5E5E5"/>
+                <Grid Background="#FFE5E5E5">
+                    <TextBox x:Name="bp_richTextBox" Margin="0">
+
+                    </TextBox>
+                </Grid>
             </TabItem>
         </TabControl>
         <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" Margin="-5,0,0,0" Grid.Row="1"></GridSplitter>
