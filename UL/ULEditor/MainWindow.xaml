@@ -11,27 +11,35 @@
         Loaded="Window_Loaded"
          Closed="Window_Closed" >
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30*"/>
+            <RowDefinition Height="570*"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="49*"/>
-            <ColumnDefinition Width="7*"/>
-            <ColumnDefinition Width="104*"/>
+            <ColumnDefinition Width="242*"/>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="329*"/>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="221*"/>
         </Grid.ColumnDefinitions>
-        <TreeView x:Name="treeView" Margin="0,31,0,0" SelectedItemChanged="TreeView_OnSelectedChange" HorizontalAlignment="Left" Width="196">
+        <TreeView Grid.Column="0" x:Name="treeView" Margin="0" SelectedItemChanged="TreeView_OnSelectedChange" Grid.Row="1">
             <TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="添加" Click="OnClick_AddType"/>
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>
-        <Menu x:Name="menu" VerticalAlignment="Top" Height="21" Grid.ColumnSpan="3">
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Margin="0" Grid.Row="1"></GridSplitter>
+        <Menu x:Name="menu" VerticalAlignment="Top" Height="21" Grid.ColumnSpan="5">
             <MenuItem Header="文件"/>
         </Menu>
-        <TabControl x:Name="tabControl" Margin="201,31,234,0" Grid.ColumnSpan="3">
+        <TabControl Grid.Column="2" x:Name="tabControl" Margin="1,0" Grid.Row="1">
             <TabItem Header="C#">
                 <Grid Background="#FFE5E5E5">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="5*"/>
-                        <ColumnDefinition Width="21*"/>
+                        <ColumnDefinition Width="57*"/>
+                        <ColumnDefinition Width="162*"/>
+                        <ColumnDefinition Width="77*"/>
                     </Grid.ColumnDefinitions>
                 </Grid>
             </TabItem>
@@ -45,8 +53,9 @@
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
         </TabControl>
-
-        <xctk:PropertyGrid x:Name="propertyGrid" Grid.Column="2" HorizontalAlignment="Right" Margin="0,31,-0.45,0" VerticalContentAlignment="Stretch" Width="229"/>
+        <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" Margin="-5,0,0,0" Grid.Row="1"></GridSplitter>
+        <xctk:PropertyGrid Grid.Column="4" x:Name="propertyGrid" Margin="0" VerticalContentAlignment="Stretch" RenderTransformOrigin="0.5,0.5" Grid.Row="1">
+        </xctk:PropertyGrid>
 
     </Grid>
 </Window>
