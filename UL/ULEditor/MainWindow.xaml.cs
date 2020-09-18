@@ -97,6 +97,36 @@ namespace WpfApp1
             AddType(t);
         }
 
+        void FindWordFromPosition(TextPointer position, string pattern)
+        {
+            while (position != null)
+            {
+                if (position.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
+                {
+                    string textRun = position.GetTextInRun(LogicalDirection.Forward);
+
+                    // Find the starting index of any substring that matches "word".
+
+                    var r = new System.Text.RegularExpressions.Regex(pattern);
+                    var ms = r.Matches(textRun);
+                    foreach(System.Text.RegularExpressions.Match m in ms)
+                    {
+                        var position_start = position.GetPositionAtOffset(m.Index);
+                        var position_end = position.GetPositionAtOffset(m.Index + m.Length);
+                        TextRange tr = new TextRange(position_start, position_end);
+                        tr.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Blue);
+                    }
+
+                    position = position.GetNextContextPosition(LogicalDirection.Forward);
+                    
+                }
+                else
+                {
+                    position = position.GetNextContextPosition(LogicalDirection.Forward);
+                }
+            }
+        }
+
         private void TreeView_OnSelectedChange(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             var typeNode = treeView.SelectedItem as TypeNodeItem;
@@ -106,7 +136,12 @@ namespace WpfApp1
                 switch( tabControl.SelectedIndex)
                 {
                     case 0:
-                        cs_richTextBox.Text = (Model.ULToCS.To(typeNode.type));
+                        cs_richTextBox.Document.Blocks.Clear();
+                        Paragraph paragraph = new Paragraph();
+                        paragraph.Inlines.Add(new Run() { Text = Model.ULToCS.To(typeNode.type) });
+                        cs_richTextBox.Document.Blocks.Add(paragraph);
+                        foreach(var k in Model.ULToCS.keywords)
+                            FindWordFromPosition(cs_richTextBox.Document.ContentStart, k);
                         break;
                     case 1:
                         break;
