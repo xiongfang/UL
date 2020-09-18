@@ -31,6 +31,23 @@ namespace Model
             sb.AppendLine(t);
         }
 
+        void Append(string t)
+        {
+            sb.Append(t);
+        }
+        void BeginAppend()
+        {
+            for (int i = 0; i < depth; i++)
+            {
+                sb.Append("\t");
+            }
+        }
+
+        void EndAppend()
+        {
+            sb.AppendLine();
+        }
+
         public override string ToString()
         {
             return sb.ToString();
@@ -47,7 +64,24 @@ namespace Model
                 sb.depth++;
             }
 
-            sb.AppendLine("class " + typeInfo.Name);
+            sb.BeginAppend();
+
+            if(typeInfo.ExportType == EExportType.Public)
+            {
+                sb.Append("public ");
+            }
+            else if(typeInfo.ExportType == EExportType.Protected)
+            {
+                sb.Append("protected ");
+            }
+            else
+            {
+                sb.Append("private ");
+            }
+
+            sb.Append("class " + typeInfo.Name);
+            sb.EndAppend();
+
             sb.AppendLine("{");
 
             sb.AppendLine("}");

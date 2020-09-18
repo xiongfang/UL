@@ -68,7 +68,7 @@
             </TabItem>
         </TabControl>
         <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" Margin="-5,0,0,0" Grid.Row="1"></GridSplitter>
-        <xctk:PropertyGrid Grid.Column="4" x:Name="propertyGrid" Margin="0" VerticalContentAlignment="Stretch" RenderTransformOrigin="0.5,0.5" Grid.Row="1">
+        <xctk:PropertyGrid Grid.Column="4" x:Name="propertyGrid" Margin="0" VerticalContentAlignment="Stretch" RenderTransformOrigin="0.5,0.5" Grid.Row="1" PropertyValueChanged="propertyGrid_PropertyValueChanged">
         </xctk:PropertyGrid>
 
     </Grid>
