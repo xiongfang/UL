@@ -135,7 +135,7 @@ namespace Model
                     Append(";");
                     break;
                 case ULMemberInfo.EMemberType.Property:
-                    Append("{get;set;}");
+                    Append("{ get; set;}");
                     break;
                 case ULMemberInfo.EMemberType.Method:
                     Append("()");
