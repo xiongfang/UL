@@ -138,7 +138,7 @@ namespace Model
                     Append("{ get; set;}");
                     break;
                 case ULMemberInfo.EMemberType.Method:
-                    Append("()");
+                    Append("(){}");
                     break;
             }
             EndAppendLine();
