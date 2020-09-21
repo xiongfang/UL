@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,9 +22,9 @@ namespace WpfApp1
 {
     public class TreeViewWithIcons : TreeViewItem
     {
-        ImageSource iconSource;
-        TextBlock textBlock;
-        Image icon;
+        protected ImageSource iconSource;
+        protected TextBlock textBlock;
+        protected Image icon;
 
         public TreeViewWithIcons()
         {
@@ -75,19 +78,32 @@ namespace WpfApp1
         /// </summary>
         public string HeaderText
         {
-            set
-            {
-                textBlock.Text = value;
-            }
             get
             {
                 return textBlock.Text;
             }
+            set
+            {
+                textBlock.Text = value;
+            }
         }
+
     }
     class TypeNodeItem: TreeViewWithIcons
     {
         public Model.ULTypeInfo type;
+        public TypeNodeItem(Model.ULTypeInfo t) { type = t; textBlock.Text = type.Name; }
+
+        public override void EndInit()
+        {
+            base.EndInit();
+            textBlock.Text = type.Name;
+        }
+
+        public void Refresh()
+        {
+            textBlock.Text = type.Name;
+        }
     }
 
     /// <summary>
@@ -113,31 +129,63 @@ namespace WpfApp1
         }
 
 
-        TreeViewItem FindChild(ItemCollection p,string Name)
+        T FindChild<T>(ItemCollection p,System.Func<T,bool> condition=null,bool children=false) where T: TreeViewWithIcons
         {
             foreach(var n in p)
             {
-                if ((n as TreeViewItem).Header as string == Name)
-                    return n as TreeViewItem;
+                var t = n as T;
+                if (t != null && (condition == null || condition(t)))
+                {
+                    return t;
+                }
+
+                if (children)
+                {
+                    var c = FindChild<T>((n as TreeViewItem).Items, condition, children);
+                    if (c != null)
+                        return c;
+                }
             }
             return null;
         }
+        T[] FindChildren<T>(ItemCollection p, System.Func<T, bool> condition = null, bool children = false) where T : TreeViewWithIcons
+        {
+            List<T> cs = new List<T>();
+            foreach (var n in p)
+            {
+                var t = n as T;
 
+                if (t !=null && ( condition ==null || condition(t)))
+                {
+                    cs.Add(t);
+                }
+
+                if (children)
+                {
+                    var c = FindChildren<T>((n as TreeViewItem).Items, condition, children);
+                    if (c != null)
+                    {
+                        cs.AddRange(c);
+                    }
+                }
+            }
+            return cs.ToArray();
+        }
         void AddType(Model.ULTypeInfo type)
         {
             var ns_list = type.Namespace.Split('.');
             ItemCollection lastCollection = treeView.Items;
 
-            TreeViewItem parentNode = null;
+            TreeViewWithIcons parentNode = null;
 
             foreach (var n in ns_list)
             {
-                parentNode = FindChild(lastCollection, n);
+                parentNode = FindChild<TreeViewWithIcons>(lastCollection,(v)=>v.HeaderText == n);
 
                 if (parentNode == null)
                 {
                     parentNode = new TreeViewWithIcons();
-                    parentNode.Header = n;
+                    parentNode.HeaderText = n;
                     lastCollection.Add(parentNode);
                     
                 }
@@ -145,13 +193,8 @@ namespace WpfApp1
             }
 
 
-            var classNode = new TypeNodeItem();
-            classNode.Header = type.Name;
-            classNode.type = type;
-            var bm = new BitmapImage();
-            bm.BeginInit();
-            bm.UriSource = new Uri("Res/type.png", UriKind.Relative);
-            bm.EndInit();
+            var classNode = new TypeNodeItem(type);
+            var bm = new BitmapImage(new Uri("Images/type.png", UriKind.RelativeOrAbsolute));
             classNode.Icon = bm;
             parentNode.Items.Add(classNode);
         }
@@ -163,12 +206,59 @@ namespace WpfApp1
 
         private void OnClick_AddType(object sender, RoutedEventArgs e)
         {
-            var t = new Model.ULTypeInfo();
-            t.Namespace = "globle";
-            t.Name = "NewClass";
-            t.SetGUID(Guid.NewGuid().ToString());
-            Model.ModelData.Types.Add(t.Guid, t);
-            AddType(t);
+            
+            var typeNode = treeView.SelectedItem as TypeNodeItem;
+            if(typeNode!=null)
+            {
+                var t = typeNode.type;
+                var m = new Model.ULMemberInfo();
+                m.ReflectTypeId = t.Guid;
+                m.ExportType = Model.EExportType.Public;
+                m.IsStatic = false;
+                m.Name = "NewMember";
+                t.Members[t.Name] = m;
+                return;
+            }
+            var nsNode = treeView.SelectedItem as TreeViewWithIcons;
+            if(nsNode!=null)
+            {
+                var t = new Model.ULTypeInfo();
+                t.Namespace = GetNamespace(nsNode);
+                t.Name = "NewClass";
+                t.SetGUID(Guid.NewGuid().ToString());
+                Model.ModelData.Types.Add(t.Guid, t);
+                AddType(t);
+            }
+            else
+            {
+                var t = new Model.ULTypeInfo();
+                t.Namespace = "gloable";
+                t.Name = "NewClass";
+                t.SetGUID(Guid.NewGuid().ToString());
+                Model.ModelData.Types.Add(t.Guid, t);
+                AddType(t);
+            }
+        }
+
+        string GetNamespace(TreeViewWithIcons vv)
+        {
+            List<string> ns_list = new List<string>();
+            while(vv!=null)
+            {
+                ns_list.Add(vv.HeaderText);
+                vv = vv.Parent as TreeViewWithIcons;
+            }
+            ns_list.Reverse();
+            StringBuilder sb = new StringBuilder();
+            for(int i=0;i<ns_list.Count;i++)
+            {
+                sb.Append(ns_list[i]);
+                if(i+1<ns_list.Count)
+                {
+                    sb.Append(".");
+                }
+            }
+            return sb.ToString();
         }
 
         void FindWordFromPosition(TextPointer position, string pattern)
@@ -231,6 +321,7 @@ namespace WpfApp1
         private void propertyGrid_PropertyValueChanged(object sender, Xceed.Wpf.Toolkit.PropertyGrid.PropertyValueChangedEventArgs e)
         {
             TreeView_OnSelectedChange(null,null);
+            (treeView.SelectedItem as TypeNodeItem).Refresh();
         }
     }
 }

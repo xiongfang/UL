@@ -28,6 +28,7 @@
                     <MenuItem Header="添加" Click="OnClick_AddType"/>
                 </ContextMenu>
             </TreeView.ContextMenu>
+            
         </TreeView>
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Margin="0" Grid.Row="1"></GridSplitter>
         <Menu x:Name="menu" VerticalAlignment="Top" Height="21" Grid.ColumnSpan="5">
@@ -41,6 +42,9 @@
                         <ColumnDefinition Width="272*"/>
                     </Grid.ColumnDefinitions>
                     <RichTextBox x:Name="cs_richTextBox" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"  Margin="0" Padding="1" Grid.ColumnSpan="2">
+                        <FlowDocument>
+                            <Paragraph/>
+                        </FlowDocument>
 
                     </RichTextBox>
                 </Grid>
