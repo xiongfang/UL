@@ -20,13 +20,13 @@ using Xceed.Wpf.Toolkit;
 
 namespace WpfApp1
 {
-    public class TreeViewWithIcons : TreeViewItem
+    public class TreeNode : TreeViewItem
     {
         protected ImageSource iconSource;
         protected TextBlock textBlock;
         protected Image icon;
 
-        public TreeViewWithIcons()
+        public TreeNode()
         {
             StackPanel stack = new StackPanel();
             stack.Orientation = Orientation.Horizontal;
@@ -89,7 +89,7 @@ namespace WpfApp1
         }
 
     }
-    class TypeNodeItem: TreeViewWithIcons
+    class TypeNodeItem: TreeNode
     {
         public Model.ULTypeInfo type;
         public TypeNodeItem(Model.ULTypeInfo t) { type = t; textBlock.Text = type.Name; }
@@ -105,7 +105,27 @@ namespace WpfApp1
             textBlock.Text = type.Name;
         }
     }
+    class MemberNodeItem : TreeNode
+    {
+        public Model.ULMemberInfo type;
+        public MemberNodeItem(Model.ULMemberInfo t) { type = t; textBlock.Text = type.Name; }
 
+        public override void EndInit()
+        {
+            base.EndInit();
+            textBlock.Text = type.Name;
+        }
+
+        public void Refresh()
+        {
+            if(type.Name!=textBlock.Text)
+            {
+                textBlock.Text = type.Name;
+
+            }
+            
+        }
+    }
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -129,7 +149,7 @@ namespace WpfApp1
         }
 
 
-        T FindChild<T>(ItemCollection p,System.Func<T,bool> condition=null,bool children=false) where T: TreeViewWithIcons
+        T FindChild<T>(ItemCollection p,System.Func<T,bool> condition=null,bool children=false) where T: TreeNode
         {
             foreach(var n in p)
             {
@@ -148,7 +168,7 @@ namespace WpfApp1
             }
             return null;
         }
-        T[] FindChildren<T>(ItemCollection p, System.Func<T, bool> condition = null, bool children = false) where T : TreeViewWithIcons
+        T[] FindChildren<T>(ItemCollection p, System.Func<T, bool> condition = null, bool children = false) where T : TreeNode
         {
             List<T> cs = new List<T>();
             foreach (var n in p)
@@ -176,15 +196,15 @@ namespace WpfApp1
             var ns_list = type.Namespace.Split('.');
             ItemCollection lastCollection = treeView.Items;
 
-            TreeViewWithIcons parentNode = null;
+            TreeNode parentNode = null;
 
             foreach (var n in ns_list)
             {
-                parentNode = FindChild<TreeViewWithIcons>(lastCollection,(v)=>v.HeaderText == n);
+                parentNode = FindChild<TreeNode>(lastCollection,(v)=>v.HeaderText == n);
 
                 if (parentNode == null)
                 {
-                    parentNode = new TreeViewWithIcons();
+                    parentNode = new TreeNode();
                     parentNode.HeaderText = n;
                     lastCollection.Add(parentNode);
                     
@@ -197,6 +217,19 @@ namespace WpfApp1
             var bm = new BitmapImage(new Uri("Images/type.png", UriKind.RelativeOrAbsolute));
             classNode.Icon = bm;
             parentNode.Items.Add(classNode);
+
+            foreach(var m in type.Members)
+            {
+                AddMember(classNode, m);
+            }
+        }
+
+        void AddMember(TypeNodeItem node,Model.ULMemberInfo memberInfo)
+        {
+            var classNode = new MemberNodeItem(memberInfo);
+            var bm = new BitmapImage(new Uri("Images/func.png", UriKind.RelativeOrAbsolute));
+            classNode.Icon = bm;
+            node.Items.Add(classNode);
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -204,22 +237,22 @@ namespace WpfApp1
             Model.ModelData.Save();
         }
 
-        private void OnClick_AddType(object sender, RoutedEventArgs e)
+        private void OnClick_TreeNodeAdd(object sender, RoutedEventArgs e)
         {
             
             var typeNode = treeView.SelectedItem as TypeNodeItem;
             if(typeNode!=null)
             {
                 var t = typeNode.type;
-                var m = new Model.ULMemberInfo();
-                m.ReflectTypeId = t.Guid;
+                var m = new Model.ULMemberInfo(t);
                 m.ExportType = Model.EExportType.Public;
                 m.IsStatic = false;
                 m.Name = "NewMember";
-                t.Members[t.Name] = m;
+                t.Members.Add(m);
+                AddMember(typeNode, m);
                 return;
             }
-            var nsNode = treeView.SelectedItem as TreeViewWithIcons;
+            var nsNode = treeView.SelectedItem as TreeNode;
             if(nsNode!=null)
             {
                 var t = new Model.ULTypeInfo();
@@ -240,13 +273,44 @@ namespace WpfApp1
             }
         }
 
-        string GetNamespace(TreeViewWithIcons vv)
+        private void OnClick_TreeNodeDelete(object sender, RoutedEventArgs e)
+        {
+            {
+                var typeNode = treeView.SelectedItem as TypeNodeItem;
+                if (typeNode != null)
+                {
+                    Model.ModelData.Types.Remove(typeNode.type.Guid);
+                    (typeNode.Parent as TreeNode).Items.Remove(typeNode);
+                }
+            }
+
+            {
+                var memberNode = treeView.SelectedItem as MemberNodeItem;
+                if (memberNode != null)
+                {
+                    if(memberNode.type.ReflectType!=null)
+                    {
+                        memberNode.type.ReflectType.Members.Remove(memberNode.type);
+                    }
+                    else
+                    {
+                        (memberNode.Parent as TypeNodeItem).type.Members.Remove(memberNode.type);
+                    }
+                    
+                    (memberNode.Parent as TreeNode).Items.Remove(memberNode);
+                }
+            }
+
+            
+        }
+
+        string GetNamespace(TreeNode vv)
         {
             List<string> ns_list = new List<string>();
             while(vv!=null)
             {
                 ns_list.Add(vv.HeaderText);
-                vv = vv.Parent as TreeViewWithIcons;
+                vv = vv.Parent as TreeNode;
             }
             ns_list.Reverse();
             StringBuilder sb = new StringBuilder();
@@ -272,22 +336,18 @@ namespace WpfApp1
                     // Find the starting index of any substring that matches "word".
 
                     var r = new System.Text.RegularExpressions.Regex(pattern);
-                    var ms = r.Matches(textRun);
-                    foreach(System.Text.RegularExpressions.Match m in ms)
+                    System.Text.RegularExpressions.Match m = r.Match(textRun);
+
+                    TextPointer textPointerEnd = position;
                     {
                         var position_start = position.GetPositionAtOffset(m.Index);
-                        var position_end = position.GetPositionAtOffset(m.Index + m.Length);
-                        TextRange tr = new TextRange(position_start, position_end);
+                        textPointerEnd = position.GetPositionAtOffset(m.Index + m.Length);
+                        TextRange tr = new TextRange(position_start, textPointerEnd);
                         tr.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Blue);
-                    }
 
-                    position = position.GetNextContextPosition(LogicalDirection.Forward);
-                    
+                    }
                 }
-                else
-                {
-                    position = position.GetNextContextPosition(LogicalDirection.Forward);
-                }
+                position = position.GetNextContextPosition(LogicalDirection.Forward);
             }
         }
 
@@ -315,13 +375,25 @@ namespace WpfApp1
                     case 3:
                         break;
                 }
+                return;
             }
+
+            var memberNode = treeView.SelectedItem as MemberNodeItem;
+            if(memberNode!=null)
+            {
+                this.propertyGrid.SelectedObject = memberNode.type;
+            }
+            
         }
 
         private void propertyGrid_PropertyValueChanged(object sender, Xceed.Wpf.Toolkit.PropertyGrid.PropertyValueChangedEventArgs e)
         {
             TreeView_OnSelectedChange(null,null);
-            (treeView.SelectedItem as TypeNodeItem).Refresh();
+            if(treeView.SelectedItem is TypeNodeItem)
+                (treeView.SelectedItem as TypeNodeItem).Refresh();
+
+            if(treeView.SelectedItem is MemberNodeItem)
+                (treeView.SelectedItem as MemberNodeItem).Refresh();
         }
     }
 }

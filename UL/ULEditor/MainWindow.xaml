@@ -25,7 +25,8 @@
         <TreeView Grid.Column="0" x:Name="treeView" Margin="0" SelectedItemChanged="TreeView_OnSelectedChange" Grid.Row="1">
             <TreeView.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="添加" Click="OnClick_AddType"/>
+                    <MenuItem Header="添加" Click="OnClick_TreeNodeAdd"/>
+                    <MenuItem Header="删除" Click="OnClick_TreeNodeDelete"/>
                 </ContextMenu>
             </TreeView.ContextMenu>
             

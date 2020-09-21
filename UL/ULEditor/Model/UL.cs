@@ -51,19 +51,55 @@ namespace Model
 
         public EExportType ExportType { get; set; }
 
-        public Dictionary<string,ULMemberInfo> Members = new Dictionary<string, ULMemberInfo>();
+        public List<ULMemberInfo> Members = new List<ULMemberInfo>();
 
     }
     [Serializable]
     public class ULMemberInfo
     {
-        public string ReflectTypeId;
-        public string MemberTypeId;
-        public string Name;
-        public EExportType ExportType;
+        public ULMemberInfo(ULTypeInfo type)
+        {
+            _ref_guid = type.Guid;
+        }
 
-        public bool IsStatic;
+        string _ref_guid;
+        public string ReflectTypeId { get { return _ref_guid; } }
 
+        public ULTypeInfo ReflectType {
+            get {
+                if (string.IsNullOrEmpty(_ref_guid))
+                    return null;
+
+                if (ModelData.Types.TryGetValue(_ref_guid, out var v))
+                {
+                    return v;
+                }
+                return null;
+            }
+        }
+
+        public string MemberTypeId { get; set; }
+
+        public ULTypeInfo MemberType
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(MemberTypeId))
+                    return null;
+                if (ModelData.Types.TryGetValue(MemberTypeId, out var v))
+                {
+                    return v;
+                }
+                return null;
+            }
+        }
+
+        public string Name { get; set; }
+        public EExportType ExportType { get; set; }
+
+        public bool IsStatic { get; set; }
+
+        public Dictionary<string, string> Ext { get; set; }
         public enum EMemberType
         {
             Field,
@@ -71,7 +107,7 @@ namespace Model
             Method
         }
 
-        
+        public EMemberType type { get; set; }
     }
     [Serializable]
     public class ULStatement

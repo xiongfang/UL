@@ -10,14 +10,16 @@ namespace Model
     {
         public readonly static string[] keywords = new string[]
         {
+            "public",
             "namespace",
             "class",
-            "public",
+            "void",
             "protected",
             "private",
             "override",
 
         };
+        ULTypeInfo typeInfo;
 
         int depth = 0;
         StringBuilder sb = new StringBuilder();
@@ -35,7 +37,7 @@ namespace Model
         {
             sb.Append(t);
         }
-        void BeginAppend()
+        void BeginAppendLine()
         {
             for (int i = 0; i < depth; i++)
             {
@@ -43,7 +45,7 @@ namespace Model
             }
         }
 
-        void EndAppend()
+        void EndAppendLine()
         {
             sb.AppendLine();
         }
@@ -56,42 +58,90 @@ namespace Model
         public static string To(ULTypeInfo typeInfo)
         {
             var sb = new ULToCS();
+            sb.typeInfo = typeInfo;
+            sb.ToType();
 
-            if(!string.IsNullOrEmpty( typeInfo.Namespace))
+            return sb.ToString();
+        }
+
+        void ToType()
+        {
+            if (!string.IsNullOrEmpty(typeInfo.Namespace))
             {
-                sb.AppendLine("namespace " + typeInfo.Namespace);
-                sb.AppendLine("{");
-                sb.depth++;
+                AppendLine("namespace " + typeInfo.Namespace);
+                AppendLine("{");
+                depth++;
             }
 
-            sb.BeginAppend();
+            BeginAppendLine();
 
-            if(typeInfo.ExportType == EExportType.Public)
+            if (typeInfo.ExportType == EExportType.Public)
             {
-                sb.Append("public ");
+                Append("public ");
             }
-            else if(typeInfo.ExportType == EExportType.Protected)
+            else if (typeInfo.ExportType == EExportType.Protected)
             {
-                sb.Append("protected ");
+                Append("protected ");
             }
             else
             {
-                sb.Append("private ");
+                Append("private ");
             }
 
-            sb.Append("class " + typeInfo.Name);
-            sb.EndAppend();
+            Append("class " + typeInfo.Name);
+            EndAppendLine();
 
-            sb.AppendLine("{");
-
-            sb.AppendLine("}");
+            AppendLine("{");
+            depth++;
+            foreach (var m in typeInfo.Members)
+            {
+                
+                ToMember(m);
+            }
+            depth--;
+            AppendLine("}");
 
             if (!string.IsNullOrEmpty(typeInfo.Namespace))
             {
-                sb.depth--;
-                sb.AppendLine("}");
+                depth--;
+                AppendLine("}");
             }
-            return sb.ToString();
+        }
+
+        void ToMember(ULMemberInfo memberInfo)
+        {
+            BeginAppendLine();
+
+            if (memberInfo.ExportType == EExportType.Public)
+            {
+                Append("public ");
+            }
+            else if (memberInfo.ExportType == EExportType.Protected)
+            {
+                Append("protected ");
+            }
+            else
+            {
+                Append("private ");
+            }
+
+            Append(memberInfo.MemberType != null ? memberInfo.MemberType.Name : "void");
+            Append(" ");
+            Append(memberInfo.Name);
+
+            switch(memberInfo.type)
+            {
+                case ULMemberInfo.EMemberType.Field:
+                    Append(";");
+                    break;
+                case ULMemberInfo.EMemberType.Property:
+                    Append("{get;set;}");
+                    break;
+                case ULMemberInfo.EMemberType.Method:
+                    Append("()");
+                    break;
+            }
+            EndAppendLine();
         }
     }
 }
