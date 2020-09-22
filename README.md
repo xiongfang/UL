@@ -3,7 +3,7 @@ Universe Language used for all platforms,Can be converted to any other language
 
 UL语言本身不是一种语言，而是一套标准和工具集。
 
-编辑器预览![Image text](https://github.com/xiongfang/UL/blob/master/Documents/editor.png)
+![编辑器预览](https://github.com/xiongfang/UL/blob/master/Documents/editor.png "编辑器预览")
 
 # 当前进度
 
