@@ -17,6 +17,7 @@ namespace Model
             "protected",
             "private",
             "override",
+            "static"
 
         };
         ULTypeInfo typeInfo;
@@ -73,6 +74,8 @@ namespace Model
                 depth++;
             }
 
+            AppendLine(string.Format("[GUID(\"{0}\")]", typeInfo.Guid));
+
             BeginAppendLine();
 
             if (typeInfo.ExportType == EExportType.Public)
@@ -93,7 +96,7 @@ namespace Model
 
             AppendLine("{");
             depth++;
-            foreach (var m in typeInfo.Members)
+            foreach (var m in typeInfo.Methods)
             {
                 
                 ToMember(m);
@@ -125,11 +128,15 @@ namespace Model
                 Append("private ");
             }
 
-            Append(memberInfo.MemberType != null ? memberInfo.MemberType.Name : "void");
+            if(memberInfo.IsStatic)
+            {
+                Append("static ");
+            }
+
+            Append(memberInfo.Type == ModelData.Void ? "void" :memberInfo.Type.Name);
             Append(" ");
             Append(memberInfo.Name);
-
-            switch(memberInfo.type)
+            switch (memberInfo.MemberType)
             {
                 case ULMemberInfo.EMemberType.Field:
                     Append(";");
@@ -138,10 +145,39 @@ namespace Model
                     Append("{ get; set;}");
                     break;
                 case ULMemberInfo.EMemberType.Method:
-                    Append("(){}");
+                    Append("()");
                     break;
             }
             EndAppendLine();
+
+            if(memberInfo.MemberType == ULMemberInfo.EMemberType.Method)
+            {
+                ToStatement(memberInfo.MethodBody);
+            }
         }
+        void ToBody(ULStatementBlock block)
+        {
+            AppendLine("{");
+            depth++;
+
+            foreach(var s in block.statements)
+            {
+                ToStatement(s);
+            }
+            depth--;
+            AppendLine("}");
+
+        }
+
+        void ToStatement(ULStatement s)
+        {
+            if (s == null)
+                return;
+            if(s is ULStatementBlock)
+            {
+                ToBody(s as ULStatementBlock);
+            }
+        }
+
     }
 }

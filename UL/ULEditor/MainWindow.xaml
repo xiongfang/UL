@@ -29,13 +29,13 @@
                     <MenuItem Header="删除" Click="OnClick_TreeNodeDelete"/>
                 </ContextMenu>
             </TreeView.ContextMenu>
-            
+
         </TreeView>
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Margin="0" Grid.Row="1"></GridSplitter>
         <Menu x:Name="menu" VerticalAlignment="Top" Height="21" Grid.ColumnSpan="5">
             <MenuItem Header="文件"/>
         </Menu>
-        <TabControl Grid.Column="2" x:Name="tabControl" Margin="1,0" Grid.Row="1">
+        <TabControl Grid.Column="2" x:Name="tabControl" Margin="1,37,1,0" Grid.Row="1">
             <TabItem Header="C#">
                 <Grid Background="#FFE5E5E5">
                     <Grid.ColumnDefinitions>
@@ -75,6 +75,9 @@
         <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" Margin="-5,0,0,0" Grid.Row="1"></GridSplitter>
         <xctk:PropertyGrid Grid.Column="4" x:Name="propertyGrid" Margin="0" VerticalContentAlignment="Stretch" RenderTransformOrigin="0.5,0.5" Grid.Row="1" PropertyValueChanged="propertyGrid_PropertyValueChanged">
         </xctk:PropertyGrid>
+        <StackPanel Grid.Column="2" HorizontalAlignment="Left" Height="32" Margin="10,5,0,0" Grid.Row="1" VerticalAlignment="Top" Width="305" Orientation="Horizontal">
+            <Button x:Name="compile" Content="编译" Click="btnCompile_Click"/>
+        </StackPanel>
 
     </Grid>
 </Window>

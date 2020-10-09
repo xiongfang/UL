@@ -107,20 +107,20 @@ namespace WpfApp1
     }
     class MemberNodeItem : TreeNode
     {
-        public Model.ULMemberInfo type;
-        public MemberNodeItem(Model.ULMemberInfo t) { type = t; textBlock.Text = type.Name; }
+        public Model.ULMemberInfo member;
+        public MemberNodeItem(Model.ULMemberInfo t) { member = t; textBlock.Text = member.Name; }
 
         public override void EndInit()
         {
             base.EndInit();
-            textBlock.Text = type.Name;
+            textBlock.Text = member.Name;
         }
 
         public void Refresh()
         {
-            if(type.Name!=textBlock.Text)
+            if(member.Name!=textBlock.Text)
             {
-                textBlock.Text = type.Name;
+                textBlock.Text = member.Name;
 
             }
             
@@ -141,10 +141,9 @@ namespace WpfApp1
 
             Model.ModelData.Load();
 
-            foreach (var t in Model.ModelData.Types)
+            foreach (var t in Model.ModelData.GetTypeList())
             {
-                AddType(t.Value);
-
+                AddTypeNode(t);
             }
         }
 
@@ -191,7 +190,7 @@ namespace WpfApp1
             }
             return cs.ToArray();
         }
-        void AddType(Model.ULTypeInfo type)
+        void AddTypeNode(Model.ULTypeInfo type)
         {
             var ns_list = type.Namespace.Split('.');
             ItemCollection lastCollection = treeView.Items;
@@ -218,10 +217,26 @@ namespace WpfApp1
             classNode.Icon = bm;
             parentNode.Items.Add(classNode);
 
-            foreach(var m in type.Members)
+            foreach(var m in type.Methods)
             {
                 AddMember(classNode, m);
             }
+        }
+
+        void UpdateTypeNode(Model.ULTypeInfo type)
+        {
+            var node = FindChild<TypeNodeItem>(treeView.Items, (v) => { return v.type.Guid == type.Guid; }, true);
+            if(node!=null)
+            {
+                node.type = type;
+                node.Items.Clear();
+                foreach (var m in type.Methods)
+                {
+                    AddMember(node, m);
+                }
+                node.Refresh();
+            }
+           
         }
 
         void AddMember(TypeNodeItem node,Model.ULMemberInfo memberInfo)
@@ -248,7 +263,8 @@ namespace WpfApp1
                 m.ExportType = Model.EExportType.Public;
                 m.IsStatic = false;
                 m.Name = "NewMember";
-                t.Members.Add(m);
+                //m.SetGuid(t.Guid + "-" + t.Methods.Count);
+                t.Methods.Add(m);
                 AddMember(typeNode, m);
                 return;
             }
@@ -259,17 +275,17 @@ namespace WpfApp1
                 t.Namespace = GetNamespace(nsNode);
                 t.Name = "NewClass";
                 t.SetGUID(Guid.NewGuid().ToString());
-                Model.ModelData.Types.Add(t.Guid, t);
-                AddType(t);
+                Model.ModelData.AddType(t);
+                AddTypeNode(t);
             }
             else
             {
                 var t = new Model.ULTypeInfo();
-                t.Namespace = "gloable";
+                t.Namespace = Model.ModelData.GloableNamespaceName;
                 t.Name = "NewClass";
                 t.SetGUID(Guid.NewGuid().ToString());
-                Model.ModelData.Types.Add(t.Guid, t);
-                AddType(t);
+                Model.ModelData.AddType(t);
+                AddTypeNode(t);
             }
         }
 
@@ -279,7 +295,7 @@ namespace WpfApp1
                 var typeNode = treeView.SelectedItem as TypeNodeItem;
                 if (typeNode != null)
                 {
-                    Model.ModelData.Types.Remove(typeNode.type.Guid);
+                    Model.ModelData.RemoveType(typeNode.type);
                     (typeNode.Parent as TreeNode).Items.Remove(typeNode);
                 }
             }
@@ -288,13 +304,13 @@ namespace WpfApp1
                 var memberNode = treeView.SelectedItem as MemberNodeItem;
                 if (memberNode != null)
                 {
-                    if(memberNode.type.ReflectType!=null)
+                    if(memberNode.member.ReflectType!=null)
                     {
-                        memberNode.type.ReflectType.Members.Remove(memberNode.type);
+                        memberNode.member.ReflectType.Methods.Remove(memberNode.member);
                     }
                     else
                     {
-                        (memberNode.Parent as TypeNodeItem).type.Members.Remove(memberNode.type);
+                        (memberNode.Parent as TypeNodeItem).type.Methods.Remove(memberNode.member);
                     }
                     
                     (memberNode.Parent as TreeNode).Items.Remove(memberNode);
@@ -351,39 +367,60 @@ namespace WpfApp1
             }
         }
 
+        string GetAllText(TextPointer position)
+        {
+            StringBuilder sb = new StringBuilder();
+            while (position != null)
+            {
+                if (position.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
+                {
+                    string textRun = position.GetTextInRun(LogicalDirection.Forward);
+
+                    sb.Append(textRun);
+                }
+                position = position.GetNextContextPosition(LogicalDirection.Forward);
+            }
+            return sb.ToString();
+        }
+
         private void TreeView_OnSelectedChange(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             var typeNode = treeView.SelectedItem as TypeNodeItem;
             if (typeNode != null)
             {
                 this.propertyGrid.SelectedObject = typeNode.type;
-   
-                switch ( tabControl.SelectedIndex)
-                {
-                    case 0:
-                        cs_richTextBox.Document.Blocks.Clear();
-                        Paragraph paragraph = new Paragraph();
-                        paragraph.Inlines.Add(new Run() { Text = Model.ULToCS.To(typeNode.type) });
-                        cs_richTextBox.Document.Blocks.Add(paragraph);
-                        foreach(var k in Model.ULToCS.keywords)
-                            FindWordFromPosition(cs_richTextBox.Document.ContentStart, k);
-                        break;
-                    case 1:
-                        break;
-                    case 2:
-                        break;
-                    case 3:
-                        break;
-                }
+                UpdateCode(typeNode.type);
                 return;
             }
 
             var memberNode = treeView.SelectedItem as MemberNodeItem;
             if(memberNode!=null)
             {
-                this.propertyGrid.SelectedObject = memberNode.type;
+                this.propertyGrid.SelectedObject = memberNode.member;
+                UpdateCode(memberNode.member.ReflectType);
             }
             
+        }
+
+        void UpdateCode(Model.ULTypeInfo typeInfo)
+        {
+            switch (tabControl.SelectedIndex)
+            {
+                case 0:
+                    cs_richTextBox.Document.Blocks.Clear();
+                    Paragraph paragraph = new Paragraph();
+                    paragraph.Inlines.Add(new Run() { Text = Model.ULToCS.To(typeInfo) });
+                    cs_richTextBox.Document.Blocks.Add(paragraph);
+                    foreach (var k in Model.ULToCS.keywords)
+                        FindWordFromPosition(cs_richTextBox.Document.ContentStart, k);
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+            }
         }
 
         private void propertyGrid_PropertyValueChanged(object sender, Xceed.Wpf.Toolkit.PropertyGrid.PropertyValueChangedEventArgs e)
@@ -394,6 +431,38 @@ namespace WpfApp1
 
             if(treeView.SelectedItem is MemberNodeItem)
                 (treeView.SelectedItem as MemberNodeItem).Refresh();
+        }
+
+        private void btnCompile_Click(object sender, RoutedEventArgs e)
+        {
+            if(tabControl.SelectedIndex == 0)
+            {
+                var type_list =Model.CSToUL.Convert(GetAllText(cs_richTextBox.Document.ContentStart));
+                foreach(var t in type_list)
+                {
+                    if (Model.ModelData.FindTypeByGuid(t.Guid)!=null)
+                    {
+                        Model.ModelData.UpdateType(t);
+                        var typeNode = treeView.SelectedItem as TypeNodeItem;
+                        if(typeNode!=null && typeNode.type.Guid == t.Guid)
+                        {
+                            typeNode.type = t;
+                            UpdateTypeNode(t);
+                            TreeView_OnSelectedChange(null, null);
+                        }
+                        else
+                        {
+                            UpdateTypeNode(t);
+                        }
+                    }
+                    else
+                    {
+                        Model.ModelData.AddType(t);
+                        AddTypeNode(t);
+                    }
+                }
+                
+            }
         }
     }
 }
