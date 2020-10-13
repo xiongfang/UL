@@ -35,7 +35,7 @@
         <Menu x:Name="menu" VerticalAlignment="Top" Height="21" Grid.ColumnSpan="5">
             <MenuItem Header="文件"/>
         </Menu>
-        <TabControl Grid.Column="2" x:Name="tabControl" Margin="1,37,1,0" Grid.Row="1">
+        <TabControl Grid.Column="2" x:Name="tabControl" Margin="1,37,1,0" Grid.Row="1" SelectionChanged="tabControl_SelectionChanged">
             <TabItem Header="C#">
                 <Grid Background="#FFE5E5E5">
                     <Grid.ColumnDefinitions>
@@ -52,23 +52,23 @@
             </TabItem>
             <TabItem Header="Lua">
                 <Grid Background="#FFE5E5E5">
-                    <TextBox x:Name="lua_richTextBox" Margin="0">
+                    <RichTextBox x:Name="lua_richTextBox" AcceptsReturn="True"  VerticalScrollBarVisibility="Auto"  Margin="0" Padding="1" Grid.ColumnSpan="2">
 
-                    </TextBox>
+                    </RichTextBox>
                 </Grid>
             </TabItem>
             <TabItem Header="C++">
                 <Grid Background="#FFE5E5E5">
-                    <TextBox x:Name="cpp_richTextBox" Margin="0">
+                    <RichTextBox x:Name="cpp_richTextBox" AcceptsReturn="True"  VerticalScrollBarVisibility="Auto"  Margin="0" Padding="1" Grid.ColumnSpan="2">
 
-                    </TextBox>
+                    </RichTextBox>
                 </Grid>
             </TabItem>
             <TabItem Header="Blueprint">
                 <Grid Background="#FFE5E5E5">
-                    <TextBox x:Name="bp_richTextBox" Margin="0">
+                    <RichTextBox x:Name="bp_richTextBox" AcceptsReturn="True"  VerticalScrollBarVisibility="Auto"  Margin="0" Padding="1" Grid.ColumnSpan="2">
 
-                    </TextBox>
+                    </RichTextBox>
                 </Grid>
             </TabItem>
         </TabControl>

@@ -407,16 +407,35 @@ namespace WpfApp1
             switch (tabControl.SelectedIndex)
             {
                 case 0:
-                    cs_richTextBox.Document.Blocks.Clear();
-                    Paragraph paragraph = new Paragraph();
-                    paragraph.Inlines.Add(new Run() { Text = Model.ULToCS.To(typeInfo) });
-                    cs_richTextBox.Document.Blocks.Add(paragraph);
-                    foreach (var k in Model.ULToCS.keywords)
-                        FindWordFromPosition(cs_richTextBox.Document.ContentStart, k);
+                    {
+                        cs_richTextBox.Document.Blocks.Clear();
+                        Paragraph paragraph = new Paragraph();
+                        paragraph.Inlines.Add(new Run() { Text = Model.ULToCS.To(typeInfo) });
+                        cs_richTextBox.Document.Blocks.Add(paragraph);
+                        foreach (var k in Model.ULToCS.keywords)
+                            FindWordFromPosition(cs_richTextBox.Document.ContentStart, k);
+                    }
+
                     break;
                 case 1:
+                    {
+                        lua_richTextBox.Document.Blocks.Clear();
+                        Paragraph paragraph = new Paragraph();
+                        paragraph.Inlines.Add(new Run() { Text = Model.ULToLua.To(typeInfo) });
+                        lua_richTextBox.Document.Blocks.Add(paragraph);
+                        foreach (var k in Model.ULToLua.keywords)
+                            FindWordFromPosition(lua_richTextBox.Document.ContentStart, k);
+                    }
                     break;
                 case 2:
+                    {
+                        cpp_richTextBox.Document.Blocks.Clear();
+                        Paragraph paragraph = new Paragraph();
+                        paragraph.Inlines.Add(new Run() { Text = Model.ULToCpp.To(typeInfo) });
+                        cpp_richTextBox.Document.Blocks.Add(paragraph);
+                        //foreach (var k in Model.ULToCpp.keywords)
+                        //    FindWordFromPosition(cpp_richTextBox.Document.ContentStart, k);
+                    }
                     break;
                 case 3:
                     break;
@@ -462,6 +481,17 @@ namespace WpfApp1
                     }
                 }
                 
+            }
+        }
+
+        private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var typeNode = treeView.SelectedItem as TypeNodeItem;
+            if (typeNode != null)
+            {
+                this.propertyGrid.SelectedObject = typeNode.type;
+                UpdateCode(typeNode.type);
+                return;
             }
         }
     }

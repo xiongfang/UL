@@ -8,5 +8,9 @@ namespace Model
 {
     class ULToCpp
     {
+        public static string To(ULTypeInfo typeInfo)
+        {
+            return "";
+        }
     }
 }
