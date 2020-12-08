@@ -118,7 +118,7 @@ namespace Model
         }
     }
     [ProtoBuf.ProtoContract]
-    public enum EExportType
+    public enum EExportScope
     {
         Public,
         Protected,
@@ -149,7 +149,7 @@ namespace Model
         [ProtoBuf.ProtoMember(4)]
         public string Parent { get; set; }
         [ProtoBuf.ProtoMember(5)]
-        public EExportType ExportType { get; set; }
+        public EExportScope ExportType { get; set; }
         [ProtoBuf.ProtoMember(6)]
         public List<ULMemberInfo> Methods = new List<ULMemberInfo>();
 
@@ -204,27 +204,27 @@ namespace Model
         public string Name { get; set; }
 
         [ProtoBuf.ProtoMember(4)]
-        public EExportType ExportType { get; set; }
+        public EExportScope ExportType { get; set; }
         [ProtoBuf.ProtoMember(5)]
         public bool IsStatic { get; set; }
         [ProtoBuf.ProtoMember(6)]
         public Dictionary<string, string> Ext { get; set; }
         [ProtoBuf.ProtoContract]
-        public enum EMemberType
+        public enum EMemberMark
         {
-            Field,
-            Property,
+            PropertyGet,
+            PropertySet,
             Method,
             Event
         }
         
         [ProtoBuf.ProtoMember(7)]
-        public EMemberType MemberType { get; set; }
+        public EMemberMark MemberType { get; set; }
 
-        [ProtoBuf.ProtoMember(11)]
-        public string PropertyGetMethod { get; set; }
-        [ProtoBuf.ProtoMember(12)]
-        public string PropertySetMethod { get; set; }
+        //[ProtoBuf.ProtoMember(11)]
+        //public string PropertyGetMethod { get; set; }
+        //[ProtoBuf.ProtoMember(12)]
+        //public string PropertySetMethod { get; set; }
 
         [ProtoBuf.ProtoMember(13)]
         public ULStatementBlock MethodBody;
@@ -278,23 +278,23 @@ namespace Model
 
     }
 
-    [ProtoBuf.ProtoInclude(101,typeof(ULExpCall))]
     [ProtoBuf.ProtoContract]
-    public class ULExp
-    {
-
-    }
-
-    [ProtoBuf.ProtoContract]
-    public class ULExpCall:ULExp
+    public class ULExpCall
     {
         [ProtoBuf.ProtoMember(1)]
-        public string MemberGuid;
+        public string Method;
+
+        [ProtoBuf.ProtoMember(2,OverwriteList =true)]
+        public string[] Args;
+
+        [ProtoBuf.ProtoMember(3, OverwriteList = true)]
+        public string[] Outputs;
     }
 
-    [ProtoBuf.ProtoContract]
-    public class ULExpNew : ULExp
-    {
 
-    }
+    //[ProtoBuf.ProtoContract]
+    //public class ULExpNew : ULExp
+    //{
+
+    //}
 }

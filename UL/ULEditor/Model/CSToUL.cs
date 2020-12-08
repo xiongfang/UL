@@ -143,20 +143,20 @@ namespace Model
         {
             return Modifiers.Count > 0 && Modifiers.Count((a) => { return a.Text == token; }) > 0;
         }
-        static EExportType GetModifier(SyntaxTokenList Modifiers)
+        static EExportScope GetModifier(SyntaxTokenList Modifiers)
         {
             bool isPublic =  ContainModifier(Modifiers, "public");
             bool isProtected = ContainModifier(Modifiers, "protected");
             bool isPrivate = !isPublic && !isProtected;
 
             if (isProtected)
-                return EExportType.Protected;
+                return EExportScope.Protected;
             if (isPublic)
-                return EExportType.Public;
+                return EExportScope.Public;
             if (isPrivate)
-                return EExportType.Private;
+                return EExportScope.Private;
 
-            return EExportType.Private;
+            return EExportScope.Private;
         }
         static string GetKeywordTypeName(string kw)
         {
@@ -306,7 +306,7 @@ namespace Model
             methodInfo.IsStatic = ContainModifier(method.Modifiers, "static");
             methodInfo.ExportType = GetModifier(method.Modifiers);
             methodInfo.TypeId = GetType(method.ReturnType).Guid;
-            methodInfo.MemberType = ULMemberInfo.EMemberType.Method;
+            methodInfo.MemberType = ULMemberInfo.EMemberMark.Method;
             type.Methods.Add(methodInfo);
         }
 

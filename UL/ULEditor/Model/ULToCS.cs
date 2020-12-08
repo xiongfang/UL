@@ -78,11 +78,11 @@ namespace Model
 
             BeginAppendLine();
 
-            if (typeInfo.ExportType == EExportType.Public)
+            if (typeInfo.ExportType == EExportScope.Public)
             {
                 Append("public ");
             }
-            else if (typeInfo.ExportType == EExportType.Protected)
+            else if (typeInfo.ExportType == EExportScope.Protected)
             {
                 Append("protected ");
             }
@@ -115,11 +115,11 @@ namespace Model
         {
             BeginAppendLine();
 
-            if (memberInfo.ExportType == EExportType.Public)
+            if (memberInfo.ExportType == EExportScope.Public)
             {
                 Append("public ");
             }
-            else if (memberInfo.ExportType == EExportType.Protected)
+            else if (memberInfo.ExportType == EExportScope.Protected)
             {
                 Append("protected ");
             }
@@ -138,19 +138,19 @@ namespace Model
             Append(memberInfo.Name);
             switch (memberInfo.MemberType)
             {
-                case ULMemberInfo.EMemberType.Field:
+                case ULMemberInfo.EMemberMark.Field:
                     Append(";");
                     break;
-                case ULMemberInfo.EMemberType.Property:
+                case ULMemberInfo.EMemberMark.Property:
                     Append("{ get; set;}");
                     break;
-                case ULMemberInfo.EMemberType.Method:
+                case ULMemberInfo.EMemberMark.Method:
                     Append("()");
                     break;
             }
             EndAppendLine();
 
-            if(memberInfo.MemberType == ULMemberInfo.EMemberType.Method)
+            if(memberInfo.MemberType == ULMemberInfo.EMemberMark.Method)
             {
                 ToStatement(memberInfo.MethodBody);
             }

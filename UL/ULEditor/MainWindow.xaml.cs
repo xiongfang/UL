@@ -260,7 +260,7 @@ namespace WpfApp1
             {
                 var t = typeNode.type;
                 var m = new Model.ULMemberInfo(t);
-                m.ExportType = Model.EExportType.Public;
+                m.ExportType = Model.EExportScope.Public;
                 m.IsStatic = false;
                 m.Name = "NewMember";
                 //m.SetGuid(t.Guid + "-" + t.Methods.Count);

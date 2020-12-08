@@ -136,13 +136,13 @@ namespace Model
             Append(memberInfo.Name);
             switch (memberInfo.MemberType)
             {
-                case ULMemberInfo.EMemberType.Field:
+                case ULMemberInfo.EMemberMark.Field:
                     Append(";");
                     break;
                 //case ULMemberInfo.EMemberType.Property:
                 //    Append("{ get; set;}");
                 //    break;
-                case ULMemberInfo.EMemberType.Method:
+                case ULMemberInfo.EMemberMark.Method:
                     Append("(");
                     if(!memberInfo.IsStatic)
                     {
@@ -153,7 +153,7 @@ namespace Model
             }
             EndAppendLine();
 
-            if(memberInfo.MemberType == ULMemberInfo.EMemberType.Method)
+            if(memberInfo.MemberType == ULMemberInfo.EMemberMark.Method)
             {
                 ToStatement(memberInfo.MethodBody);
             }
