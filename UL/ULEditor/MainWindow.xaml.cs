@@ -313,7 +313,6 @@ namespace WpfApp1
                 if (typeNode != null)
                 {
                     Model.ModelData.RemoveType(typeNode.type.FullName);
-                    (typeNode.Parent as TreeNode).Items.Remove(typeNode);
                 }
             }
 

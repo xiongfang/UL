@@ -136,6 +136,35 @@ namespace Model
 
         void ExportVariable(BaseFieldDeclarationSyntax v)
         {
+            var vtype = GetType(v.Declaration.Type);
+
+            foreach (var ve in v.Declaration.Variables)
+            {
+                var dB_Member = new ULMemberInfo();
+                dB_Member.Name = ve.Identifier.Text;
+                dB_Member.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
+                dB_Member.ReflectTypeName = type.FullName;
+                dB_Member.MemberTypeName = vtype.FullName;
+
+                if (v is FieldDeclarationSyntax)
+                    dB_Member.MemberMark = ULMemberInfo.EMemberMark.Field;
+                else if (v is EventFieldDeclarationSyntax)
+                {
+                    dB_Member.MemberMark = ULMemberInfo.EMemberMark.Event;
+                }
+                else
+                {
+                    Console.Error.WriteLine("无法识别的类成员 " + v);
+                }
+                dB_Member.ExportType = GetModifier(v.Modifiers);
+                //if (ve.Initializer != null)
+                //    dB_Member.field_initializer = ExportExp(ve.Initializer.Value);
+
+                //dB_Member.attributes = ExportAttributes(v.AttributeLists);
+                //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
+                //Model.AddMember(type.static_full_name, dB_Member);
+                type.Members.Add(dB_Member);
+            }
             
         }
         static bool ContainModifier(SyntaxTokenList Modifiers, string token)
@@ -189,8 +218,10 @@ namespace Model
                     return "Int64";
                 case "ushort":
                     return "UInt16";
+                case "void":
+                    return "";
                 default:
-                    return "Void";
+                    return kw;
             }
         }
 
