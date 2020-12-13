@@ -98,7 +98,6 @@ namespace Model
                 type.Namespace = ModelData.GloableNamespaceName;
             }
             type.Name = c.Identifier.Text;
-            type.SetGUID(GetOrCreateGuid(c));
 
             //导出所有变量
             var virableNodes = c.ChildNodes().OfType<BaseFieldDeclarationSyntax>();
@@ -301,13 +300,15 @@ namespace Model
         void ExportMethod(BaseMethodDeclarationSyntax v)
         {
             MethodDeclarationSyntax method = v as MethodDeclarationSyntax;
-            var methodInfo = new Model.ULMemberInfo(type);
+            var methodInfo = new Model.ULMemberInfo();
+            methodInfo.ReflectTypeName = this.type.FullName;
             methodInfo.Name = method.Identifier.ValueText;
             methodInfo.IsStatic = ContainModifier(method.Modifiers, "static");
             methodInfo.ExportType = GetModifier(method.Modifiers);
-            methodInfo.TypeId = GetType(method.ReturnType).Guid;
-            methodInfo.MemberType = ULMemberInfo.EMemberMark.Method;
-            type.Methods.Add(methodInfo);
+            var memberType = GetType(method.ReturnType);
+            methodInfo.MemberTypeName = memberType!=null? memberType.FullName:"";
+            methodInfo.MemberMark = ULMemberInfo.EMemberMark.Method;
+            type.Members.Add(methodInfo);
         }
 
         ULTypeInfo ExportStruct(StructDeclarationSyntax c)

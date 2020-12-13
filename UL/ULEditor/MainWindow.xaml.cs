@@ -145,6 +145,24 @@ namespace WpfApp1
             {
                 AddTypeNode(t);
             }
+
+            Model.ModelData.onAddType += (t) =>
+            {
+                AddTypeNode(t);
+            };
+            Model.ModelData.onRemoveType += (t) =>
+            {
+                var node = FindTypeNode(t);
+                if (node != null)
+                {
+                    (node.Parent as TreeNode).Items.Remove(node);
+                }
+            };
+        }
+
+        TypeNodeItem FindTypeNode(Model.ULTypeInfo type)
+        {
+            return FindChild<TypeNodeItem>(treeView.Items, (v) => { return v.type.FullName == type.FullName; }, true);
         }
 
 
@@ -217,7 +235,7 @@ namespace WpfApp1
             classNode.Icon = bm;
             parentNode.Items.Add(classNode);
 
-            foreach(var m in type.Methods)
+            foreach(var m in type.Members)
             {
                 AddMember(classNode, m);
             }
@@ -225,12 +243,12 @@ namespace WpfApp1
 
         void UpdateTypeNode(Model.ULTypeInfo type)
         {
-            var node = FindChild<TypeNodeItem>(treeView.Items, (v) => { return v.type.Guid == type.Guid; }, true);
+            var node = FindChild<TypeNodeItem>(treeView.Items, (v) => { return v.type.FullName == type.FullName; }, true);
             if(node!=null)
             {
                 node.type = type;
                 node.Items.Clear();
-                foreach (var m in type.Methods)
+                foreach (var m in type.Members)
                 {
                     AddMember(node, m);
                 }
@@ -259,12 +277,13 @@ namespace WpfApp1
             if(typeNode!=null)
             {
                 var t = typeNode.type;
-                var m = new Model.ULMemberInfo(t);
+                var m = new Model.ULMemberInfo();
+                m.ReflectTypeName = t.FullName;
                 m.ExportType = Model.EExportScope.Public;
                 m.IsStatic = false;
                 m.Name = "NewMember";
                 //m.SetGuid(t.Guid + "-" + t.Methods.Count);
-                t.Methods.Add(m);
+                t.Members.Add(m);
                 AddMember(typeNode, m);
                 return;
             }
@@ -274,18 +293,16 @@ namespace WpfApp1
                 var t = new Model.ULTypeInfo();
                 t.Namespace = GetNamespace(nsNode);
                 t.Name = "NewClass";
-                t.SetGUID(Guid.NewGuid().ToString());
                 Model.ModelData.AddType(t);
-                AddTypeNode(t);
+                //AddTypeNode(t);
             }
             else
             {
                 var t = new Model.ULTypeInfo();
                 t.Namespace = Model.ModelData.GloableNamespaceName;
                 t.Name = "NewClass";
-                t.SetGUID(Guid.NewGuid().ToString());
                 Model.ModelData.AddType(t);
-                AddTypeNode(t);
+                //AddTypeNode(t);
             }
         }
 
@@ -295,7 +312,7 @@ namespace WpfApp1
                 var typeNode = treeView.SelectedItem as TypeNodeItem;
                 if (typeNode != null)
                 {
-                    Model.ModelData.RemoveType(typeNode.type);
+                    Model.ModelData.RemoveType(typeNode.type.FullName);
                     (typeNode.Parent as TreeNode).Items.Remove(typeNode);
                 }
             }
@@ -306,11 +323,11 @@ namespace WpfApp1
                 {
                     if(memberNode.member.ReflectType!=null)
                     {
-                        memberNode.member.ReflectType.Methods.Remove(memberNode.member);
+                        memberNode.member.ReflectType.Members.Remove(memberNode.member);
                     }
                     else
                     {
-                        (memberNode.Parent as TypeNodeItem).type.Methods.Remove(memberNode.member);
+                        (memberNode.Parent as TypeNodeItem).type.Members.Remove(memberNode.member);
                     }
                     
                     (memberNode.Parent as TreeNode).Items.Remove(memberNode);
@@ -459,25 +476,26 @@ namespace WpfApp1
                 var type_list =Model.CSToUL.Convert(GetAllText(cs_richTextBox.Document.ContentStart));
                 foreach(var t in type_list)
                 {
-                    if (Model.ModelData.FindTypeByGuid(t.Guid)!=null)
+                    if (Model.ModelData.FindTypeByFullName(t.FullName)!=null)
                     {
                         Model.ModelData.UpdateType(t);
-                        var typeNode = treeView.SelectedItem as TypeNodeItem;
-                        if(typeNode!=null && typeNode.type.Guid == t.Guid)
-                        {
-                            typeNode.type = t;
-                            UpdateTypeNode(t);
-                            TreeView_OnSelectedChange(null, null);
-                        }
-                        else
-                        {
-                            UpdateTypeNode(t);
-                        }
+                        //FindTypeNode(t);
+                        //var typeNode = treeView.SelectedItem as TypeNodeItem;
+                        //if(typeNode!=null && typeNode.type.FullName == t.FullName)
+                        //{
+                        //    typeNode.type = t;
+                        //    UpdateTypeNode(t);
+                        TreeView_OnSelectedChange(null, null);
+                        //}
+                        //else
+                        //{
+
+                        //    UpdateTypeNode(t);
+                        //}
                     }
                     else
                     {
                         Model.ModelData.AddType(t);
-                        AddTypeNode(t);
                     }
                 }
                 

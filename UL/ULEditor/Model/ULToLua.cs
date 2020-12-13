@@ -92,7 +92,7 @@ namespace Model
 
             AppendLine("{");
             depth++;
-            foreach (var m in typeInfo.Methods)
+            foreach (var m in typeInfo.Members)
             {
                 
                 ToMember(m);
@@ -134,7 +134,7 @@ namespace Model
             
             Append(" ");
             Append(memberInfo.Name);
-            switch (memberInfo.MemberType)
+            switch (memberInfo.MemberMark)
             {
                 case ULMemberInfo.EMemberMark.Field:
                     Append(";");
@@ -153,12 +153,12 @@ namespace Model
             }
             EndAppendLine();
 
-            if(memberInfo.MemberType == ULMemberInfo.EMemberMark.Method)
+            if(memberInfo.MemberMark == ULMemberInfo.EMemberMark.Method)
             {
                 ToStatement(memberInfo.MethodBody);
             }
         }
-        void ToBody(ULStatementBlock block)
+        void ToBody(ULNodeBlock block)
         {
             AppendLine("{");
             depth++;
@@ -172,13 +172,13 @@ namespace Model
 
         }
 
-        void ToStatement(ULStatement s)
+        void ToStatement(UIStatement s)
         {
             if (s == null)
                 return;
-            if(s is ULStatementBlock)
+            if(s is ULNodeBlock)
             {
-                ToBody(s as ULStatementBlock);
+                ToBody(s as ULNodeBlock);
             }
         }
 
