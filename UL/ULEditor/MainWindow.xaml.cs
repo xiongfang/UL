@@ -278,8 +278,8 @@ namespace WpfApp1
             {
                 var t = typeNode.type;
                 var m = new Model.ULMemberInfo();
-                m.ReflectTypeName = t.FullName;
-                m.ExportType = Model.EExportScope.Public;
+                m.DeclareTypeName = t.FullName;
+                m.Modifier = Model.EModifier.Public;
                 m.IsStatic = false;
                 m.Name = "NewMember";
                 //m.SetGuid(t.Guid + "-" + t.Methods.Count);
@@ -320,9 +320,9 @@ namespace WpfApp1
                 var memberNode = treeView.SelectedItem as MemberNodeItem;
                 if (memberNode != null)
                 {
-                    if(memberNode.member.ReflectType!=null)
+                    if(memberNode.member.DeclareType!=null)
                     {
-                        memberNode.member.ReflectType.Members.Remove(memberNode.member);
+                        memberNode.member.DeclareType.Members.Remove(memberNode.member);
                     }
                     else
                     {
@@ -413,7 +413,7 @@ namespace WpfApp1
             if(memberNode!=null)
             {
                 this.propertyGrid.SelectedObject = memberNode.member;
-                UpdateCode(memberNode.member.ReflectType);
+                UpdateCode(memberNode.member.DeclareType);
             }
             
         }

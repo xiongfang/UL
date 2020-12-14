@@ -22,51 +22,64 @@ namespace Model
             IEnumerable<SyntaxNode> nodes = root.DescendantNodes();
             //导出所有类
             var classNodes = nodes.OfType<MemberDeclarationSyntax>();
+
+            var cs = new CSToUL();
+            cs.step = ECompilerStet.ScanType;
+
             foreach (var c in classNodes)
             {
-                var type = ExportType(c);
-                if(type!=null)
-                    results.Add(type);
+                cs.ExportType(c);
             }
+            cs.step = ECompilerStet.ScanMember;
+            foreach (var c in classNodes)
+            {
+                cs.ExportType(c);
+            }
+            cs.step = ECompilerStet.Compile;
+            foreach (var c in classNodes)
+            {
+                cs.ExportType(c);
+            }
+
+            results.AddRange(cs.types);
 
             return results;
         }
 
-
-        ULTypeInfo type;
-
-        static ULTypeInfo ExportType(MemberDeclarationSyntax c)
+        enum ECompilerStet
         {
-            var cs = new CSToUL();
+            ScanType,
+            ScanMember,
+            Compile
+        }
 
+        ECompilerStet step;
+
+        Stack<ULTypeInfo> types = new Stack<ULTypeInfo>();
+        ULTypeInfo type { get { return types.Peek(); } }
+
+        void ExportType(MemberDeclarationSyntax c)
+        {
             if (c is ClassDeclarationSyntax)
             {
-                return cs.ExportClass(c as ClassDeclarationSyntax);
+                ExportClass(c as ClassDeclarationSyntax);
             }
             else if (c is StructDeclarationSyntax)
             {
-                return cs.ExportStruct(c as StructDeclarationSyntax);
+                ExportStruct(c as StructDeclarationSyntax);
             }
             else if (c is InterfaceDeclarationSyntax)
             {
-                return cs.ExportInterface(c as InterfaceDeclarationSyntax);
+                ExportInterface(c as InterfaceDeclarationSyntax);
             }
             else if (c is EnumDeclarationSyntax)
             {
-                return cs.ExportEnum(c as EnumDeclarationSyntax);
+                ExportEnum(c as EnumDeclarationSyntax);
             }
             else if (c is DelegateDeclarationSyntax)
             {
-                return cs.ExportDelegate(c as DelegateDeclarationSyntax);
+                ExportDelegate(c as DelegateDeclarationSyntax);
             }
-
-            return null;
-        }
-
-
-        public CSToUL()
-        {
-            type = new ULTypeInfo();
         }
 
         string GetOrCreateGuid(ClassDeclarationSyntax c)
@@ -88,16 +101,22 @@ namespace Model
 
         ULTypeInfo ExportClass(ClassDeclarationSyntax c)
         {
-            NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
-            if (namespaceDeclarationSyntax != null)
+            if(step == ECompilerStet.ScanType)
             {
-                type.Namespace = namespaceDeclarationSyntax.Name.ToString();
+                types.Push(new ULTypeInfo());
+
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    type.Namespace = namespaceDeclarationSyntax.Name.ToString();
+                }
+                else
+                {
+                    type.Namespace = ModelData.GloableNamespaceName;
+                }
+                type.Name = c.Identifier.Text;
+
             }
-            else
-            {
-                type.Namespace = ModelData.GloableNamespaceName;
-            }
-            type.Name = c.Identifier.Text;
 
             //导出所有变量
             var virableNodes = c.ChildNodes().OfType<BaseFieldDeclarationSyntax>();
@@ -110,7 +129,7 @@ namespace Model
             var propertyNodes = c.ChildNodes().OfType<BasePropertyDeclarationSyntax>();
             foreach (var v in propertyNodes)
             {
-                //ExportProperty(v, type);
+                ExportProperty(v);
             }
 
 
@@ -131,60 +150,179 @@ namespace Model
             {
                 //ExportConversionOperator(f, type);
             }
+
             return type;
+        }
+
+        void ExportProperty(BasePropertyDeclarationSyntax v)
+        {
+            var v_type = GetType(v.Type);
+
+            if (v_type == null)
+            {
+                Console.Error.WriteLine("无法识别的类型 " + v);
+                return;
+            }
+
+            string name = "";
+            if (v is PropertyDeclarationSyntax)
+            {
+                name = ((PropertyDeclarationSyntax)v).Identifier.Text;
+            }
+            else if (v is EventDeclarationSyntax)
+            {
+                name = ((EventDeclarationSyntax)v).Identifier.Text;
+            }
+            else if (v is IndexerDeclarationSyntax)
+            {
+                name = "Index";
+            }
+
+            if (step == ECompilerStet.ScanMember)
+            {
+                var property = new ULMemberInfo();
+                property.Name = name;
+                property.DeclareTypeName = type.FullName;
+                property.MemberType = ULMemberInfo.EMemberType.Property;
+                property.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
+                property.Modifier = GetModifier(v.Modifiers);
+                property.TypeName = v_type.FullName;
+                //foreach (var ve in v.AccessorList.Accessors)
+                //{
+                //    Metadata.DB_Member dB_Member = new Metadata.DB_Member();
+                //    dB_Member.declaring_type = type.static_full_name;
+                //    dB_Member.member_type = (int)Metadata.MemberTypes.Method;
+                //    dB_Member.is_static = property.is_static;
+                //    dB_Member.modifier = property.modifier;
+                //    dB_Member.method_abstract = ContainModifier(v.Modifiers, "abstract");
+                //    dB_Member.method_virtual = ContainModifier(v.Modifiers, "virtual");
+                //    dB_Member.method_override = ContainModifier(v.Modifiers, "override");
+                //    if (ve.Keyword.Text == "get")
+                //    {
+                //        dB_Member.type = v_type.GetRefType();
+                //        dB_Member.name = property.property_get;
+                //        dB_Member.method_is_property_get = true;
+                //        if (v is IndexerDeclarationSyntax)
+                //        {
+                //            IndexerDeclarationSyntax indexerDeclarationSyntax = v as IndexerDeclarationSyntax;
+                //            List<Metadata.DB_Member.Argument> args = new List<Metadata.DB_Member.Argument>();
+                //            foreach (var a in indexerDeclarationSyntax.ParameterList.Parameters)
+                //            {
+                //                args.Add(GetArgument(a));
+                //            }
+                //            dB_Member.method_args = args.ToArray();
+                //        }
+                //        else
+                //        {
+                //            dB_Member.method_args = new Metadata.DB_Member.Argument[0];
+                //        }
+
+                //    }
+                //    else if (ve.Keyword.Text == "set")
+                //    {
+                //        dB_Member.method_is_property_set = true;
+                //        dB_Member.name = property.property_set;
+                //        if (v is IndexerDeclarationSyntax)
+                //        {
+                //            IndexerDeclarationSyntax indexerDeclarationSyntax = v as IndexerDeclarationSyntax;
+                //            List<Metadata.DB_Member.Argument> args = new List<Metadata.DB_Member.Argument>();
+                //            foreach (var a in indexerDeclarationSyntax.ParameterList.Parameters)
+                //            {
+                //                args.Add(GetArgument(a));
+                //            }
+                //            Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+                //            arg.name = "value";
+                //            arg.type = v_type.GetRefType();
+                //            args.Add(arg);
+                //            dB_Member.method_args = args.ToArray();
+                //        }
+                //        else
+                //        {
+                //            Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+                //            arg.name = "value";
+                //            arg.type = v_type.GetRefType();
+                //            dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
+                //        }
+                //    }
+                //    else if (ve.Keyword.Text == "add")
+                //    {
+                //        dB_Member.method_is_event_add = true;
+                //        dB_Member.name = property.property_add;
+                //        Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+                //        arg.name = "value";
+                //        arg.type = v_type.GetRefType();
+                //        dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
+                //    }
+                //    else if (ve.Keyword.Text == "remove")
+                //    {
+                //        dB_Member.method_is_event_remove = true;
+                //        dB_Member.name = property.property_remove;
+                //        Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
+                //        arg.name = "value";
+                //        arg.type = v_type.GetRefType();
+                //        dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
+                //    }
+                //    Model.AddMember(type.static_full_name, dB_Member);
+                //}
+                type.Members.Add(property);
+            }
         }
 
         void ExportVariable(BaseFieldDeclarationSyntax v)
         {
-            var vtype = GetType(v.Declaration.Type);
-
-            foreach (var ve in v.Declaration.Variables)
+            if(step == ECompilerStet.ScanMember)
             {
-                var dB_Member = new ULMemberInfo();
-                dB_Member.Name = ve.Identifier.Text;
-                dB_Member.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
-                dB_Member.ReflectTypeName = type.FullName;
-                dB_Member.MemberTypeName = vtype.FullName;
+                var vtype = GetType(v.Declaration.Type);
 
-                if (v is FieldDeclarationSyntax)
-                    dB_Member.MemberMark = ULMemberInfo.EMemberMark.Field;
-                else if (v is EventFieldDeclarationSyntax)
+                foreach (var ve in v.Declaration.Variables)
                 {
-                    dB_Member.MemberMark = ULMemberInfo.EMemberMark.Event;
-                }
-                else
-                {
-                    Console.Error.WriteLine("无法识别的类成员 " + v);
-                }
-                dB_Member.ExportType = GetModifier(v.Modifiers);
-                //if (ve.Initializer != null)
-                //    dB_Member.field_initializer = ExportExp(ve.Initializer.Value);
+                    var dB_Member = new ULMemberInfo();
+                    dB_Member.Name = ve.Identifier.Text;
+                    dB_Member.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
+                    dB_Member.DeclareTypeName = type.FullName;
+                    dB_Member.TypeName = vtype.FullName;
 
-                //dB_Member.attributes = ExportAttributes(v.AttributeLists);
-                //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
-                //Model.AddMember(type.static_full_name, dB_Member);
-                type.Members.Add(dB_Member);
+                    if (v is FieldDeclarationSyntax)
+                        dB_Member.MemberType = ULMemberInfo.EMemberType.Field;
+                    else if (v is EventFieldDeclarationSyntax)
+                    {
+                        dB_Member.MemberType = ULMemberInfo.EMemberType.Event;
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine("无法识别的类成员 " + v);
+                    }
+                    dB_Member.Modifier = GetModifier(v.Modifiers);
+                    //if (ve.Initializer != null)
+                    //    dB_Member.field_initializer = ExportExp(ve.Initializer.Value);
+
+                    //dB_Member.attributes = ExportAttributes(v.AttributeLists);
+                    //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
+                    //Model.AddMember(type.static_full_name, dB_Member);
+                    type.Members.Add(dB_Member);
+                }
             }
+            
             
         }
         static bool ContainModifier(SyntaxTokenList Modifiers, string token)
         {
             return Modifiers.Count > 0 && Modifiers.Count((a) => { return a.Text == token; }) > 0;
         }
-        static EExportScope GetModifier(SyntaxTokenList Modifiers)
+        static EModifier GetModifier(SyntaxTokenList Modifiers)
         {
             bool isPublic =  ContainModifier(Modifiers, "public");
             bool isProtected = ContainModifier(Modifiers, "protected");
             bool isPrivate = !isPublic && !isProtected;
 
             if (isProtected)
-                return EExportScope.Protected;
+                return EModifier.Protected;
             if (isPublic)
-                return EExportScope.Public;
+                return EModifier.Public;
             if (isPrivate)
-                return EExportScope.Private;
+                return EModifier.Private;
 
-            return EExportScope.Private;
+            return EModifier.Private;
         }
         static string GetKeywordTypeName(string kw)
         {
@@ -330,16 +468,20 @@ namespace Model
 
         void ExportMethod(BaseMethodDeclarationSyntax v)
         {
-            MethodDeclarationSyntax method = v as MethodDeclarationSyntax;
-            var methodInfo = new Model.ULMemberInfo();
-            methodInfo.ReflectTypeName = this.type.FullName;
-            methodInfo.Name = method.Identifier.ValueText;
-            methodInfo.IsStatic = ContainModifier(method.Modifiers, "static");
-            methodInfo.ExportType = GetModifier(method.Modifiers);
-            var memberType = GetType(method.ReturnType);
-            methodInfo.MemberTypeName = memberType!=null? memberType.FullName:"";
-            methodInfo.MemberMark = ULMemberInfo.EMemberMark.Method;
-            type.Members.Add(methodInfo);
+            if(step == ECompilerStet.ScanMember)
+            {
+                MethodDeclarationSyntax method = v as MethodDeclarationSyntax;
+                var methodInfo = new Model.ULMemberInfo();
+                methodInfo.DeclareTypeName = this.type.FullName;
+                methodInfo.Name = method.Identifier.ValueText;
+                methodInfo.IsStatic = ContainModifier(method.Modifiers, "static");
+                methodInfo.Modifier = GetModifier(method.Modifiers);
+                var memberType = GetType(method.ReturnType);
+                methodInfo.TypeName = memberType != null ? memberType.FullName : "";
+                methodInfo.MemberType = ULMemberInfo.EMemberType.Method;
+                type.Members.Add(methodInfo);
+            }
+
         }
 
         ULTypeInfo ExportStruct(StructDeclarationSyntax c)

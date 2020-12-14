@@ -76,11 +76,11 @@ namespace Model
 
             BeginAppendLine();
 
-            if (typeInfo.ExportType == EExportScope.Public)
+            if (typeInfo.ExportType == EModifier.Public)
             {
                 Append("public ");
             }
-            else if (typeInfo.ExportType == EExportScope.Protected)
+            else if (typeInfo.ExportType == EModifier.Protected)
             {
                 Append("protected ");
             }
@@ -113,11 +113,11 @@ namespace Model
         {
             BeginAppendLine();
 
-            if (memberInfo.ExportType == EExportScope.Public)
+            if (memberInfo.Modifier == EModifier.Public)
             {
                 Append("public ");
             }
-            else if (memberInfo.ExportType == EExportScope.Protected)
+            else if (memberInfo.Modifier == EModifier.Protected)
             {
                 Append("protected ");
             }
@@ -131,24 +131,24 @@ namespace Model
                 Append("static ");
             }
 
-            Append(memberInfo.MemberType == null ? "void" :memberInfo.MemberType.FullName);
+            Append(memberInfo.Type == null ? "void" :memberInfo.Type.FullName);
             Append(" ");
             Append(memberInfo.Name);
-            switch (memberInfo.MemberMark)
+            switch (memberInfo.MemberType)
             {
-                case ULMemberInfo.EMemberMark.Field:
+                case ULMemberInfo.EMemberType.Field:
                     Append(";");
                     break;
-                case ULMemberInfo.EMemberMark.Property:
+                case ULMemberInfo.EMemberType.Property:
                     Append("{ get; set;}");
                     break;
-                case ULMemberInfo.EMemberMark.Method:
+                case ULMemberInfo.EMemberType.Method:
                     Append("()");
                     break;
             }
             EndAppendLine();
 
-            if(memberInfo.MemberMark == ULMemberInfo.EMemberMark.Method)
+            if(memberInfo.MemberType == ULMemberInfo.EMemberType.Method)
             {
                 ToStatement(memberInfo.MethodBody);
             }

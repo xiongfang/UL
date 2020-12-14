@@ -95,7 +95,7 @@ namespace Model
         }
     }
 
-    public enum EExportScope
+    public enum EModifier
     {
         Public,
         Protected,
@@ -112,15 +112,16 @@ namespace Model
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; set; }
 
-        string _name;
+        string _name { get; set; }
 
+        [BsonIgnore]
         public string Name { get { return _name; } set { if (_name != value) { string tempName = _name; _name = value; onNameChanged?.Invoke(tempName, _name); } } }
 
         public string Namespace { get; set; }
 
         public string Parent { get; set; }
 
-        public EExportScope ExportType { get; set; }
+        public EModifier ExportType { get; set; }
 
         public List<ULMemberInfo> Members = new List<ULMemberInfo>();
 
@@ -137,24 +138,25 @@ namespace Model
     public class ULMemberInfo
     {
 
-        public string ReflectTypeName;
+        public string DeclareTypeName { get; set; }
 
         [BsonIgnore]
-        public ULTypeInfo ReflectType { get { return Model.ModelData.FindTypeByFullName(ReflectTypeName); } }
+        public ULTypeInfo DeclareType { get { return Model.ModelData.FindTypeByFullName(DeclareTypeName); } }
 
 
-        public string MemberTypeName;
+        public string TypeName { get; set; }
+
         [BsonIgnore]
-        public ULTypeInfo MemberType { get { return Model.ModelData.FindTypeByFullName(MemberTypeName); } }
+        public ULTypeInfo Type { get { return Model.ModelData.FindTypeByFullName(TypeName); } }
 
 
         public string Name { get; set; }
 
         [BsonIgnore]
-        public string FullName { get { return ReflectTypeName + "." + Name; } }
+        public string FullName { get { return DeclareTypeName + "." + Name; } }
 
 
-        public EExportScope ExportType { get; set; }
+        public EModifier Modifier { get; set; }
 
 
         public bool IsStatic { get; set; }
@@ -163,7 +165,7 @@ namespace Model
         public Dictionary<string, string> Ext { get; set; }
 
 
-        public enum EMemberMark
+        public enum EMemberType
         {
             Field,
             Property,
@@ -172,7 +174,7 @@ namespace Model
         }
         
 
-        public EMemberMark MemberMark { get; set; }
+        public EMemberType MemberType { get; set; }
 
 
         public ULNodeBlock MethodBody;
@@ -233,14 +235,24 @@ namespace Model
     public class ULCall : UIStatement
     {
 
-        public string Member;
+        public string Member { get; set; }
 
 
-        public string[] Args;
+        public string[] Args { get; set; }
 
-        public string[] Outputs;
+        public string[] Outputs { get; set; }
 
 
-        public bool get; //get or set
+        public enum ECallType
+        { 
+            Method,
+            GetProperty,
+            SetProperty,
+            Constructor,
+            GetField,
+            SetField,
+        }
+
+        public ECallType callType { get; set; }
     }
 }
