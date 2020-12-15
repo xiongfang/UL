@@ -41,7 +41,7 @@ namespace Model
                 cs.ExportType(c);
             }
 
-            results.AddRange(cs.types);
+            results.AddRange(cs.type_list);
 
             return results;
         }
@@ -54,9 +54,10 @@ namespace Model
         }
 
         ECompilerStet step;
-
+        List<ULTypeInfo> type_list = new List<ULTypeInfo>();
         Stack<ULTypeInfo> types = new Stack<ULTypeInfo>();
-        ULTypeInfo type { get { return types.Peek(); } }
+
+        ULTypeInfo current { get { return types.Peek(); } }
 
         void ExportType(MemberDeclarationSyntax c)
         {
@@ -99,23 +100,42 @@ namespace Model
             return Guid.NewGuid().ToString();
         }
 
-        ULTypeInfo ExportClass(ClassDeclarationSyntax c)
+        void ExportClass(ClassDeclarationSyntax c)
         {
             if(step == ECompilerStet.ScanType)
             {
-                types.Push(new ULTypeInfo());
+                type_list.Add(new ULTypeInfo());
+                types.Push(type_list[type_list.Count - 1]);
 
                 NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
                 if (namespaceDeclarationSyntax != null)
                 {
-                    type.Namespace = namespaceDeclarationSyntax.Name.ToString();
+                    current.Namespace = namespaceDeclarationSyntax.Name.ToString();
                 }
                 else
                 {
-                    type.Namespace = ModelData.GloableNamespaceName;
+                    current.Namespace = ModelData.GloableNamespaceName;
                 }
-                type.Name = c.Identifier.Text;
+                current.Name = c.Identifier.Text;
 
+                ModelData.UpdateType(current);
+            }
+            else
+            {
+                var ns = "";
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    ns = namespaceDeclarationSyntax.Name.ToString();
+                }
+                else
+                {
+                    ns = ModelData.GloableNamespaceName;
+                }
+                ns +="."+ c.Identifier.Text;
+
+                var full_name = ns;
+                types.Push(ModelData.FindTypeByFullName(full_name));
             }
 
             //导出所有变量
@@ -151,7 +171,10 @@ namespace Model
                 //ExportConversionOperator(f, type);
             }
 
-            return type;
+
+            types.Pop();
+
+
         }
 
         void ExportProperty(BasePropertyDeclarationSyntax v)
@@ -182,7 +205,7 @@ namespace Model
             {
                 var property = new ULMemberInfo();
                 property.Name = name;
-                property.DeclareTypeName = type.FullName;
+                property.DeclareTypeName = current.FullName;
                 property.MemberType = ULMemberInfo.EMemberType.Property;
                 property.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
                 property.Modifier = GetModifier(v.Modifiers);
@@ -264,7 +287,7 @@ namespace Model
                 //    }
                 //    Model.AddMember(type.static_full_name, dB_Member);
                 //}
-                type.Members.Add(property);
+                current.Members.Add(property);
             }
         }
 
@@ -279,7 +302,7 @@ namespace Model
                     var dB_Member = new ULMemberInfo();
                     dB_Member.Name = ve.Identifier.Text;
                     dB_Member.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
-                    dB_Member.DeclareTypeName = type.FullName;
+                    dB_Member.DeclareTypeName = current.FullName;
                     dB_Member.TypeName = vtype.FullName;
 
                     if (v is FieldDeclarationSyntax)
@@ -299,7 +322,7 @@ namespace Model
                     //dB_Member.attributes = ExportAttributes(v.AttributeLists);
                     //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
                     //Model.AddMember(type.static_full_name, dB_Member);
-                    type.Members.Add(dB_Member);
+                    current.Members.Add(dB_Member);
                 }
             }
             
@@ -472,33 +495,165 @@ namespace Model
             {
                 MethodDeclarationSyntax method = v as MethodDeclarationSyntax;
                 var methodInfo = new Model.ULMemberInfo();
-                methodInfo.DeclareTypeName = this.type.FullName;
+                methodInfo.DeclareTypeName = this.current.FullName;
                 methodInfo.Name = method.Identifier.ValueText;
                 methodInfo.IsStatic = ContainModifier(method.Modifiers, "static");
                 methodInfo.Modifier = GetModifier(method.Modifiers);
                 var memberType = GetType(method.ReturnType);
                 methodInfo.TypeName = memberType != null ? memberType.FullName : "";
                 methodInfo.MemberType = ULMemberInfo.EMemberType.Method;
-                type.Members.Add(methodInfo);
+                current.Members.Add(methodInfo);
             }
 
         }
 
-        ULTypeInfo ExportStruct(StructDeclarationSyntax c)
+        void ExportStruct(StructDeclarationSyntax c)
         {
-            return type;
+
+            if (step == ECompilerStet.ScanType)
+            {
+                types.Push(new ULTypeInfo());
+
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    current.Namespace = namespaceDeclarationSyntax.Name.ToString();
+                }
+                else
+                {
+                    current.Namespace = ModelData.GloableNamespaceName;
+                }
+                current.Name = c.Identifier.Text;
+                current.IsValueType = true;
+            }
+
+            //导出所有变量
+            var virableNodes = c.ChildNodes().OfType<BaseFieldDeclarationSyntax>();
+            foreach (var v in virableNodes)
+            {
+                ExportVariable(v);
+            }
+
+            //导出所有属性
+            var propertyNodes = c.ChildNodes().OfType<BasePropertyDeclarationSyntax>();
+            foreach (var v in propertyNodes)
+            {
+                ExportProperty(v);
+            }
+
+
+            //导出所有方法
+            var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
+            foreach (var f in funcNodes)
+            {
+                ExportMethod(f);
+            }
+
+            var operatorNodes = c.ChildNodes().OfType<OperatorDeclarationSyntax>();
+            foreach (var f in operatorNodes)
+            {
+                //ExportOperator(f, type);
+            }
+            var conversion_operatorNodes = c.ChildNodes().OfType<ConversionOperatorDeclarationSyntax>();
+            foreach (var f in conversion_operatorNodes)
+            {
+                //ExportConversionOperator(f, type);
+            }
         }
-        ULTypeInfo ExportInterface(InterfaceDeclarationSyntax c)
+        void ExportInterface(InterfaceDeclarationSyntax c)
         {
-            return type;
+            if (step == ECompilerStet.ScanType)
+            {
+                types.Push(new ULTypeInfo());
+
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    current.Namespace = namespaceDeclarationSyntax.Name.ToString();
+                }
+                else
+                {
+                    current.Namespace = ModelData.GloableNamespaceName;
+                }
+                current.Name = c.Identifier.Text;
+                current.IsInterface = true;
+            }
+
+            ////导出所有变量
+            //var virableNodes = c.ChildNodes().OfType<BaseFieldDeclarationSyntax>();
+            //foreach (var v in virableNodes)
+            //{
+            //    ExportVariable(v);
+            //}
+
+            //导出所有属性
+            var propertyNodes = c.ChildNodes().OfType<BasePropertyDeclarationSyntax>();
+            foreach (var v in propertyNodes)
+            {
+                ExportProperty(v);
+            }
+
+
+            //导出所有方法
+            var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
+            foreach (var f in funcNodes)
+            {
+                ExportMethod(f);
+            }
+
+            var operatorNodes = c.ChildNodes().OfType<OperatorDeclarationSyntax>();
+            foreach (var f in operatorNodes)
+            {
+                //ExportOperator(f, type);
+            }
+            var conversion_operatorNodes = c.ChildNodes().OfType<ConversionOperatorDeclarationSyntax>();
+            foreach (var f in conversion_operatorNodes)
+            {
+                //ExportConversionOperator(f, type);
+            }
         }
-        ULTypeInfo ExportEnum(EnumDeclarationSyntax c)
+
+        void ExportEnum(EnumDeclarationSyntax c)
         {
-            return type;
+            if (step == ECompilerStet.ScanType)
+            {
+                types.Push(new ULTypeInfo());
+
+                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+                if (namespaceDeclarationSyntax != null)
+                {
+                    current.Namespace = namespaceDeclarationSyntax.Name.ToString();
+                }
+                else
+                {
+                    current.Namespace = ModelData.GloableNamespaceName;
+                }
+                current.Name = c.Identifier.Text;
+                current.IsEnum = true;
+
+            }
+            else if(step == ECompilerStet.ScanMember)
+            {
+                string typeName = c.Identifier.Text;
+
+                //导出所有变量
+                var virableNodes = c.ChildNodes().OfType<EnumMemberDeclarationSyntax>();
+                foreach (var v in virableNodes)
+                {
+                    var dB_Member = new ULMemberInfo();
+                    dB_Member.Name = v.Identifier.Text;
+                    dB_Member.IsStatic = false;
+                    dB_Member.DeclareTypeName = current.FullName;
+                    dB_Member.MemberType = ULMemberInfo.EMemberType.Enum;
+
+                    current.Members.Add(dB_Member);
+                }
+            }
+
         }
-        ULTypeInfo ExportDelegate(DelegateDeclarationSyntax c)
+        void ExportDelegate(DelegateDeclarationSyntax c)
         {
-            return type;
+
         }
 
     }

@@ -47,6 +47,7 @@ namespace Model
         {
             if(TypeNames.TryGetValue(FullName,out var t))
             {
+                t.onNameChanged = null;
                 TypeNames.Remove(FullName);
                 onRemoveType?.Invoke(t);
             }
@@ -123,6 +124,12 @@ namespace Model
 
         public EModifier ExportType { get; set; }
 
+        public bool IsValueType { get; set; }
+
+        public bool IsInterface { get; set; }
+
+        public bool IsEnum { get; set; }
+
         public List<ULMemberInfo> Members = new List<ULMemberInfo>();
 
         public string FullName { 
@@ -170,7 +177,8 @@ namespace Model
             Field,
             Property,
             Method,
-            Event
+            Event,
+            Enum
         }
         
 
