@@ -102,40 +102,36 @@ namespace Model
 
         void ExportClass(ClassDeclarationSyntax c)
         {
-            if(step == ECompilerStet.ScanType)
+
+            string name = "";
+            string nameSpace = "";
+
+            NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+            if (namespaceDeclarationSyntax != null)
+            {
+                nameSpace = namespaceDeclarationSyntax.Name.ToString();
+            }
+            else
+            {
+                nameSpace = ModelData.GloableNamespaceName;
+            }
+            name = c.Identifier.Text;
+
+
+
+            if (step == ECompilerStet.ScanType)
             {
                 type_list.Add(new ULTypeInfo());
                 types.Push(type_list[type_list.Count - 1]);
 
-                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
-                if (namespaceDeclarationSyntax != null)
-                {
-                    current.Namespace = namespaceDeclarationSyntax.Name.ToString();
-                }
-                else
-                {
-                    current.Namespace = ModelData.GloableNamespaceName;
-                }
-                current.Name = c.Identifier.Text;
+                current.Namespace = nameSpace;
+                current.Name = name;
 
                 ModelData.UpdateType(current);
             }
             else
             {
-                var ns = "";
-                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
-                if (namespaceDeclarationSyntax != null)
-                {
-                    ns = namespaceDeclarationSyntax.Name.ToString();
-                }
-                else
-                {
-                    ns = ModelData.GloableNamespaceName;
-                }
-                ns +="."+ c.Identifier.Text;
-
-                var full_name = ns;
-                types.Push(ModelData.FindTypeByFullName(full_name));
+                types.Push(ModelData.FindTypeByFullName(nameSpace+"."+name));
             }
 
             //导出所有变量
@@ -510,21 +506,35 @@ namespace Model
         void ExportStruct(StructDeclarationSyntax c)
         {
 
+            string name = "";
+            string nameSpace = "";
+
+            NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+            if (namespaceDeclarationSyntax != null)
+            {
+                nameSpace = namespaceDeclarationSyntax.Name.ToString();
+            }
+            else
+            {
+                nameSpace = ModelData.GloableNamespaceName;
+            }
+            name = c.Identifier.Text;
+
+
+
             if (step == ECompilerStet.ScanType)
             {
-                types.Push(new ULTypeInfo());
+                type_list.Add(new ULTypeInfo());
+                types.Push(type_list[type_list.Count - 1]);
 
-                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
-                if (namespaceDeclarationSyntax != null)
-                {
-                    current.Namespace = namespaceDeclarationSyntax.Name.ToString();
-                }
-                else
-                {
-                    current.Namespace = ModelData.GloableNamespaceName;
-                }
-                current.Name = c.Identifier.Text;
+                current.Namespace = nameSpace;
+                current.Name = name;
                 current.IsValueType = true;
+                ModelData.UpdateType(current);
+            }
+            else
+            {
+                types.Push(ModelData.FindTypeByFullName(nameSpace + "." + name));
             }
 
             //导出所有变量
@@ -559,24 +569,39 @@ namespace Model
             {
                 //ExportConversionOperator(f, type);
             }
+            types.Pop();
         }
         void ExportInterface(InterfaceDeclarationSyntax c)
         {
+            string name = "";
+            string nameSpace = "";
+
+            NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+            if (namespaceDeclarationSyntax != null)
+            {
+                nameSpace = namespaceDeclarationSyntax.Name.ToString();
+            }
+            else
+            {
+                nameSpace = ModelData.GloableNamespaceName;
+            }
+            name = c.Identifier.Text;
+
+
+
             if (step == ECompilerStet.ScanType)
             {
-                types.Push(new ULTypeInfo());
+                type_list.Add(new ULTypeInfo());
+                types.Push(type_list[type_list.Count - 1]);
 
-                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
-                if (namespaceDeclarationSyntax != null)
-                {
-                    current.Namespace = namespaceDeclarationSyntax.Name.ToString();
-                }
-                else
-                {
-                    current.Namespace = ModelData.GloableNamespaceName;
-                }
-                current.Name = c.Identifier.Text;
+                current.Namespace = nameSpace;
+                current.Name = name;
                 current.IsInterface = true;
+                ModelData.UpdateType(current);
+            }
+            else
+            {
+                types.Push(ModelData.FindTypeByFullName(nameSpace + "." + name));
             }
 
             ////导出所有变量
@@ -611,31 +636,43 @@ namespace Model
             {
                 //ExportConversionOperator(f, type);
             }
+
+            types.Pop();
         }
 
         void ExportEnum(EnumDeclarationSyntax c)
         {
+            string name = "";
+            string nameSpace = "";
+
+            NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
+            if (namespaceDeclarationSyntax != null)
+            {
+                nameSpace = namespaceDeclarationSyntax.Name.ToString();
+            }
+            else
+            {
+                nameSpace = ModelData.GloableNamespaceName;
+            }
+            name = c.Identifier.Text;
+
             if (step == ECompilerStet.ScanType)
             {
-                types.Push(new ULTypeInfo());
+                type_list.Add(new ULTypeInfo());
+                types.Push(type_list[type_list.Count - 1]);
 
-                NamespaceDeclarationSyntax namespaceDeclarationSyntax = c.Parent as NamespaceDeclarationSyntax;
-                if (namespaceDeclarationSyntax != null)
-                {
-                    current.Namespace = namespaceDeclarationSyntax.Name.ToString();
-                }
-                else
-                {
-                    current.Namespace = ModelData.GloableNamespaceName;
-                }
-                current.Name = c.Identifier.Text;
+                current.Namespace = nameSpace;
+                current.Name = name;
                 current.IsEnum = true;
-
+                ModelData.UpdateType(current);
             }
-            else if(step == ECompilerStet.ScanMember)
+            else
             {
-                string typeName = c.Identifier.Text;
+                types.Push(ModelData.FindTypeByFullName(nameSpace + "." + name));
+            }
 
+            if(step == ECompilerStet.ScanMember)
+            {
                 //导出所有变量
                 var virableNodes = c.ChildNodes().OfType<EnumMemberDeclarationSyntax>();
                 foreach (var v in virableNodes)
