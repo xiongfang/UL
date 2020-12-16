@@ -687,6 +687,7 @@ namespace Model
                 }
             }
 
+            types.Pop();
         }
         void ExportDelegate(DelegateDeclarationSyntax c)
         {
