@@ -113,6 +113,7 @@ namespace Model
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; set; }
 
+        [BsonElement("Name")]
         string _name { get; set; }
 
         [BsonIgnore]
@@ -220,7 +221,9 @@ namespace Model
 
     public class ULStatementIf : UIStatement
     {
-
+        public string condition { get; set; }
+        public ULNodeBlock trueBlock { get; set; }
+        public ULNodeBlock falseBlock { get; set; }
     }
 
     public class ULStatementWhile : UIStatement

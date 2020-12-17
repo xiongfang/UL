@@ -57,7 +57,33 @@ namespace Model
         List<ULTypeInfo> type_list = new List<ULTypeInfo>();
         Stack<ULTypeInfo> types = new Stack<ULTypeInfo>();
 
-        ULTypeInfo current { get { return types.Peek(); } }
+        ULTypeInfo currentType { get { return types.Peek(); } }
+
+        ULMemberInfo currentMember;
+
+        class CallFrameInfo
+        {
+            public CallFrameInfo preFrame;
+            public ULNodeBlock block;
+            public Dictionary<string, string> variables = new Dictionary<string, string>();
+        }
+        Stack<CallFrameInfo> frames = new Stack<CallFrameInfo>();
+        ULNodeBlock currentBlock { 
+            get
+            {
+                if (frames.Count == 0)
+                    return null;
+                var f = frames.Peek();
+                while(f!=null && f.block==null)
+                {
+                    f = f.preFrame;
+                }
+                if (f != null)
+                    return f.block;
+                return null;
+            } 
+        }
+        ULNodeBlock preBlock { get { return currentBlock.Parent; } }
 
         void ExportType(MemberDeclarationSyntax c)
         {
@@ -124,10 +150,10 @@ namespace Model
                 type_list.Add(new ULTypeInfo());
                 types.Push(type_list[type_list.Count - 1]);
 
-                current.Namespace = nameSpace;
-                current.Name = name;
+                currentType.Namespace = nameSpace;
+                currentType.Name = name;
 
-                ModelData.UpdateType(current);
+                ModelData.UpdateType(currentType);
             }
             else
             {
@@ -201,7 +227,7 @@ namespace Model
             {
                 var property = new ULMemberInfo();
                 property.Name = name;
-                property.DeclareTypeName = current.FullName;
+                property.DeclareTypeName = currentType.FullName;
                 property.MemberType = ULMemberInfo.EMemberType.Property;
                 property.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
                 property.Modifier = GetModifier(v.Modifiers);
@@ -283,7 +309,7 @@ namespace Model
                 //    }
                 //    Model.AddMember(type.static_full_name, dB_Member);
                 //}
-                current.Members.Add(property);
+                currentType.Members.Add(property);
             }
         }
 
@@ -298,7 +324,7 @@ namespace Model
                     var dB_Member = new ULMemberInfo();
                     dB_Member.Name = ve.Identifier.Text;
                     dB_Member.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
-                    dB_Member.DeclareTypeName = current.FullName;
+                    dB_Member.DeclareTypeName = currentType.FullName;
                     dB_Member.TypeName = vtype.FullName;
 
                     if (v is FieldDeclarationSyntax)
@@ -318,7 +344,7 @@ namespace Model
                     //dB_Member.attributes = ExportAttributes(v.AttributeLists);
                     //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
                     //Model.AddMember(type.static_full_name, dB_Member);
-                    current.Members.Add(dB_Member);
+                    currentType.Members.Add(dB_Member);
                 }
             }
             
@@ -485,22 +511,28 @@ namespace Model
             return null;
         }
 
+        static Dictionary<BaseMethodDeclarationSyntax, ULMemberInfo> MemberMap = new Dictionary<BaseMethodDeclarationSyntax, ULMemberInfo>();
         void ExportMethod(BaseMethodDeclarationSyntax v)
         {
             if(step == ECompilerStet.ScanMember)
             {
                 MethodDeclarationSyntax method = v as MethodDeclarationSyntax;
                 var methodInfo = new Model.ULMemberInfo();
-                methodInfo.DeclareTypeName = this.current.FullName;
+                methodInfo.DeclareTypeName = this.currentType.FullName;
                 methodInfo.Name = method.Identifier.ValueText;
                 methodInfo.IsStatic = ContainModifier(method.Modifiers, "static");
                 methodInfo.Modifier = GetModifier(method.Modifiers);
                 var memberType = GetType(method.ReturnType);
                 methodInfo.TypeName = memberType != null ? memberType.FullName : "";
                 methodInfo.MemberType = ULMemberInfo.EMemberType.Method;
-                current.Members.Add(methodInfo);
+                currentType.Members.Add(methodInfo);
+                MemberMap[v] = methodInfo;
             }
-
+            else if(step == ECompilerStet.Compile)
+            {
+                currentMember = MemberMap[v];
+                ExportBody(v.Body);
+            }
         }
 
         void ExportStruct(StructDeclarationSyntax c)
@@ -527,10 +559,10 @@ namespace Model
                 type_list.Add(new ULTypeInfo());
                 types.Push(type_list[type_list.Count - 1]);
 
-                current.Namespace = nameSpace;
-                current.Name = name;
-                current.IsValueType = true;
-                ModelData.UpdateType(current);
+                currentType.Namespace = nameSpace;
+                currentType.Name = name;
+                currentType.IsValueType = true;
+                ModelData.UpdateType(currentType);
             }
             else
             {
@@ -594,10 +626,10 @@ namespace Model
                 type_list.Add(new ULTypeInfo());
                 types.Push(type_list[type_list.Count - 1]);
 
-                current.Namespace = nameSpace;
-                current.Name = name;
-                current.IsInterface = true;
-                ModelData.UpdateType(current);
+                currentType.Namespace = nameSpace;
+                currentType.Name = name;
+                currentType.IsInterface = true;
+                ModelData.UpdateType(currentType);
             }
             else
             {
@@ -661,10 +693,10 @@ namespace Model
                 type_list.Add(new ULTypeInfo());
                 types.Push(type_list[type_list.Count - 1]);
 
-                current.Namespace = nameSpace;
-                current.Name = name;
-                current.IsEnum = true;
-                ModelData.UpdateType(current);
+                currentType.Namespace = nameSpace;
+                currentType.Name = name;
+                currentType.IsEnum = true;
+                ModelData.UpdateType(currentType);
             }
             else
             {
@@ -680,10 +712,10 @@ namespace Model
                     var dB_Member = new ULMemberInfo();
                     dB_Member.Name = v.Identifier.Text;
                     dB_Member.IsStatic = false;
-                    dB_Member.DeclareTypeName = current.FullName;
+                    dB_Member.DeclareTypeName = currentType.FullName;
                     dB_Member.MemberType = ULMemberInfo.EMemberType.Enum;
 
-                    current.Members.Add(dB_Member);
+                    currentType.Members.Add(dB_Member);
                 }
             }
 
@@ -694,5 +726,104 @@ namespace Model
 
         }
 
+
+        void ExportBody(BlockSyntax bs)
+        {
+            currentMember.MethodBody = new ULNodeBlock();
+            var callInfo = new CallFrameInfo();
+            callInfo.block = currentMember.MethodBody;
+            
+            ExportStatement(bs);
+        }
+
+        void ExportStatement(StatementSyntax node)
+        {
+            if (node is IfStatementSyntax)
+            {
+                ExportStatement(node as IfStatementSyntax);
+            }
+            else if (node is ExpressionStatementSyntax)
+            {
+                ExportStatement(node as ExpressionStatementSyntax);
+            }
+            else if (node is BlockSyntax)
+            {
+                ExportStatement(node as BlockSyntax);
+            }
+            else if (node is LocalDeclarationStatementSyntax)
+            {
+                ExportStatement(node as LocalDeclarationStatementSyntax);
+            }
+            else if (node is ForStatementSyntax)
+            {
+                ExportStatement(node as ForStatementSyntax);
+            }
+            else if (node is DoStatementSyntax)
+            {
+                ExportStatement(node as DoStatementSyntax);
+            }
+            else if (node is WhileStatementSyntax)
+            {
+                ExportStatement(node as WhileStatementSyntax);
+            }
+            else if (node is SwitchStatementSyntax)
+            {
+                ExportStatement(node as SwitchStatementSyntax);
+            }
+            else if (node is BreakStatementSyntax)
+            {
+                ExportStatement(node as BreakStatementSyntax);
+            }
+            else if (node is ReturnStatementSyntax)
+            {
+                ExportStatement(node as ReturnStatementSyntax);
+            }
+            else if (node is TryStatementSyntax)
+            {
+                ExportStatement(node as TryStatementSyntax);
+            }
+            else if (node is ThrowStatementSyntax)
+            {
+                ExportStatement(node as ThrowStatementSyntax);
+            }
+            else
+            {
+                Console.Error.WriteLine("error:Unsopproted StatementSyntax" + node);
+            }
+        }
+
+        ULNodeBlock ExportStatement(BlockSyntax node)
+        {
+            var frame = new CallFrameInfo();
+            frame.preFrame = frames.Peek();
+            frame.block = new ULNodeBlock();
+            frame.block.Parent = currentBlock;
+            frames.Push(frame);
+            foreach (var s in node.Statements)
+            {
+                ExportStatement(s);
+            }
+            frames.Pop();
+
+            return frame.block;
+        }
+
+        void ExportStatement(IfStatementSyntax node)
+        {
+            var cond = ExportExp(node.Condition);
+
+            var ifStatement = new ULStatementIf();
+            ifStatement.Parent = currentBlock;
+            ifStatement.condition = cond;
+            if(node.Statement is BlockSyntax)
+                ifStatement.trueBlock = ExportStatement(node.Statement as BlockSyntax);
+            if(node.Else.Statement is BlockSyntax)
+                ifStatement.falseBlock = ExportStatement(node.Else.Statement as BlockSyntax);
+        }
+
+        string ExportExp(ExpressionSyntax exp)
+        {
+            return "";
+        }
     }
 }
