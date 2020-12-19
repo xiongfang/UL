@@ -933,9 +933,9 @@ namespace Model
             ULCall node = new ULCall();
             node.Parent = currentBlock;
             node.callType = ULCall.ECallType.Assign;
-            currentBlock.statements.Add(node);
             node.Args.Add(ExportExp(es.Left).GetOutputName(0));
             node.Args.Add(ExportExp(es.Right).GetOutputName(0));
+            currentBlock.statements.Add(node);
             return node;
         }
         ULCall ExportExp(ObjectCreationExpressionSyntax es)
@@ -943,7 +943,7 @@ namespace Model
             ULCall node = new ULCall();
             node.Parent = currentBlock;
             node.callType = ULCall.ECallType.Constructor;
-            currentBlock.statements.Add(node);
+            
 
             if (es.ArgumentList != null)
             {
@@ -954,6 +954,8 @@ namespace Model
             }
 
             node.Name = GetType(es.Type).FullName;
+
+            currentBlock.statements.Add(node);
             return node;
         }
 
@@ -962,7 +964,7 @@ namespace Model
             ULCall node = new ULCall();
             node.Parent = currentBlock;
             node.callType = ULCall.ECallType.Method;
-            currentBlock.statements.Add(node);
+            
 
             //if (es.Expression is MemberAccessExpressionSyntax)
             //{
@@ -987,6 +989,7 @@ namespace Model
             {
                 node.Args.Add(ExportExp(a.Expression).GetOutputName(0));
             }
+            currentBlock.statements.Add(node);
             return node;
         }
 
@@ -995,9 +998,10 @@ namespace Model
             ULCall node = new ULCall();
             node.Parent = currentBlock;
             node.callType = ULCall.ECallType.GetField;
-            currentBlock.statements.Add(node);
+            
             node.Args.Add(ExportExp(es.Expression).GetOutputName(0));
             node.Name = es.Name.Identifier.Text;
+            currentBlock.statements.Add(node);
             return node;
         }
         ULCall ExportExp(IdentifierNameSyntax es)
@@ -1005,8 +1009,10 @@ namespace Model
             ULCall node = new ULCall();
             node.Parent = currentBlock;
             node.callType = ULCall.ECallType.Identifier;
-            currentBlock.statements.Add(node);
+            
             node.Name = es.Identifier.Text;
+
+            currentBlock.statements.Add(node);
             return node;
         }
     }

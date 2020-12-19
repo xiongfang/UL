@@ -98,6 +98,11 @@ namespace Model
 
     //名称规范:
     //命名空间.类.成员.（参数，局部变量）
+    //global. 全局类，无命名空间
+    //local.局部变量，包括参数
+    //output.id[0] 节点输出参数
+    //this.成员
+    //base.父类的方法
 
 
     public enum EModifier
@@ -274,7 +279,7 @@ namespace Model
 
         public string GetOutputName(int index)
         {
-            return id + "[" + index + "]";
+            return "output." + id + "[" + index + "]";
         }
 
         public enum ECallType

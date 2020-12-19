@@ -200,17 +200,25 @@ namespace Model
         void ToStatement(ULCall s)
         {
             BeginAppendLine();
-            Append(s.Name);
-            Append("(");
-            for(int i=0;i<s.Args.Count;i++)
+            if(s.callType == ULCall.ECallType.Assign)
             {
-                Append(s.Args[i]);
-                if(i!=s.Args.Count-1)
-                {
-                    Append(",");
-                }
+                Append(s.Args[0] +" = "+ s.Args[1]+";");
             }
-            Append(");");
+            else
+            {
+                Append(s.Name);
+                Append("(");
+                for (int i = 0; i < s.Args.Count; i++)
+                {
+                    Append(s.Args[i]);
+                    if (i != s.Args.Count - 1)
+                    {
+                        Append(",");
+                    }
+                }
+                Append(");");
+            }
+
             EndAppendLine();
         }
     }
