@@ -87,6 +87,12 @@ namespace Model
             {
                 var fs = new System.IO.FileStream("model.dat", System.IO.FileMode.Open);
                 TypeNames = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<Dictionary<string,ULTypeInfo>>(fs);
+                List<ULTypeInfo> type_list = new List<ULTypeInfo>(TypeNames.Values);
+                TypeNames.Clear();
+                foreach(var t in type_list)
+                {
+                    TypeNames[t.FullName] = t;
+                }
                 fs.Close();
             }
             catch(Exception e)

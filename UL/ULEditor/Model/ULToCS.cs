@@ -206,17 +206,17 @@ namespace Model
             }
             else
             {
-                Append(s.Name);
-                Append("(");
-                for (int i = 0; i < s.Args.Count; i++)
-                {
-                    Append(s.Args[i]);
-                    if (i != s.Args.Count - 1)
-                    {
-                        Append(",");
-                    }
-                }
-                Append(");");
+                //Append(s.Name);
+                //Append("(");
+                //for (int i = 0; i < s.Args.Count; i++)
+                //{
+                //    Append(s.Args[i]);
+                //    if (i != s.Args.Count - 1)
+                //    {
+                //        Append(",");
+                //    }
+                //}
+                //Append(");");
             }
 
             EndAppendLine();
