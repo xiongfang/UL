@@ -96,6 +96,10 @@ namespace Model
         }
     }
 
+    //名称规范:
+    //命名空间.类.成员.（参数，局部变量）
+
+
     public enum EModifier
     {
         Public,
@@ -109,9 +113,9 @@ namespace Model
         [BsonIgnore]
         public System.Action<string, string> onNameChanged;
 
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string id { get; set; }
+        //[BsonId]
+        //[BsonRepresentation(BsonType.ObjectId)]
+        //public string id { get; set; }
 
         [BsonElement("Name")]
         string _name { get; set; }
@@ -189,24 +193,23 @@ namespace Model
         public ULNodeBlock MethodBody;
     }
 
-
     [BsonKnownTypes(typeof(ULCall))]
     [BsonKnownTypes(typeof(ULStatementBreak))]
     [BsonKnownTypes(typeof(ULStatementFor))]
     [BsonKnownTypes(typeof(ULStatementWhile))]
     [BsonKnownTypes(typeof(ULStatementIf))]
     [BsonKnownTypes(typeof(ULNodeBlock))]
-    public class UIStatement
+    public class ULStatement
     {
         [BsonIgnore]
         public ULNodeBlock Parent;
     }
 
 
-    public class ULNodeBlock: UIStatement
+    public class ULNodeBlock: ULStatement
     {
 
-        public List<UIStatement> statements = new List<UIStatement>();
+        public List<ULStatement> statements = new List<ULStatement>();
 
 
         void AfterDeserialization()
@@ -219,49 +222,77 @@ namespace Model
     }
 
 
-    public class ULStatementIf : UIStatement
+    public class ULStatementIf : ULStatement
     {
         public string condition { get; set; }
         public ULNodeBlock trueBlock { get; set; }
         public ULNodeBlock falseBlock { get; set; }
     }
 
-    public class ULStatementWhile : UIStatement
+    public class ULStatementWhile : ULStatement
     {
-
-
+        public string condition { get; set; }
+        public ULNodeBlock block { get; set; }
     }
 
-    public class ULStatementFor : UIStatement
-    {
-
-    }
-
-    public class ULStatementBreak : UIStatement
+    public class ULStatementFor : ULStatement
     {
 
     }
 
-
-    public class ULCall : UIStatement
+    public class ULStatementBreak : ULStatement
     {
 
-        public string Member { get; set; }
+    }
 
+    public class ULCall : ULStatement
+    {
+        public ULCall()
+        {
+            id = Guid.NewGuid().ToString();
+        }
+        public string id { get; set; }
 
-        public string[] Args { get; set; }
+        public string Name { get; set; }
 
-        public string[] Outputs { get; set; }
+        List<string> _args;
+        public List<string> Args
+        {
+            get
+            {
+                if (_args == null)
+                {
+                    _args = new List<string>();
+                }
+                return _args;
+            }
+            set
+            {
+                _args = value;
+            }
+        }
 
+        public string GetOutputName(int index)
+        {
+            return id + "[" + index + "]";
+        }
 
         public enum ECallType
         { 
             Method,
-            GetProperty,
-            SetProperty,
+            //GetProperty,
+            //SetProperty,
             Constructor,
             GetField,
             SetField,
+            GetLocal,
+            SetLocal,
+            GetArg,
+            SetArg,
+            GetThis,
+            Const,
+            Assign,
+            Identifier
         }
 
         public ECallType callType { get; set; }

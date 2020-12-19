@@ -172,7 +172,7 @@ namespace Model
 
         }
 
-        void ToStatement(UIStatement s)
+        void ToStatement(ULStatement s)
         {
             if (s == null)
                 return;

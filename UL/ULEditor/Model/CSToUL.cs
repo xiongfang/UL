@@ -729,10 +729,6 @@ namespace Model
 
         void ExportBody(BlockSyntax bs)
         {
-            currentMember.MethodBody = new ULNodeBlock();
-            var callInfo = new CallFrameInfo();
-            callInfo.block = currentMember.MethodBody;
-            
             ExportStatement(bs);
         }
 
@@ -750,42 +746,42 @@ namespace Model
             {
                 ExportStatement(node as BlockSyntax);
             }
-            else if (node is LocalDeclarationStatementSyntax)
-            {
-                ExportStatement(node as LocalDeclarationStatementSyntax);
-            }
-            else if (node is ForStatementSyntax)
-            {
-                ExportStatement(node as ForStatementSyntax);
-            }
-            else if (node is DoStatementSyntax)
-            {
-                ExportStatement(node as DoStatementSyntax);
-            }
+            //else if (node is LocalDeclarationStatementSyntax)
+            //{
+            //    ExportStatement(node as LocalDeclarationStatementSyntax);
+            //}
+            //else if (node is ForStatementSyntax)
+            //{
+            //    ExportStatement(node as ForStatementSyntax);
+            //}
+            //else if (node is DoStatementSyntax)
+            //{
+            //    ExportStatement(node as DoStatementSyntax);
+            //}
             else if (node is WhileStatementSyntax)
             {
                 ExportStatement(node as WhileStatementSyntax);
             }
-            else if (node is SwitchStatementSyntax)
-            {
-                ExportStatement(node as SwitchStatementSyntax);
-            }
-            else if (node is BreakStatementSyntax)
-            {
-                ExportStatement(node as BreakStatementSyntax);
-            }
-            else if (node is ReturnStatementSyntax)
-            {
-                ExportStatement(node as ReturnStatementSyntax);
-            }
-            else if (node is TryStatementSyntax)
-            {
-                ExportStatement(node as TryStatementSyntax);
-            }
-            else if (node is ThrowStatementSyntax)
-            {
-                ExportStatement(node as ThrowStatementSyntax);
-            }
+            //else if (node is SwitchStatementSyntax)
+            //{
+            //    ExportStatement(node as SwitchStatementSyntax);
+            //}
+            //else if (node is BreakStatementSyntax)
+            //{
+            //    ExportStatement(node as BreakStatementSyntax);
+            //}
+            //else if (node is ReturnStatementSyntax)
+            //{
+            //    ExportStatement(node as ReturnStatementSyntax);
+            //}
+            //else if (node is TryStatementSyntax)
+            //{
+            //    ExportStatement(node as TryStatementSyntax);
+            //}
+            //else if (node is ThrowStatementSyntax)
+            //{
+            //    ExportStatement(node as ThrowStatementSyntax);
+            //}
             else
             {
                 Console.Error.WriteLine("error:Unsopproted StatementSyntax" + node);
@@ -795,8 +791,18 @@ namespace Model
         ULNodeBlock ExportStatement(BlockSyntax node)
         {
             var frame = new CallFrameInfo();
-            frame.preFrame = frames.Peek();
+            
             frame.block = new ULNodeBlock();
+
+            if (frames.Count > 0)
+            {
+                frame.preFrame = frames.Peek();
+            }
+            else
+            {
+                currentMember.MethodBody = frame.block;
+            }
+
             frame.block.Parent = currentBlock;
             frames.Push(frame);
             foreach (var s in node.Statements)
@@ -814,16 +820,194 @@ namespace Model
 
             var ifStatement = new ULStatementIf();
             ifStatement.Parent = currentBlock;
-            ifStatement.condition = cond;
+            ifStatement.condition = cond.GetOutputName(0);
             if(node.Statement is BlockSyntax)
                 ifStatement.trueBlock = ExportStatement(node.Statement as BlockSyntax);
             if(node.Else.Statement is BlockSyntax)
                 ifStatement.falseBlock = ExportStatement(node.Else.Statement as BlockSyntax);
         }
-
-        string ExportExp(ExpressionSyntax exp)
+        void ExportStatement(WhileStatementSyntax node)
         {
-            return "";
+            var cond = ExportExp(node.Condition);
+
+            var ifStatement = new ULStatementWhile();
+            ifStatement.Parent = currentBlock;
+            ifStatement.condition = cond.GetOutputName(0);
+            if (node.Statement is BlockSyntax)
+                ifStatement.block = ExportStatement(node.Statement as BlockSyntax);
+        }
+
+        void ExportStatement(ExpressionStatementSyntax node)
+        {
+            ExportExp(node.Expression);
+        }
+
+        ULCall ExportExp(ExpressionSyntax es)
+        {
+            if (es is LiteralExpressionSyntax)
+            {
+                return ExportExp(es as LiteralExpressionSyntax);
+            }
+            else if (es is ThisExpressionSyntax)
+            {
+                return ExportExp(es as ThisExpressionSyntax);
+            }
+            else if (es is ObjectCreationExpressionSyntax)
+            {
+                return ExportExp(es as ObjectCreationExpressionSyntax);
+            }
+            else if (es is InvocationExpressionSyntax)
+            {
+                return ExportExp(es as InvocationExpressionSyntax);
+            }
+            else if (es is MemberAccessExpressionSyntax)
+            {
+                return ExportExp(es as MemberAccessExpressionSyntax);
+            }
+            else if (es is IdentifierNameSyntax)
+            {
+                return ExportExp(es as IdentifierNameSyntax);
+            }
+            else if (es is AssignmentExpressionSyntax)
+            {
+                return ExportExp(es as AssignmentExpressionSyntax);
+            }
+            //else if (es is BinaryExpressionSyntax)
+            //{
+            //    return ExportExp(es as BinaryExpressionSyntax);
+            //}
+            //else if (es is PostfixUnaryExpressionSyntax)
+            //{
+            //    return ExportExp(es as PostfixUnaryExpressionSyntax);
+            //}
+            //else if (es is ArrayCreationExpressionSyntax)
+            //{
+            //    return ExportExp(es as ArrayCreationExpressionSyntax);
+            //}
+            //else if (es is PrefixUnaryExpressionSyntax)
+            //{
+            //    return ExportExp(es as PrefixUnaryExpressionSyntax);
+            //}
+            //else if (es is BaseExpressionSyntax)
+            //{
+            //    return ExportExp(es as BaseExpressionSyntax);
+            //}
+            //else if (es is ThrowExpressionSyntax)
+            //{
+            //    return ExportExp(es as ThrowExpressionSyntax);
+            //}
+            //else if (es is ParenthesizedExpressionSyntax)
+            //{
+            //    return ExportExp(es as ParenthesizedExpressionSyntax);
+            //}
+            //else if (es is ElementAccessExpressionSyntax)
+            //{
+            //    return ExportExp(es as ElementAccessExpressionSyntax);
+            //}
+            else
+            {
+                Console.Error.WriteLine(string.Format("error:不支持的表达式 {0} {1}", es.GetType().Name, es.ToString()));
+            }
+            return null;
+        }
+
+        ULCall ExportExp(LiteralExpressionSyntax e)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.Const;
+            currentBlock.statements.Add(node);
+            node.Args.Add(e.Token.Text);
+            return node;
+        }
+        ULCall ExportExp(ThisExpressionSyntax e)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.GetThis;
+            currentBlock.statements.Add(node);
+            return node;
+        }
+        ULCall ExportExp(AssignmentExpressionSyntax es)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.Assign;
+            currentBlock.statements.Add(node);
+            node.Args.Add(ExportExp(es.Left).GetOutputName(0));
+            node.Args.Add(ExportExp(es.Right).GetOutputName(0));
+            return node;
+        }
+        ULCall ExportExp(ObjectCreationExpressionSyntax es)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.Constructor;
+            currentBlock.statements.Add(node);
+
+            if (es.ArgumentList != null)
+            {
+                foreach (var a in es.ArgumentList.Arguments)
+                {
+                    node.Args.Add(ExportExp(a.Expression).GetOutputName(0));
+                }
+            }
+
+            node.Name = GetType(es.Type).FullName;
+            return node;
+        }
+
+        ULCall ExportExp(InvocationExpressionSyntax es)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.Method;
+            currentBlock.statements.Add(node);
+
+            //if (es.Expression is MemberAccessExpressionSyntax)
+            //{
+            //    MemberAccessExpressionSyntax maes = es.Expression as MemberAccessExpressionSyntax;
+            //    db_les.Name = (maes).Name.Identifier.Text;
+            //    db_les.Caller = ExportExp(maes.Expression);
+            //}
+            //else if (es.Expression is IdentifierNameSyntax)
+            //{
+            //    IdentifierNameSyntax nameSyntax = es.Expression as IdentifierNameSyntax;
+            //    db_les.Name = nameSyntax.Identifier.Text;
+            //    db_les.Caller = new Metadata.Expression.ThisExp();
+            //}
+            //else
+            //{
+            //    Console.Error.WriteLine("不支持的方法调用表达式 " + es.ToString());
+            //}
+
+            node.Name = ExportExp(es.Expression).GetOutputName(0);
+
+            foreach (var a in es.ArgumentList.Arguments)
+            {
+                node.Args.Add(ExportExp(a.Expression).GetOutputName(0));
+            }
+            return node;
+        }
+
+        ULCall ExportExp(MemberAccessExpressionSyntax es)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.GetField;
+            currentBlock.statements.Add(node);
+            node.Args.Add(ExportExp(es.Expression).GetOutputName(0));
+            node.Name = es.Name.Identifier.Text;
+            return node;
+        }
+        ULCall ExportExp(IdentifierNameSyntax es)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.Identifier;
+            currentBlock.statements.Add(node);
+            node.Name = es.Identifier.Text;
+            return node;
         }
     }
 }

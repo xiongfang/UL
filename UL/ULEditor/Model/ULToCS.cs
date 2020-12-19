@@ -167,7 +167,7 @@ namespace Model
 
         }
 
-        void ToStatement(UIStatement s)
+        void ToStatement(ULStatement s)
         {
             if (s == null)
                 return;
@@ -175,7 +175,43 @@ namespace Model
             {
                 ToBody(s as ULNodeBlock);
             }
+            else if(s is ULStatementIf)
+            {
+                ToStatement(s as ULStatementIf);
+            }
+            else if (s is ULCall)
+            {
+                ToStatement(s as ULCall);
+            }
+            else
+            {
+                Console.Error.WriteLine("unknow statement " + s.GetType().Name);
+            }
         }
 
+        void ToStatement(ULStatementIf s)
+        {
+            AppendLine("if(" + s.condition + ")");
+            ToBody(s.trueBlock);
+            AppendLine("else");
+            ToBody(s.falseBlock);
+        }
+
+        void ToStatement(ULCall s)
+        {
+            BeginAppendLine();
+            Append(s.Name);
+            Append("(");
+            for(int i=0;i<s.Args.Count;i++)
+            {
+                Append(s.Args[i]);
+                if(i!=s.Args.Count-1)
+                {
+                    Append(",");
+                }
+            }
+            Append(");");
+            EndAppendLine();
+        }
     }
 }
