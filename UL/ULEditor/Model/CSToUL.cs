@@ -68,20 +68,21 @@ namespace Model
             public Dictionary<string, string> variables = new Dictionary<string, string>();
         }
         Stack<CallFrameInfo> frames = new Stack<CallFrameInfo>();
-        ULNodeBlock currentBlock { 
+        ULNodeBlock currentBlock
+        {
             get
             {
                 if (frames.Count == 0)
                     return null;
                 var f = frames.Peek();
-                while(f!=null && f.block==null)
+                while (f != null && f.block == null)
                 {
                     f = f.preFrame;
                 }
                 if (f != null)
                     return f.block;
                 return null;
-            } 
+            }
         }
         ULNodeBlock preBlock { get { return currentBlock.Parent; } }
 
@@ -111,11 +112,11 @@ namespace Model
 
         string GetOrCreateGuid(ClassDeclarationSyntax c)
         {
-            foreach(var alist in c.AttributeLists)
+            foreach (var alist in c.AttributeLists)
             {
-                foreach(var a in alist.Attributes)
+                foreach (var a in alist.Attributes)
                 {
-                    if(a.Name.ToFullString() == "GUID")
+                    if (a.Name.ToFullString() == "GUID")
                     {
                         LiteralExpressionSyntax exp = a.ArgumentList.Arguments[0].Expression as LiteralExpressionSyntax;
                         return exp.Token.ValueText;
@@ -157,7 +158,7 @@ namespace Model
             }
             else
             {
-                types.Push(ModelData.FindTypeByFullName(nameSpace+"."+name));
+                types.Push(ModelData.FindTypeByFullName(nameSpace + "." + name));
             }
 
             //导出所有变量
@@ -315,7 +316,7 @@ namespace Model
 
         void ExportVariable(BaseFieldDeclarationSyntax v)
         {
-            if(step == ECompilerStet.ScanMember)
+            if (step == ECompilerStet.ScanMember)
             {
                 var vtype = GetType(v.Declaration.Type);
 
@@ -347,8 +348,8 @@ namespace Model
                     currentType.Members.Add(dB_Member);
                 }
             }
-            
-            
+
+
         }
         static bool ContainModifier(SyntaxTokenList Modifiers, string token)
         {
@@ -356,7 +357,7 @@ namespace Model
         }
         static EModifier GetModifier(SyntaxTokenList Modifiers)
         {
-            bool isPublic =  ContainModifier(Modifiers, "public");
+            bool isPublic = ContainModifier(Modifiers, "public");
             bool isProtected = ContainModifier(Modifiers, "protected");
             bool isPrivate = !isPublic && !isProtected;
 
@@ -417,7 +418,7 @@ namespace Model
             {
                 PredefinedTypeSyntax predefinedTypeSyntax = typeSyntax as PredefinedTypeSyntax;
                 string typeName = GetKeywordTypeName(predefinedTypeSyntax.Keyword.Text);
-                return Model.ModelData.FindTypeByFullName("System."+typeName);
+                return Model.ModelData.FindTypeByFullName("System." + typeName);
             }
             //else if (typeSyntax is ArrayTypeSyntax)
             //{
@@ -514,9 +515,10 @@ namespace Model
         static Dictionary<BaseMethodDeclarationSyntax, ULMemberInfo> MemberMap = new Dictionary<BaseMethodDeclarationSyntax, ULMemberInfo>();
         void ExportMethod(BaseMethodDeclarationSyntax v)
         {
-            if(step == ECompilerStet.ScanMember)
+            if (step == ECompilerStet.ScanMember)
             {
                 MethodDeclarationSyntax method = v as MethodDeclarationSyntax;
+
                 var methodInfo = new Model.ULMemberInfo();
                 methodInfo.DeclareTypeName = this.currentType.FullName;
                 methodInfo.Name = method.Identifier.ValueText;
@@ -528,7 +530,7 @@ namespace Model
                 currentType.Members.Add(methodInfo);
                 MemberMap[v] = methodInfo;
             }
-            else if(step == ECompilerStet.Compile)
+            else if (step == ECompilerStet.Compile)
             {
                 currentMember = MemberMap[v];
                 ExportBody(v.Body);
@@ -703,7 +705,7 @@ namespace Model
                 types.Push(ModelData.FindTypeByFullName(nameSpace + "." + name));
             }
 
-            if(step == ECompilerStet.ScanMember)
+            if (step == ECompilerStet.ScanMember)
             {
                 //导出所有变量
                 var virableNodes = c.ChildNodes().OfType<EnumMemberDeclarationSyntax>();
@@ -791,7 +793,7 @@ namespace Model
         ULNodeBlock ExportStatement(BlockSyntax node)
         {
             var frame = new CallFrameInfo();
-            
+
             frame.block = new ULNodeBlock();
 
             if (frames.Count > 0)
@@ -821,9 +823,9 @@ namespace Model
             var ifStatement = new ULStatementIf();
             ifStatement.Parent = currentBlock;
             ifStatement.condition = cond.GetOutputName(0);
-            if(node.Statement is BlockSyntax)
+            if (node.Statement is BlockSyntax)
                 ifStatement.trueBlock = ExportStatement(node.Statement as BlockSyntax);
-            if(node.Else.Statement is BlockSyntax)
+            if (node.Else.Statement is BlockSyntax)
                 ifStatement.falseBlock = ExportStatement(node.Else.Statement as BlockSyntax);
         }
         void ExportStatement(WhileStatementSyntax node)
@@ -872,38 +874,38 @@ namespace Model
             {
                 return ExportExp(es as AssignmentExpressionSyntax);
             }
-            //else if (es is BinaryExpressionSyntax)
-            //{
-            //    return ExportExp(es as BinaryExpressionSyntax);
-            //}
-            //else if (es is PostfixUnaryExpressionSyntax)
-            //{
-            //    return ExportExp(es as PostfixUnaryExpressionSyntax);
-            //}
-            //else if (es is ArrayCreationExpressionSyntax)
-            //{
-            //    return ExportExp(es as ArrayCreationExpressionSyntax);
-            //}
-            //else if (es is PrefixUnaryExpressionSyntax)
-            //{
-            //    return ExportExp(es as PrefixUnaryExpressionSyntax);
-            //}
-            //else if (es is BaseExpressionSyntax)
-            //{
-            //    return ExportExp(es as BaseExpressionSyntax);
-            //}
+            else if (es is BinaryExpressionSyntax)
+            {
+                return ExportExp(es as BinaryExpressionSyntax);
+            }
+            else if (es is PostfixUnaryExpressionSyntax)
+            {
+                return ExportExp(es as PostfixUnaryExpressionSyntax);
+            }
+            else if (es is ArrayCreationExpressionSyntax)
+            {
+                return ExportExp(es as ArrayCreationExpressionSyntax);
+            }
+            else if (es is PrefixUnaryExpressionSyntax)
+            {
+                return ExportExp(es as PrefixUnaryExpressionSyntax);
+            }
+            else if (es is BaseExpressionSyntax)
+            {
+                return ExportExp(es as BaseExpressionSyntax);
+            }
             //else if (es is ThrowExpressionSyntax)
             //{
             //    return ExportExp(es as ThrowExpressionSyntax);
             //}
-            //else if (es is ParenthesizedExpressionSyntax)
-            //{
-            //    return ExportExp(es as ParenthesizedExpressionSyntax);
-            //}
-            //else if (es is ElementAccessExpressionSyntax)
-            //{
-            //    return ExportExp(es as ElementAccessExpressionSyntax);
-            //}
+            else if (es is ParenthesizedExpressionSyntax)
+            {
+                return ExportExp(es as ParenthesizedExpressionSyntax);
+            }
+            else if (es is ElementAccessExpressionSyntax)
+            {
+                return ExportExp(es as ElementAccessExpressionSyntax);
+            }
             else
             {
                 Console.Error.WriteLine(string.Format("error:不支持的表达式 {0} {1}", es.GetType().Name, es.ToString()));
@@ -943,7 +945,7 @@ namespace Model
             ULCall node = new ULCall();
             node.Parent = currentBlock;
             node.callType = ULCall.ECallType.Constructor;
-            
+
 
             if (es.ArgumentList != null)
             {
@@ -964,7 +966,7 @@ namespace Model
             ULCall node = new ULCall();
             node.Parent = currentBlock;
             node.callType = ULCall.ECallType.Method;
-            
+
 
             //if (es.Expression is MemberAccessExpressionSyntax)
             //{
@@ -998,7 +1000,7 @@ namespace Model
             ULCall node = new ULCall();
             node.Parent = currentBlock;
             node.callType = ULCall.ECallType.GetField;
-            
+
             node.Args.Add(ExportExp(es.Expression).GetOutputName(0));
             node.Name = es.Name.Identifier.Text;
             currentBlock.statements.Add(node);
@@ -1009,11 +1011,159 @@ namespace Model
             ULCall node = new ULCall();
             node.Parent = currentBlock;
             node.callType = ULCall.ECallType.Identifier;
-            
+
             node.Name = es.Identifier.Text;
 
             currentBlock.statements.Add(node);
             return node;
+        }
+
+        string GetBinaryOperatorTokenMethodName(string token)
+        {
+            switch (token)
+            {
+                case "+":
+                    return "op_Add";
+                case "-":
+                    return "op_Sub";
+                case "*":
+                    return "op_Mul";
+                case "/":
+                    return "op_Div";
+                default:
+                    return "error";
+            }
+        }
+        string GetPostfixOperatorTokenMethodName(string token)
+        {
+            switch (token)
+            {
+                case "++":
+                    return "op_AddAddPost";
+                case "--":
+                    return "op_SubSubPost";
+                default:
+                    return "error";
+            }
+        }
+        string GetPrefixOperatorTokenMethodName(string token)
+        {
+            switch (token)
+            {
+                case "++":
+                    return "op_AddAdd";
+                case "--":
+                    return "op_SubSub";
+                default:
+                    return "error";
+            }
+        }
+
+        ULCall ExportExp(BinaryExpressionSyntax es)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.Method;
+
+            node.Name = GetBinaryOperatorTokenMethodName(es.OperatorToken.Text);
+
+            var Left = ExportExp(es.Left);
+            var Right = ExportExp(es.Right);
+
+            node.Args.Add(Left.GetOutputName(0));
+            node.Args.Add(Right.GetOutputName(1));
+
+            currentBlock.statements.Add(node);
+
+
+            return node;
+        }
+
+        ULCall ExportExp(PostfixUnaryExpressionSyntax es)
+        {
+
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.Method;
+
+            node.Name = GetPostfixOperatorTokenMethodName(es.OperatorToken.Text);
+
+            var Left = ExportExp(es.Operand);
+
+            node.Args.Add(Left.GetOutputName(0));
+
+
+            currentBlock.statements.Add(node);
+
+
+            return node;
+        }
+
+        ULCall ExportExp(PrefixUnaryExpressionSyntax es)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.Method;
+
+            node.Name = GetPrefixOperatorTokenMethodName(es.OperatorToken.Text);
+
+            var Left = ExportExp(es.Operand);
+
+            node.Args.Add(Left.GetOutputName(0));
+
+
+            currentBlock.statements.Add(node);
+
+
+            return node;
+        }
+
+        ULCall ExportExp(ArrayCreationExpressionSyntax es)
+        {
+            var db_les = new ULCall();
+            db_les.Parent = currentBlock;
+            db_les.callType = ULCall.ECallType.CreateArray;
+
+            db_les.Args.Add( GetType(es.Type).FullName);
+            foreach (var p in es.Type.RankSpecifiers)
+            {
+                foreach (var s in p.Sizes)
+                    db_les.Args.Add(ExportExp(s).GetOutputName(0));
+            }
+
+            currentBlock.statements.Add(db_les);
+
+            return db_les;
+        }
+
+        ULCall ExportExp(BaseExpressionSyntax es)
+        {
+            var db_les = new ULCall();
+            db_les.Parent = currentBlock;
+            db_les.callType = ULCall.ECallType.GetBase;
+            currentBlock.statements.Add(db_les);
+            return db_les;
+        }
+
+        ULCall ExportExp(ElementAccessExpressionSyntax es)
+        {
+            ULCall node = new ULCall();
+            node.Parent = currentBlock;
+            node.callType = ULCall.ECallType.ElementAccess;
+
+            var exp = ExportExp(es.Expression);
+            node.Args.Add(exp.GetOutputName(0));
+            foreach (var a in es.ArgumentList.Arguments)
+            {
+                node.Args.Add(ExportExp(a.Expression).GetOutputName(0));
+            }
+
+            return node;
+        }
+
+        ULCall ExportExp(ParenthesizedExpressionSyntax es)
+        {
+            return ExportExp(es.Expression);
         }
     }
 }

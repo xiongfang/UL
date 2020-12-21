@@ -303,7 +303,10 @@ namespace Model
             GetThis,
             Const,
             Assign,
-            Identifier
+            Identifier,
+            CreateArray,
+            GetBase,
+            ElementAccess
         }
 
         public ECallType callType { get; set; }
