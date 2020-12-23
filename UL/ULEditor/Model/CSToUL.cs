@@ -291,84 +291,106 @@ namespace Model
                 property.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
                 property.Modifier = GetModifier(v.Modifiers);
                 property.TypeName = v_type.FullName;
-                //foreach (var ve in v.AccessorList.Accessors)
-                //{
-                //    Metadata.DB_Member dB_Member = new Metadata.DB_Member();
-                //    dB_Member.declaring_type = type.static_full_name;
-                //    dB_Member.member_type = (int)Metadata.MemberTypes.Method;
-                //    dB_Member.is_static = property.is_static;
-                //    dB_Member.modifier = property.modifier;
-                //    dB_Member.method_abstract = ContainModifier(v.Modifiers, "abstract");
-                //    dB_Member.method_virtual = ContainModifier(v.Modifiers, "virtual");
-                //    dB_Member.method_override = ContainModifier(v.Modifiers, "override");
-                //    if (ve.Keyword.Text == "get")
-                //    {
-                //        dB_Member.type = v_type.GetRefType();
-                //        dB_Member.name = property.property_get;
-                //        dB_Member.method_is_property_get = true;
-                //        if (v is IndexerDeclarationSyntax)
-                //        {
-                //            IndexerDeclarationSyntax indexerDeclarationSyntax = v as IndexerDeclarationSyntax;
-                //            List<Metadata.DB_Member.Argument> args = new List<Metadata.DB_Member.Argument>();
-                //            foreach (var a in indexerDeclarationSyntax.ParameterList.Parameters)
-                //            {
-                //                args.Add(GetArgument(a));
-                //            }
-                //            dB_Member.method_args = args.ToArray();
-                //        }
-                //        else
-                //        {
-                //            dB_Member.method_args = new Metadata.DB_Member.Argument[0];
-                //        }
-
-                //    }
-                //    else if (ve.Keyword.Text == "set")
-                //    {
-                //        dB_Member.method_is_property_set = true;
-                //        dB_Member.name = property.property_set;
-                //        if (v is IndexerDeclarationSyntax)
-                //        {
-                //            IndexerDeclarationSyntax indexerDeclarationSyntax = v as IndexerDeclarationSyntax;
-                //            List<Metadata.DB_Member.Argument> args = new List<Metadata.DB_Member.Argument>();
-                //            foreach (var a in indexerDeclarationSyntax.ParameterList.Parameters)
-                //            {
-                //                args.Add(GetArgument(a));
-                //            }
-                //            Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
-                //            arg.name = "value";
-                //            arg.type = v_type.GetRefType();
-                //            args.Add(arg);
-                //            dB_Member.method_args = args.ToArray();
-                //        }
-                //        else
-                //        {
-                //            Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
-                //            arg.name = "value";
-                //            arg.type = v_type.GetRefType();
-                //            dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
-                //        }
-                //    }
-                //    else if (ve.Keyword.Text == "add")
-                //    {
-                //        dB_Member.method_is_event_add = true;
-                //        dB_Member.name = property.property_add;
-                //        Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
-                //        arg.name = "value";
-                //        arg.type = v_type.GetRefType();
-                //        dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
-                //    }
-                //    else if (ve.Keyword.Text == "remove")
-                //    {
-                //        dB_Member.method_is_event_remove = true;
-                //        dB_Member.name = property.property_remove;
-                //        Metadata.DB_Member.Argument arg = new Metadata.DB_Member.Argument();
-                //        arg.name = "value";
-                //        arg.type = v_type.GetRefType();
-                //        dB_Member.method_args = new Metadata.DB_Member.Argument[] { arg };
-                //    }
-                //    Model.AddMember(type.static_full_name, dB_Member);
-                //}
                 currentType.Members.Add(property);
+
+                foreach (var ve in v.AccessorList.Accessors)
+                {
+                    var dB_Member = new ULMemberInfo();
+                    dB_Member.DeclareTypeName = currentType.FullName;
+                    dB_Member.TypeName = v_type.FullName;
+                    dB_Member.IsStatic = property.IsStatic;
+                    dB_Member.Modifier = property.Modifier;
+                    //dB_Member.method_abstract = ContainModifier(v.Modifiers, "abstract");
+                    //dB_Member.method_virtual = ContainModifier(v.Modifiers, "virtual");
+                    //dB_Member.method_override = ContainModifier(v.Modifiers, "override");
+                    if (ve.Keyword.Text == "get")
+                    {
+                        dB_Member.MemberType = ULMemberInfo.EMemberType.PropertyGet;
+
+                        dB_Member.Name = property.Name_PropertyGet;
+                        if (v is IndexerDeclarationSyntax)
+                        {
+                            IndexerDeclarationSyntax indexerDeclarationSyntax = v as IndexerDeclarationSyntax;
+                            dB_Member.Args = new List<ULMemberInfo.MethodArg>();
+                            foreach (var a in indexerDeclarationSyntax.ParameterList.Parameters)
+                            {
+                                dB_Member.Args.Add(GetArgument(a));
+                            }
+                        }
+                    }
+                    else if (ve.Keyword.Text == "set")
+                    {
+                        dB_Member.MemberType = ULMemberInfo.EMemberType.PropertySet;
+                        dB_Member.Name = property.Name_PropertySet;
+                        if (v is IndexerDeclarationSyntax)
+                        {
+                            IndexerDeclarationSyntax indexerDeclarationSyntax = v as IndexerDeclarationSyntax;
+                            dB_Member.Args = new List<ULMemberInfo.MethodArg>();
+                            foreach (var a in indexerDeclarationSyntax.ParameterList.Parameters)
+                            {
+                                dB_Member.Args.Add(GetArgument(a));
+                            }
+                            var arg = new ULMemberInfo.MethodArg();
+                            arg.ArgName = "value";
+                            arg.TypeName = v_type.FullName;
+                            dB_Member.Args.Add(arg);
+                        }
+                        else
+                        {
+                            var arg = new ULMemberInfo.MethodArg();
+                            arg.ArgName = "value";
+                            arg.TypeName = v_type.FullName;
+                            dB_Member.Args.Add(arg);
+                        }
+                    }
+                    else if (ve.Keyword.Text == "add")
+                    {
+                        dB_Member.MemberType = ULMemberInfo.EMemberType.PropertyAdd;
+                        dB_Member.Name = property.Name_PropertyAdd;
+                        var arg = new ULMemberInfo.MethodArg();
+                        arg.ArgName = "value";
+                        arg.TypeName = v_type.FullName;
+                        dB_Member.Args.Add(arg);
+                    }
+                    else if (ve.Keyword.Text == "remove")
+                    {
+                        dB_Member.MemberType = ULMemberInfo.EMemberType.PropertyRemove;
+                        dB_Member.Name = property.Name_PropertyRemove;
+                        var arg = new ULMemberInfo.MethodArg();
+                        arg.ArgName = "value";
+                        arg.TypeName = v_type.FullName;
+                        dB_Member.Args.Add(arg);
+                    }
+                    currentType.Members.Add(dB_Member);
+                }
+
+            }
+            else if (step == ECompilerStet.Compile)
+            {
+                currentMember = currentType.Members.Find(m => m.Name == name);
+                foreach (var ve in v.AccessorList.Accessors)
+                {
+                    if (ve.Keyword.Text == "get")
+                    {
+                        currentMember = currentType.Members.Find(m => m.Name == currentMember.Name_PropertyGet);
+                        ExportBody(ve.Body);
+                    }
+                    else if(ve.Keyword.Text == "set")
+                    {
+                        currentMember = currentType.Members.Find(m => m.Name == currentMember.Name_PropertySet);
+                        ExportBody(ve.Body);
+                    }
+                    else if(ve.Keyword.Text == "add")
+                    {
+                        currentMember = currentType.Members.Find(m => m.Name == currentMember.Name_PropertyAdd);
+                        ExportBody(ve.Body);
+                    }
+                    else if (ve.Keyword.Text == "remove")
+                    {
+                        currentMember = currentType.Members.Find(m => m.Name == currentMember.Name_PropertyRemove);
+                        ExportBody(ve.Body);
+                    }
+                }
             }
         }
 
@@ -545,6 +567,15 @@ namespace Model
         }
 
         static Dictionary<BaseMethodDeclarationSyntax, ULMemberInfo> MemberMap = new Dictionary<BaseMethodDeclarationSyntax, ULMemberInfo>();
+
+        ULMemberInfo.MethodArg GetArgument(ParameterSyntax a)
+        {
+            var Arg = new ULMemberInfo.MethodArg();
+            Arg.ArgName = a.Identifier.Text;
+            Arg.TypeName = GetType(a.Type).FullName;
+            return Arg;
+        }
+
         void ExportMethod(BaseMethodDeclarationSyntax v)
         {
             if (step == ECompilerStet.ScanMember)
@@ -574,10 +605,7 @@ namespace Model
                 }
                 foreach (var a in method.ParameterList.Parameters)
                 {
-                    var Arg = new ULMemberInfo.MethodArg();
-                    Arg.ArgName = a.Identifier.Text;
-                    Arg.TypeName = GetType(a.Type).FullName;
-                    currentMember.Args.Add(Arg);
+                    currentMember.Args.Add(GetArgument(a));
                 }
                 ExportBody(v.Body);
             }

@@ -194,9 +194,17 @@ namespace Model
             Property,
             Method,
             Event,
-            Enum
+            Enum,
+            PropertyGet,
+            PropertySet,
+            PropertyAdd,
+            PropertyRemove
         }
         
+        public string Name_PropertyGet { get { return Name + "_get"; } }
+        public string Name_PropertySet { get { return Name + "_set"; } }
+        public string Name_PropertyAdd { get { return Name + "_add"; } }
+        public string Name_PropertyRemove { get { return Name + "_remove"; } }
 
         public EMemberType MemberType { get; set; }
 
