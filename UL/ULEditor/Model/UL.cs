@@ -200,7 +200,12 @@ namespace Model
 
         public EMemberType MemberType { get; set; }
 
-
+        public class MethodArg
+        {
+            public string TypeName;
+            public string ArgName;
+        }
+        public List<MethodArg> Args { get; set; }
         public ULNodeBlock MethodBody;
     }
 
@@ -235,14 +240,14 @@ namespace Model
 
     public class ULStatementIf : ULStatement
     {
-        public string condition { get; set; }
+        public string arg { get; set; }
         public ULNodeBlock trueBlock { get; set; }
         public ULNodeBlock falseBlock { get; set; }
     }
 
     public class ULStatementWhile : ULStatement
     {
-        public string condition { get; set; }
+        public string arg { get; set; }
         public ULNodeBlock block { get; set; }
     }
 

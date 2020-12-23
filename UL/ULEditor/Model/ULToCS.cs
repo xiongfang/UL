@@ -191,7 +191,7 @@ namespace Model
 
         void ToStatement(ULStatementIf s)
         {
-            AppendLine("if(" + s.condition + ")");
+            AppendLine("if(" + s.arg + ")");
             ToBody(s.trueBlock);
             AppendLine("else");
             ToBody(s.falseBlock);

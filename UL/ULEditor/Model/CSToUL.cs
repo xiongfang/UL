@@ -86,6 +86,64 @@ namespace Model
         }
         ULNodeBlock preBlock { get { return currentBlock.Parent; } }
 
+        class IdentifierInfo
+        {
+            public enum EIdentifierType
+            {
+                Local,
+                Arg,
+                Field,
+                Method,
+                Type,
+                Namesapce
+            }
+            public EIdentifierType type;
+            public string TypeFullName;
+        }
+
+        IdentifierInfo GetIdentifierInfo(string identifier)
+        {
+            IdentifierInfo info = new IdentifierInfo();
+            if (frames.Count == 0)
+                return null;
+            var f = frames.Peek();
+            while (f != null)
+            {
+                if (f.variables.ContainsKey(identifier))
+                {
+                    info.type = IdentifierInfo.EIdentifierType.Local;
+                    info.TypeFullName = identifier;
+                    return info;
+                }
+
+                f = f.preFrame;
+            }
+
+            foreach (var a in currentMember.Args)
+            {
+                if (a.ArgName == identifier)
+                {
+                    info.TypeFullName = a.TypeName;
+                    info.type = IdentifierInfo.EIdentifierType.Arg;
+                    return info;
+                }
+            }
+
+            foreach (var m in currentType.Members)
+            {
+                if (m.Name == identifier)
+                {
+                    info.TypeFullName = m.TypeName;
+                    info.type = IdentifierInfo.EIdentifierType.Field;
+                    return info;
+                }
+            }
+
+            //todo:查找命名空间的类
+
+            return null;
+        }
+
         void ExportType(MemberDeclarationSyntax c)
         {
             if (c is ClassDeclarationSyntax)
@@ -409,7 +467,7 @@ namespace Model
             }
         }
 
-        public static ULTypeInfo GetType(TypeSyntax typeSyntax)
+        public ULTypeInfo GetType(TypeSyntax typeSyntax)
         {
             if (typeSyntax == null)
                 return null;
@@ -441,34 +499,16 @@ namespace Model
             //    //Metadata.DB_Type arrayType = Model.GetType("System.ArrayT[1]");
             //    return gns;
             //}
-            //else if (typeSyntax is IdentifierNameSyntax)
-            //{
-            //    IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
-            //    Metadata.DB_Type type = Model.Instance.GetIndifierInfo(ts.Identifier.Text, ns, Metadata.Model.EIndifierFlag.IF_Type).type;
-
-
-            //    //Metadata.DB_Type type = Model.Instance.GetIndifierInfo(Identifier).type;
-            //    //Model.Instance.GetIndifierInfo(ts.Identifier.Text).type;
-            //    if (type.is_generic_paramter)
-            //    {
-            //        Metadata.Expression.TypeSyntax ins = new Metadata.Expression.TypeSyntax();
-
-            //        ins.Name = (ts.Identifier.Text);
-            //        ins.name_space = type._namespace;
-            //        ins.isGenericParameter = true;
-            //        //ins.declare_type = type.static_full_name;
-            //        return ins;
-            //    }
-            //    else
-            //    {
-            //        Metadata.Expression.TypeSyntax ins = new Metadata.Expression.TypeSyntax();
-
-            //        ins.Name = (ts.Identifier.Text);
-            //        ins.name_space = type._namespace;
-            //        return ins;
-            //    }
-
-            //}
+            else if (typeSyntax is IdentifierNameSyntax)
+            {
+                IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
+                var identifier = ts.Identifier.Text;
+                var info = GetIdentifierInfo(identifier);
+                if (info != null)
+                {
+                    return Model.ModelData.FindTypeByFullName(info.TypeFullName);
+                }
+            }
             //else if (typeSyntax is GenericNameSyntax)
             //{
             //    GenericNameSyntax ts = typeSyntax as GenericNameSyntax;
@@ -486,24 +526,16 @@ namespace Model
             //    gns.name_space = type._namespace;
             //    return gns;
             //}
-            //else if (typeSyntax is QualifiedNameSyntax)
-            //{
-            //    QualifiedNameSyntax qns = typeSyntax as QualifiedNameSyntax;
-            //    string name_space = qns.Left.ToString();
-            //    if (!string.IsNullOrEmpty(ns))
-            //    {
-            //        ns = ns + "." + name_space;
-            //    }
-            //    else
-            //    {
-            //        ns = name_space;
-            //    }
-            //    //Metadata.Expression.QualifiedNameSyntax my_qns = new Metadata.Expression.QualifiedNameSyntax();
-            //    //my_qns.Left = GetTypeSyntax(qns.Left) as Metadata.Expression.NameSyntax;
-            //    Metadata.Expression.TypeSyntax ts = GetTypeSyntax(qns.Right, ns);
-            //    ts.name_space = ns;
-            //    return ts;
-            //}
+            else if (typeSyntax is QualifiedNameSyntax)
+            {
+                QualifiedNameSyntax qns = typeSyntax as QualifiedNameSyntax;
+                string name_space = qns.Left.ToString();
+                var name = qns.Right.Identifier.Text;
+                //Metadata.Expression.QualifiedNameSyntax my_qns = new Metadata.Expression.QualifiedNameSyntax();
+                //my_qns.Left = GetTypeSyntax(qns.Left) as Metadata.Expression.NameSyntax;
+
+                return Model.ModelData.FindTypeByFullName(name_space + "." + name);
+            }
             else
             {
                 Console.Error.WriteLine("不支持的类型语法 " + typeSyntax.GetType().FullName);
@@ -533,6 +565,20 @@ namespace Model
             else if (step == ECompilerStet.Compile)
             {
                 currentMember = MemberMap[v];
+                MethodDeclarationSyntax method = v as MethodDeclarationSyntax;
+
+                //参数
+                if (currentMember.Args == null)
+                {
+                    currentMember.Args = new List<ULMemberInfo.MethodArg>();
+                }
+                foreach (var a in method.ParameterList.Parameters)
+                {
+                    var Arg = new ULMemberInfo.MethodArg();
+                    Arg.ArgName = a.Identifier.Text;
+                    Arg.TypeName = GetType(a.Type).FullName;
+                    currentMember.Args.Add(Arg);
+                }
                 ExportBody(v.Body);
             }
         }
@@ -748,10 +794,10 @@ namespace Model
             {
                 ExportStatement(node as BlockSyntax);
             }
-            //else if (node is LocalDeclarationStatementSyntax)
-            //{
-            //    ExportStatement(node as LocalDeclarationStatementSyntax);
-            //}
+            else if (node is LocalDeclarationStatementSyntax)
+            {
+                ExportStatement(node as LocalDeclarationStatementSyntax);
+            }
             //else if (node is ForStatementSyntax)
             //{
             //    ExportStatement(node as ForStatementSyntax);
@@ -822,7 +868,7 @@ namespace Model
 
             var ifStatement = new ULStatementIf();
             ifStatement.Parent = currentBlock;
-            ifStatement.condition = cond.GetOutputName(0);
+            ifStatement.arg = cond.GetOutputName(0);
             if (node.Statement is BlockSyntax)
                 ifStatement.trueBlock = ExportStatement(node.Statement as BlockSyntax);
             if (node.Else.Statement is BlockSyntax)
@@ -834,7 +880,7 @@ namespace Model
 
             var ifStatement = new ULStatementWhile();
             ifStatement.Parent = currentBlock;
-            ifStatement.condition = cond.GetOutputName(0);
+            ifStatement.arg = cond.GetOutputName(0);
             if (node.Statement is BlockSyntax)
                 ifStatement.block = ExportStatement(node.Statement as BlockSyntax);
         }
@@ -842,6 +888,25 @@ namespace Model
         void ExportStatement(ExpressionStatementSyntax node)
         {
             ExportExp(node.Expression);
+        }
+
+        void ExportStatement(LocalDeclarationStatementSyntax ss)
+        {
+            var Type = GetType(ss.Declaration.Type);
+            foreach (var v in ss.Declaration.Variables)
+            {
+                var vName = v.Identifier.Text;
+                frames.Peek().variables[vName] = Type.FullName;
+                if(v.Initializer!=null)
+                {
+                    ULCall node = new ULCall();
+                    node.Parent = currentBlock;
+                    node.callType = ULCall.ECallType.Assign;
+                    node.Args.Add("local."+vName);
+                    node.Args.Add(ExportExp(v.Initializer.Value).GetOutputName(0));
+                    currentBlock.statements.Add(node);
+                }
+            }
         }
 
         ULCall ExportExp(ExpressionSyntax es)
