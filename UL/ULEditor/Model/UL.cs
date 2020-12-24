@@ -217,6 +217,10 @@ namespace Model
         public ULNodeBlock MethodBody;
     }
 
+    
+    [BsonKnownTypes(typeof(ULStatementSwitch))]
+    [BsonKnownTypes(typeof(ULStatementDo))]
+    [BsonKnownTypes(typeof(ULStatementReturn))]
     [BsonKnownTypes(typeof(ULCall))]
     [BsonKnownTypes(typeof(ULStatementBreak))]
     [BsonKnownTypes(typeof(ULStatementFor))]
@@ -261,7 +265,10 @@ namespace Model
 
     public class ULStatementFor : ULStatement
     {
-
+        public string Declaration { get; set; }
+        public string Condition { get; set; }
+        public List<string> Incrementors { get; set; }
+        public ULNodeBlock block { get; set; }
     }
 
     public class ULStatementBreak : ULStatement
@@ -269,6 +276,25 @@ namespace Model
 
     }
 
+    public class ULStatementReturn : ULStatement
+    {
+        public string Arg;
+    }
+    public class ULStatementDo : ULStatement
+    {
+        public string arg { get; set; }
+        public ULNodeBlock block { get; set; }
+    }
+    public class ULStatementSwitch : ULStatement
+    {
+        public string Condition { get; set; }
+        public class Section
+        {
+            public List<string> Labels { get; set; }
+            public List<ULNodeBlock> Statements { get; set; }
+        }
+        public List<Section> Sections { get; set; }
+    }
     public class ULCall : ULStatement
     {
         public ULCall()
@@ -319,7 +345,8 @@ namespace Model
             Identifier,
             CreateArray,
             GetBase,
-            ElementAccess
+            ElementAccess,
+            DeclarationLocal
         }
 
         public ECallType callType { get; set; }

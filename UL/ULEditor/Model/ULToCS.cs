@@ -143,7 +143,17 @@ namespace Model
                     Append("{ get; set;}");
                     break;
                 case ULMemberInfo.EMemberType.Method:
-                    Append("()");
+                    Append("(");
+                    for(int i=0;i<memberInfo.Args.Count;i++)
+                    {
+                        Append(memberInfo.Args[i].TypeName + " " + memberInfo.Args[i].ArgName);
+                        if(i< memberInfo.Args.Count-1)
+                        {
+                            Append(",");
+                        }
+                    }
+
+                    Append(")");
                     break;
             }
             EndAppendLine();
@@ -183,6 +193,10 @@ namespace Model
             {
                 ToStatement(s as ULCall);
             }
+            else if(s is ULStatementReturn)
+            {
+                ToStatement(s as ULStatementReturn);
+            }
             else
             {
                 Console.Error.WriteLine("unknow statement " + s.GetType().Name);
@@ -219,6 +233,18 @@ namespace Model
                 //Append(");");
             }
 
+            EndAppendLine();
+        }
+
+        void ToStatement(ULStatementReturn s)
+        {
+            BeginAppendLine();
+            Append("return");
+            if(!string.IsNullOrEmpty(s.Arg))
+            {
+                Append(" "+s.Arg);
+            }
+            Append(";");
             EndAppendLine();
         }
     }
