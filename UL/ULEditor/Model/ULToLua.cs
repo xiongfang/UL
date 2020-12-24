@@ -147,7 +147,21 @@ namespace Model
                     if(!memberInfo.IsStatic)
                     {
                         Append("self");
+                        if(memberInfo.Args.Count>0)
+                        {
+                            Append(",");
+                        }
                     }
+
+                    for(int i=0;i<memberInfo.Args.Count;i++)
+                    {
+                        Append(memberInfo.Args[i].ArgName);
+                        if(i!=memberInfo.Args.Count-1)
+                        {
+                            Append(",");
+                        }
+                    }
+
                     Append(")");
                     break;
             }

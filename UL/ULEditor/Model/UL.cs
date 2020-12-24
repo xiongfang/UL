@@ -210,8 +210,8 @@ namespace Model
 
         public class MethodArg
         {
-            public string TypeName;
-            public string ArgName;
+            public string TypeName { get; set; }
+            public string ArgName { get; set; }
         }
         public List<MethodArg> Args { get; set; }
         public ULNodeBlock MethodBody;
