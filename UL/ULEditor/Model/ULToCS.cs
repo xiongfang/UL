@@ -144,13 +144,17 @@ namespace Model
                     break;
                 case ULMemberInfo.EMemberType.Method:
                     Append("(");
-                    for(int i=0;i<memberInfo.Args.Count;i++)
+                    if(memberInfo.Args!=null)
                     {
-                        Append(memberInfo.Args[i].TypeName + " " + memberInfo.Args[i].ArgName);
-                        if(i< memberInfo.Args.Count-1)
+                        for (int i = 0; i < memberInfo.Args.Count; i++)
                         {
-                            Append(",");
+                            Append(memberInfo.Args[i].TypeName + " " + memberInfo.Args[i].ArgName);
+                            if (i < memberInfo.Args.Count - 1)
+                            {
+                                Append(",");
+                            }
                         }
+
                     }
 
                     Append(")");

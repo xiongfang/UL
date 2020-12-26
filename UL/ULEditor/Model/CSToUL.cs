@@ -26,6 +26,16 @@ namespace Model
             var cs = new CSToUL();
             cs.step = ECompilerStet.ScanType;
 
+
+            cs.usingNamespaces = new List<string>();
+            if (root.Usings != null)
+            {
+                foreach (var u in root.Usings)
+                {
+                    cs.usingNamespaces.Add(u.Name.ToString());
+                }
+            }
+
             foreach (var c in classNodes)
             {
                 cs.ExportType(c);
@@ -55,6 +65,8 @@ namespace Model
 
         ECompilerStet step;
         List<ULTypeInfo> type_list = new List<ULTypeInfo>();
+
+        List<string> usingNamespaces = new List<string>();
         Stack<ULTypeInfo> types = new Stack<ULTypeInfo>();
 
         ULTypeInfo currentType { get { return types.Peek(); } }
@@ -104,20 +116,22 @@ namespace Model
         IdentifierInfo GetIdentifierInfo(string identifier)
         {
             IdentifierInfo info = new IdentifierInfo();
-            if (frames.Count == 0)
-                return null;
-            var f = frames.Peek();
-            while (f != null)
+            if (frames.Count != 0)
             {
-                if (f.variables.ContainsKey(identifier))
+                var f = frames.Peek();
+                while (f != null)
                 {
-                    info.type = IdentifierInfo.EIdentifierType.Local;
-                    info.TypeFullName = identifier;
-                    return info;
-                }
+                    if (f.variables.ContainsKey(identifier))
+                    {
+                        info.type = IdentifierInfo.EIdentifierType.Local;
+                        info.TypeFullName = identifier;
+                        return info;
+                    }
 
-                f = f.preFrame;
+                    f = f.preFrame;
+                }
             }
+            
 
             foreach (var a in currentMember.Args)
             {
@@ -139,7 +153,21 @@ namespace Model
                 }
             }
 
-            //todo:查找命名空间的类
+            //类
+            var type = ModelData.FindTypeInNamepsace(identifier, usingNamespaces);
+            if (type != null)
+            {
+                info.TypeFullName = type.FullName;
+                info.type = IdentifierInfo.EIdentifierType.Type;
+                return info;
+            }
+
+            //命名空间
+            if(ModelData.HasNamepsace(identifier))
+            {
+                info.type = IdentifierInfo.EIdentifierType.Namesapce;
+                return info;
+            }
 
             return null;
         }
@@ -201,7 +229,7 @@ namespace Model
                 nameSpace = ModelData.GloableNamespaceName;
             }
             name = c.Identifier.Text;
-
+            usingNamespaces.Add(nameSpace);
 
 
             if (step == ECompilerStet.ScanType)
@@ -255,7 +283,7 @@ namespace Model
 
             types.Pop();
 
-
+            usingNamespaces.Remove(nameSpace);
         }
 
         void ExportProperty(BasePropertyDeclarationSyntax v)

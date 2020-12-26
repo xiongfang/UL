@@ -29,7 +29,29 @@ namespace Model
             }
             return null;
         }
+        public static ULTypeInfo FindTypeInNamepsace(string name,List<string> namespaceList)
+        {
+            foreach(var t in TypeNames.Values)
+            {
+                if(t.Name == name && namespaceList.Contains(t.Namespace))
+                {
+                    return t;
+                }
+            }
+            return null;
+        }
 
+        public static bool HasNamepsace(string ns)
+        {
+            foreach (var t in TypeNames.Values)
+            {
+                if (t.Namespace == ns)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public static void AddType(ULTypeInfo typeInfo)
         {
