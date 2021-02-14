@@ -24,9 +24,29 @@ namespace ULEditor2
             {
                 _memberInfo = value;
                 _selectedNode = null;
+                if(_memberInfo == null || _memberInfo.Graph ==null)
+                {
+                    this.Enabled = false;
+                }
+                else
+                {
+                    this.Enabled = true;
+                    OffsetX = _memberInfo.Graph.OffsetX;
+                    OffsetY = _memberInfo.Graph.OffsetY;
+                }
                 Invalidate();
             }
         }
+        ULGraph graph
+        {
+            get
+            {
+                if (_memberInfo != null)
+                    return _memberInfo.Graph;
+                return null;
+            }
+        }
+
         ULNode _selectedNode;
 
         public System.Action<ULNode> onSelectNodeChanged;
@@ -55,8 +75,20 @@ namespace ULEditor2
             OffsetX = ClientRectangle.Width / 2;
             OffsetY = ClientRectangle.Height / 2;
 
-            contextMenuStrip1.Items.Add("AddNode");
-            contextMenuStrip1.Items.Add("DeleteNode");
+            // Create a new MenuStrip control and add a ToolStripMenuItem.
+            contextMenuStrip1.Items.Add("添加函数").Name = "AddNode";
+            ToolStripMenuItem add_node = new ToolStripMenuItem("添加控制");
+            contextMenuStrip1.Items.Add(add_node);
+
+            foreach(var k in ULNode.keywords)
+            {
+                add_node.DropDownItems.Add(k).Name = k;
+            }
+
+            var item = contextMenuStrip1.Items.Add("删除节点");
+            item.Name = "DeleteNode";
+
+            add_node.DropDownItemClicked += contextMenuStrip1_ItemClicked;
         }
 
 
@@ -70,9 +102,9 @@ namespace ULEditor2
             e.Graphics.DrawLine(penBG, new Point(-10, 0), new Point(10, 0));
             e.Graphics.DrawLine(penBG, new Point(0, -10), new Point(0, 10));
 
-            if (_memberInfo!=null)
+            if (graph != null)
             {
-                foreach(var n in _memberInfo.Nodes)
+                foreach(var n in graph.Nodes)
                 {
                     DrawNode(n,e.Graphics);
                 }
@@ -112,21 +144,29 @@ namespace ULEditor2
 
         private void contextMenuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            if(e.ClickedItem.Text == "AddNode")
+            if(e.ClickedItem.Name == "AddNode")
             {
                 var node = new ULNode();
-                node.MethodID = memberInfo.ID;
                 node.NodeID = Guid.NewGuid().ToString();
-                Data.nodes.Add(node);
+                graph.Nodes.Add(node);
                 Invalidate();
             }
-            else if(e.ClickedItem.Text == "DeleteNode")
+            else if(e.ClickedItem.Name == "DeleteNode")
             {
                 if(selectedNode!=null)
                 {
-                    Data.nodes.Remove(selectedNode);
+                    graph.Nodes.Remove(selectedNode);
                 }
                 selectedNode = null;
+                Invalidate();
+            }
+            else if(new List<string>(ULNode.keywords).Contains(e.ClickedItem.Name))
+            {
+                var node = new ULNode();
+                node.NodeID = Guid.NewGuid().ToString();
+                node.Name = e.ClickedItem.Name;
+                graph.Nodes.Add(node);
+                Invalidate();
             }
         }
         Point PointToContext(Point pointClient)
@@ -142,9 +182,7 @@ namespace ULEditor2
             lastMousePoint = e.Location;
 
             var contextPoint = PointToContext(e.Location);
-            if (memberInfo == null)
-                return;
-            foreach (var n in memberInfo.Nodes)
+            foreach (var n in graph.Nodes)
             {
                 if(new Rectangle(n.X,n.Y,NodeWidth,NodeHeight).Contains(contextPoint))
                 {
@@ -169,6 +207,12 @@ namespace ULEditor2
 
                 OffsetX += e.Location.X - lastMousePoint.X;
                 OffsetY += e.Location.Y - lastMousePoint.Y;
+                if(graph!=null)
+                {
+                    graph.OffsetX = OffsetX;
+                    graph.OffsetY = OffsetY;
+                }
+
                 lastMousePoint = e.Location;
 
                 Invalidate();

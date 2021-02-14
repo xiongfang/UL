@@ -56,11 +56,15 @@ namespace ULEditor2
             var nodeFilePath = System.IO.Path.Combine(file_dir, "node.json");
             try
             {
-                Data.nodes = Core.JSON.ToObject<List<ULNode>>(System.IO.File.ReadAllText(nodeFilePath, Encoding.UTF8));
+                var graphs = Core.JSON.ToObject<List<ULGraph>>(System.IO.File.ReadAllText(nodeFilePath, Encoding.UTF8));
+                foreach(var g in graphs)
+                {
+                    Data.graphics.Add(g.MethodID, g);
+                }
             }
             catch(Exception e)
             {
-                Data.nodes = new List<ULNode>();
+                Console.Error.WriteLine(e.Message);
             }
         }
 
@@ -73,8 +77,7 @@ namespace ULEditor2
 
             try
             {
-                var nodes = Data.nodes.Where((v) => v!=null && v.MethodID!=null && Data.members.ContainsKey(v.MethodID)).ToList();
-                System.IO.File.WriteAllText(nodeFilePath, Core.JSON.ToJSON(nodes), Encoding.UTF8);
+                System.IO.File.WriteAllText(nodeFilePath, Core.JSON.ToJSON(Data.graphics.Values.ToList()), Encoding.UTF8);
             }
             catch (Exception e)
             {
