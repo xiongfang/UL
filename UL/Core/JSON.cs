@@ -18,16 +18,16 @@ namespace Core
 			//return fastJSON.JSON.ToObject<T>(json);
         }
 
-        public class JsonDynamicContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
-        {
-            protected override List<MemberInfo> GetSerializableMembers(Type objectType)
-            {
-                List<MemberInfo> RetList = new List<MemberInfo>();
-                RetList.AddRange(objectType.GetFields(BindingFlags.Public | BindingFlags.Instance));
-                return RetList;
-            }
-        }
-        static JsonSerializerSettings Setting = new JsonSerializerSettings { ContractResolver = new JsonDynamicContractResolver(), NullValueHandling = NullValueHandling.Ignore };
+        //public class JsonDynamicContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
+        //{
+        //    protected override List<MemberInfo> GetSerializableMembers(Type objectType)
+        //    {
+        //        List<MemberInfo> RetList = new List<MemberInfo>();
+        //        RetList.AddRange(objectType.GetFields(BindingFlags.Public | BindingFlags.Instance));
+        //        return RetList;
+        //    }
+        //}
+        static JsonSerializerSettings Setting = new JsonSerializerSettings { /* ContractResolver = new JsonDynamicContractResolver(),*/ NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore, Formatting = Formatting.Indented };
 
         public static string ToJSON<T>(T o)
         {

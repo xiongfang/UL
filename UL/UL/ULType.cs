@@ -11,6 +11,7 @@ namespace Model
 
         public static Dictionary<string, ULTypeInfo> types = new Dictionary<string, ULTypeInfo>();
         public static Dictionary<string, ULMemberInfo> members = new Dictionary<string, ULMemberInfo>();
+        public static List<ULNode> nodes = new List<ULNode>();
 
         public static ULTypeInfo GetType(string id)
         {
@@ -82,7 +83,13 @@ namespace Model
         public EMethodType MethodType { get; set; }
         public bool MethodIsVirtual { get; set; }
         public string[][] MethodArgs { get; set; }
-
+        public ULNode[] Nodes { 
+            get
+            {
+                var r = Data.nodes.Select((v) => v).Where((v) => v.MethodID == ID);
+                return r.ToArray();
+            }
+        }
 
     }
 
@@ -94,11 +101,15 @@ namespace Model
 
     public class ULNode
     {
-        public string NodeID { get; set; } //节点ID，每个方法体内部唯一
-        public string MethodID { get; set; }//调用的方法ID
-        public string[] Args { get; set; }  //参数输入类型：常量，某个节点的输出
+        public string NodeID { get; set; }          //节点ID，每个方法体内部唯一
+        public string MethodID { get; set; }        //所属的方法ID
+        public string Name { get; set; }            //调用的方法ID，或者特殊关键字节点
+        public string[] Args { get; set; }          //参数输入类型：常量，某个节点的输出
 
-        public string[] Inputs { get; set; }    //控制输入
-        public string[] Outputs { get; set; }  //控制输出
+        public string[] Inputs { get; set; }        //控制输入
+        public string[] Outputs { get; set; }       //控制输出
+
+        public int X { get; set; }
+        public int Y { get; set; }
     }
 }
