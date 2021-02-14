@@ -9,12 +9,12 @@ namespace ULEditor2
     {
         public IF_Node(ULNode node) :base(node)
         {
-            if(node.ControlOutputs==null || node.ControlOutputs.Length!=2)
+            if(node.ControlOutputs.Length!=2)
             {
                 node.ControlOutputs = new string[2];
             }
         }
 
-        public override int Height => INode.TitleHeight + 2 * INode.LineHeight;
+        
     }
 }

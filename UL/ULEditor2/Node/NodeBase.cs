@@ -8,7 +8,15 @@ namespace ULEditor2
     class NodeBase : INode
     {
         ULNode node;
-        public NodeBase(ULNode n) { node = n; }
+        public NodeBase(ULNode n) { 
+            node = n;
+            if (node.ControlInputs == null)
+                node.ControlInputs = new string[0];
+            if (node.ControlOutputs == null)
+                node.ControlOutputs = new string[0];
+            if (node.Inputs == null)
+                node.Inputs = new string[0];
+        }
 
         public ULNode Node { get { return node; } }
 
@@ -18,7 +26,7 @@ namespace ULEditor2
 
         public virtual int Width => 100;
 
-        public virtual int Height => 50;
+        public virtual int Height => INode.TitleHeight + (int)(MathF.Max(ControlOutputs.Length+ OutputNames.Length,InputNames.Length+ControlInputs.Length) * INode.LineHeight);
 
         public virtual string Title
         {
