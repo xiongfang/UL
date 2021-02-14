@@ -1,10 +1,14 @@
 ﻿[
   {
     "NodeID": "5016d8f4-41a8-4b00-ab88-cde5036dbc9d",
-    "MethodID": "00000001-1"
+    "MethodID": "00000001-1",
+    "X": -88,
+    "Y": -104
   },
   {
     "NodeID": "99bcc4c4-3af7-4da9-8dac-35bcccadba9f",
-    "MethodID": "00000001-2"
+    "MethodID": "00000001-2",
+    "X": -44,
+    "Y": -117
   }
 ]

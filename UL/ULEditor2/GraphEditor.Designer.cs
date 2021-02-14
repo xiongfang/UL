@@ -49,7 +49,11 @@ namespace ULEditor2
             this.DoubleBuffered = true;
             this.Name = "GraphEditor";
             this.Size = new System.Drawing.Size(582, 421);
+            this.Load += new System.EventHandler(this.GraphEditor_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.GraphEditor_Paint);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.GraphEditor_MouseDown);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GraphEditor_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.GraphEditor_MouseUp);
             this.ResumeLayout(false);
 
         }
