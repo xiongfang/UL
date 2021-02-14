@@ -113,6 +113,12 @@ namespace ULEditor2
             }
 
             treeViewTypes.EndUpdate();
+
+            graphEditor1.onSelectNodeChanged += (node) =>
+                {
+                    if(node!=null)
+                        propertyGrid1.SelectedObject = node;
+                };
         }
 
         private void treeViewTypes_AfterSelect(object sender, TreeViewEventArgs e)

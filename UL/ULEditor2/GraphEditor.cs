@@ -28,6 +28,20 @@ namespace ULEditor2
             }
         }
         ULNode _selectedNode;
+
+        public System.Action<ULNode> onSelectNodeChanged;
+
+        ULNode selectedNode { get { return _selectedNode; }
+            set
+            {
+                if(_selectedNode!=value)
+                {
+                    _selectedNode = value;
+                    onSelectNodeChanged?.Invoke(_selectedNode);
+                }
+            }
+        }
+
         int NodeWidth = 100;
         int NodeHeight = 50;
 
@@ -35,8 +49,20 @@ namespace ULEditor2
         int OffsetY = 0;
 
 
+
+        private void GraphEditor_Load(object sender, EventArgs e)
+        {
+            OffsetX = ClientRectangle.Width / 2;
+            OffsetY = ClientRectangle.Height / 2;
+
+            contextMenuStrip1.Items.Add("AddNode");
+            contextMenuStrip1.Items.Add("DeleteNode");
+        }
+
+
         Pen penBG = new Pen(new SolidBrush(Color.White));
         Pen penSelected = new Pen(new SolidBrush(Color.Yellow));
+
         private void GraphEditor_Paint(object sender, PaintEventArgs e)
         {
             
@@ -60,13 +86,26 @@ namespace ULEditor2
 
         void DrawNode(ULNode node,Graphics g)
         {
-            g.FillRectangle(SystemBrushes.Control, new Rectangle(node.X, node.Y, 100, 50));
+            g.FillRectangle(new SolidBrush(Color.LightGray), new Rectangle(node.X, node.Y, 100, 50));
+            if (node.Name == null)
+                node.Name = "";
+
+            g.FillRectangle(new SolidBrush(Color.White), new Rectangle(node.X, node.Y, 100, 20));
+
+            StringFormat stringFormat = new StringFormat(StringFormatFlags.NoWrap);
+            stringFormat.Alignment = StringAlignment.Center;
+            if (Data.members.TryGetValue(node.Name,out var m))
+            {
+                g.DrawString(m.Name, Font, new SolidBrush(BackColor),new RectangleF(node.X, node.Y,NodeWidth,20), stringFormat);
+            }
+            else
+            {
+                g.DrawString(node.Name, Font, new SolidBrush(BackColor), new RectangleF(node.X, node.Y, NodeWidth, 20), stringFormat);
+            }
         }
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
-            var item = contextMenuStrip1.Items.Add("AddNode");
-
 
             e.Cancel = false;
         }
@@ -80,6 +119,14 @@ namespace ULEditor2
                 node.NodeID = Guid.NewGuid().ToString();
                 Data.nodes.Add(node);
                 Invalidate();
+            }
+            else if(e.ClickedItem.Text == "DeleteNode")
+            {
+                if(selectedNode!=null)
+                {
+                    Data.nodes.Remove(selectedNode);
+                }
+                selectedNode = null;
             }
         }
         Point PointToContext(Point pointClient)
@@ -101,7 +148,7 @@ namespace ULEditor2
             {
                 if(new Rectangle(n.X,n.Y,NodeWidth,NodeHeight).Contains(contextPoint))
                 {
-                    _selectedNode = n;
+                    selectedNode = n;
                     Invalidate();
                     return;
                 }
@@ -127,12 +174,6 @@ namespace ULEditor2
                 Invalidate();
             }
 
-        }
-
-        private void GraphEditor_Load(object sender, EventArgs e)
-        {
-            OffsetX = ClientRectangle.Width / 2;
-            OffsetY = ClientRectangle.Height / 2;
         }
 
         private void GraphEditor_MouseUp(object sender, MouseEventArgs e)
