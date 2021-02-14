@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xceed.Wpf.Toolkit;
+using Model;
 
 namespace WpfApp1
 {
@@ -91,8 +92,8 @@ namespace WpfApp1
     }
     class TypeNodeItem: TreeNode
     {
-        public Model.ULTypeInfo type;
-        public TypeNodeItem(Model.ULTypeInfo t) { type = t; textBlock.Text = type.Name; }
+        public ULTypeInfo type;
+        public TypeNodeItem(ULTypeInfo t) { type = t; textBlock.Text = type.Name; }
 
         public override void EndInit()
         {
@@ -107,8 +108,8 @@ namespace WpfApp1
     }
     class MemberNodeItem : TreeNode
     {
-        public Model.ULMemberInfo member;
-        public MemberNodeItem(Model.ULMemberInfo t) { member = t; textBlock.Text = member.Name; }
+        public ULMemberInfo member;
+        public MemberNodeItem(ULMemberInfo t) { member = t; textBlock.Text = member.Name; }
 
         public override void EndInit()
         {
@@ -136,33 +137,69 @@ namespace WpfApp1
             InitializeComponent();
         }
 
+        #region 加载
+        static Core.ExcelReader excelReader = null;
+
+        static List<T> LoadDataList<T>(string fileName) where T : new()
+        {
+            return excelReader.LoadDataList<T>(fileName);
+        }
+
+        static Dictionary<K, T> LoadDataDic<K, T>(string fileName) where T : new()
+        {
+            return excelReader.LoadDataDic<K, T>(fileName);
+        }
+
+        static void BeginLoadData(string path)
+        {
+            excelReader = Core.ExcelReader.LoadFromExcel(path);
+        }
+
+        static void EndLoadData()
+        {
+            excelReader = null;
+        }
+
+        public static void Load()
+        {
+            var app_path = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            app_path = System.IO.Path.GetDirectoryName(app_path);
+            var filePath = System.IO.Path.Combine(app_path, "..", "..", "..", "..", "Documents", "System.xlsx");
+            BeginLoadData(filePath);
+            Data.types = LoadDataDic<string, ULTypeInfo>("Type");
+            Data.members = LoadDataDic<string, ULMemberInfo>("Member");
+
+            EndLoadData();
+        }
+        #endregion
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 
-            Model.ModelData.Load();
+            Load();
 
-            foreach (var t in Model.ModelData.GetTypeList())
+            foreach (var t in Data.types.Values)
             {
                 AddTypeNode(t);
             }
 
-            Model.ModelData.onAddType += (t) =>
-            {
-                AddTypeNode(t);
-            };
-            Model.ModelData.onRemoveType += (t) =>
-            {
-                var node = FindTypeNode(t);
-                if (node != null)
-                {
-                    (node.Parent as TreeNode).Items.Remove(node);
-                }
-            };
+            //ModelData.onAddType += (t) =>
+            //{
+            //    AddTypeNode(t);
+            //};
+            //ModelData.onRemoveType += (t) =>
+            //{
+            //    var node = FindTypeNode(t);
+            //    if (node != null)
+            //    {
+            //        (node.Parent as TreeNode).Items.Remove(node);
+            //    }
+            //};
         }
 
-        TypeNodeItem FindTypeNode(Model.ULTypeInfo type)
+        TypeNodeItem FindTypeNode(ULTypeInfo type)
         {
-            return FindChild<TypeNodeItem>(treeView.Items, (v) => { return v.type.FullName == type.FullName; }, true);
+            return FindChild<TypeNodeItem>(treeView.Items, (v) => { return v.type.ID == type.ID; }, true);
         }
 
 
@@ -208,7 +245,7 @@ namespace WpfApp1
             }
             return cs.ToArray();
         }
-        void AddTypeNode(Model.ULTypeInfo type)
+        void AddTypeNode(ULTypeInfo type)
         {
             var ns_list = type.Namespace.Split('.');
             ItemCollection lastCollection = treeView.Items;
@@ -241,9 +278,9 @@ namespace WpfApp1
             }
         }
 
-        void UpdateTypeNode(Model.ULTypeInfo type)
+        void UpdateTypeNode(ULTypeInfo type)
         {
-            var node = FindChild<TypeNodeItem>(treeView.Items, (v) => { return v.type.FullName == type.FullName; }, true);
+            var node = FindChild<TypeNodeItem>(treeView.Items, (v) => { return v.type.ID == type.ID; }, true);
             if(node!=null)
             {
                 node.type = type;
@@ -257,7 +294,7 @@ namespace WpfApp1
            
         }
 
-        void AddMember(TypeNodeItem node,Model.ULMemberInfo memberInfo)
+        void AddMember(TypeNodeItem node,ULMemberInfo memberInfo)
         {
             var classNode = new MemberNodeItem(memberInfo);
             var bm = new BitmapImage(new Uri("Images/func.png", UriKind.RelativeOrAbsolute));
@@ -267,71 +304,71 @@ namespace WpfApp1
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            Model.ModelData.Save();
+            //ModelData.Save();
         }
 
         private void OnClick_TreeNodeAdd(object sender, RoutedEventArgs e)
         {
             
-            var typeNode = treeView.SelectedItem as TypeNodeItem;
-            if(typeNode!=null)
-            {
-                var t = typeNode.type;
-                var m = new Model.ULMemberInfo();
-                m.DeclareTypeName = t.FullName;
-                m.Modifier = Model.EModifier.Public;
-                m.IsStatic = false;
-                m.Name = "NewMember";
-                //m.SetGuid(t.Guid + "-" + t.Methods.Count);
-                t.Members.Add(m);
-                AddMember(typeNode, m);
-                return;
-            }
-            var nsNode = treeView.SelectedItem as TreeNode;
-            if(nsNode!=null)
-            {
-                var t = new Model.ULTypeInfo();
-                t.Namespace = GetNamespace(nsNode);
-                t.Name = "NewClass";
-                Model.ModelData.AddType(t);
-                //AddTypeNode(t);
-            }
-            else
-            {
-                var t = new Model.ULTypeInfo();
-                t.Namespace = Model.ModelData.GloableNamespaceName;
-                t.Name = "NewClass";
-                Model.ModelData.AddType(t);
-                //AddTypeNode(t);
-            }
+            //var typeNode = treeView.SelectedItem as TypeNodeItem;
+            //if(typeNode!=null)
+            //{
+            //    var t = typeNode.type;
+            //    var m = new ULMemberInfo();
+            //    m.DeclareTypeName = t.FullName;
+            //    m.Modifier = EModifier.Public;
+            //    m.IsStatic = false;
+            //    m.Name = "NewMember";
+            //    //m.SetGuid(t.Guid + "-" + t.Methods.Count);
+            //    t.Members.Add(m);
+            //    AddMember(typeNode, m);
+            //    return;
+            //}
+            //var nsNode = treeView.SelectedItem as TreeNode;
+            //if(nsNode!=null)
+            //{
+            //    var t = new ULTypeInfo();
+            //    t.Namespace = GetNamespace(nsNode);
+            //    t.Name = "NewClass";
+            //    ModelData.AddType(t);
+            //    //AddTypeNode(t);
+            //}
+            //else
+            //{
+            //    var t = new ULTypeInfo();
+            //    t.Namespace = ModelData.GloableNamespaceName;
+            //    t.Name = "NewClass";
+            //    ModelData.AddType(t);
+            //    //AddTypeNode(t);
+            //}
         }
 
         private void OnClick_TreeNodeDelete(object sender, RoutedEventArgs e)
         {
-            {
-                var typeNode = treeView.SelectedItem as TypeNodeItem;
-                if (typeNode != null)
-                {
-                    Model.ModelData.RemoveType(typeNode.type.FullName);
-                }
-            }
+            //{
+            //    var typeNode = treeView.SelectedItem as TypeNodeItem;
+            //    if (typeNode != null)
+            //    {
+            //        ModelData.RemoveType(typeNode.type.FullName);
+            //    }
+            //}
 
-            {
-                var memberNode = treeView.SelectedItem as MemberNodeItem;
-                if (memberNode != null)
-                {
-                    if(memberNode.member.DeclareType!=null)
-                    {
-                        memberNode.member.DeclareType.Members.Remove(memberNode.member);
-                    }
-                    else
-                    {
-                        (memberNode.Parent as TypeNodeItem).type.Members.Remove(memberNode.member);
-                    }
+            //{
+            //    var memberNode = treeView.SelectedItem as MemberNodeItem;
+            //    if (memberNode != null)
+            //    {
+            //        if(memberNode.member.DeclareType!=null)
+            //        {
+            //            memberNode.member.DeclareType.Members.Remove(memberNode.member);
+            //        }
+            //        else
+            //        {
+            //            (memberNode.Parent as TypeNodeItem).type.Members.Remove(memberNode.member);
+            //        }
                     
-                    (memberNode.Parent as TreeNode).Items.Remove(memberNode);
-                }
-            }
+            //        (memberNode.Parent as TreeNode).Items.Remove(memberNode);
+            //    }
+            //}
 
             
         }
@@ -409,53 +446,53 @@ namespace WpfApp1
                 return;
             }
 
-            var memberNode = treeView.SelectedItem as MemberNodeItem;
-            if(memberNode!=null)
-            {
-                this.propertyGrid.SelectedObject = memberNode.member;
-                UpdateCode(memberNode.member.DeclareType);
-            }
-            
+            //var memberNode = treeView.SelectedItem as MemberNodeItem;
+            //if(memberNode!=null)
+            //{
+            //    this.propertyGrid.SelectedObject = memberNode.member;
+            //    UpdateCode(memberNode.member.DeclareType);
+            //}
+
         }
 
-        void UpdateCode(Model.ULTypeInfo typeInfo)
+        void UpdateCode(ULTypeInfo typeInfo)
         {
-            switch (tabControl.SelectedIndex)
-            {
-                case 0:
-                    {
-                        cs_richTextBox.Document.Blocks.Clear();
-                        Paragraph paragraph = new Paragraph();
-                        paragraph.Inlines.Add(new Run() { Text = Model.ULToCS.To(typeInfo) });
-                        cs_richTextBox.Document.Blocks.Add(paragraph);
-                        foreach (var k in Model.ULToCS.keywords)
-                            FindWordFromPosition(cs_richTextBox.Document.ContentStart, k);
-                    }
+            //switch (tabControl.SelectedIndex)
+            //{
+            //    case 0:
+            //        {
+            //            cs_richTextBox.Document.Blocks.Clear();
+            //            Paragraph paragraph = new Paragraph();
+            //            paragraph.Inlines.Add(new Run() { Text = ULToCS.To(typeInfo) });
+            //            cs_richTextBox.Document.Blocks.Add(paragraph);
+            //            foreach (var k in ULToCS.keywords)
+            //                FindWordFromPosition(cs_richTextBox.Document.ContentStart, k);
+            //        }
 
-                    break;
-                case 1:
-                    {
-                        lua_richTextBox.Document.Blocks.Clear();
-                        Paragraph paragraph = new Paragraph();
-                        paragraph.Inlines.Add(new Run() { Text = Model.ULToLua.To(typeInfo) });
-                        lua_richTextBox.Document.Blocks.Add(paragraph);
-                        foreach (var k in Model.ULToLua.keywords)
-                            FindWordFromPosition(lua_richTextBox.Document.ContentStart, k);
-                    }
-                    break;
-                case 2:
-                    {
-                        cpp_richTextBox.Document.Blocks.Clear();
-                        Paragraph paragraph = new Paragraph();
-                        paragraph.Inlines.Add(new Run() { Text = Model.ULToCpp.To(typeInfo) });
-                        cpp_richTextBox.Document.Blocks.Add(paragraph);
-                        //foreach (var k in Model.ULToCpp.keywords)
-                        //    FindWordFromPosition(cpp_richTextBox.Document.ContentStart, k);
-                    }
-                    break;
-                case 3:
-                    break;
-            }
+            //        break;
+            //    case 1:
+            //        {
+            //            lua_richTextBox.Document.Blocks.Clear();
+            //            Paragraph paragraph = new Paragraph();
+            //            paragraph.Inlines.Add(new Run() { Text = ULToLua.To(typeInfo) });
+            //            lua_richTextBox.Document.Blocks.Add(paragraph);
+            //            foreach (var k in ULToLua.keywords)
+            //                FindWordFromPosition(lua_richTextBox.Document.ContentStart, k);
+            //        }
+            //        break;
+            //    case 2:
+            //        {
+            //            cpp_richTextBox.Document.Blocks.Clear();
+            //            Paragraph paragraph = new Paragraph();
+            //            paragraph.Inlines.Add(new Run() { Text = ULToCpp.To(typeInfo) });
+            //            cpp_richTextBox.Document.Blocks.Add(paragraph);
+            //            //foreach (var k in ULToCpp.keywords)
+            //            //    FindWordFromPosition(cpp_richTextBox.Document.ContentStart, k);
+            //        }
+            //        break;
+            //    case 3:
+            //        break;
+            //}
         }
 
         private void propertyGrid_PropertyValueChanged(object sender, Xceed.Wpf.Toolkit.PropertyGrid.PropertyValueChangedEventArgs e)
@@ -470,35 +507,35 @@ namespace WpfApp1
 
         private void btnCompile_Click(object sender, RoutedEventArgs e)
         {
-            if(tabControl.SelectedIndex == 0)
-            {
-                var type_list =Model.CSToUL.Convert(GetAllText(cs_richTextBox.Document.ContentStart));
-                foreach(var t in type_list)
-                {
-                    if (Model.ModelData.FindTypeByFullName(t.FullName)!=null)
-                    {
-                        Model.ModelData.UpdateType(t);
-                        //FindTypeNode(t);
-                        //var typeNode = treeView.SelectedItem as TypeNodeItem;
-                        //if(typeNode!=null && typeNode.type.FullName == t.FullName)
-                        //{
-                        //    typeNode.type = t;
-                        //    UpdateTypeNode(t);
-                        TreeView_OnSelectedChange(null, null);
-                        //}
-                        //else
-                        //{
+            //if(tabControl.SelectedIndex == 0)
+            //{
+            //    var type_list =CSToUL.Convert(GetAllText(cs_richTextBox.Document.ContentStart));
+            //    foreach(var t in type_list)
+            //    {
+            //        if (ModelData.FindTypeByFullName(t.FullName)!=null)
+            //        {
+            //            ModelData.UpdateType(t);
+            //            //FindTypeNode(t);
+            //            //var typeNode = treeView.SelectedItem as TypeNodeItem;
+            //            //if(typeNode!=null && typeNode.type.FullName == t.FullName)
+            //            //{
+            //            //    typeNode.type = t;
+            //            //    UpdateTypeNode(t);
+            //            TreeView_OnSelectedChange(null, null);
+            //            //}
+            //            //else
+            //            //{
 
-                        //    UpdateTypeNode(t);
-                        //}
-                    }
-                    else
-                    {
-                        Model.ModelData.AddType(t);
-                    }
-                }
+            //            //    UpdateTypeNode(t);
+            //            //}
+            //        }
+            //        else
+            //        {
+            //            ModelData.AddType(t);
+            //        }
+            //    }
                 
-            }
+            //}
         }
 
         private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
