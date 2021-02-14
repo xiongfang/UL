@@ -31,6 +31,10 @@ namespace ULEditor2
         {
             this.components = new System.ComponentModel.Container();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.trackBar1 = new System.Windows.Forms.TrackBar();
+            this.labelScale = new System.Windows.Forms.Label();
+            this.btnReset = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
             // contextMenuStrip1
@@ -40,26 +44,65 @@ namespace ULEditor2
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             this.contextMenuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
             // 
+            // trackBar1
+            // 
+            this.trackBar1.Location = new System.Drawing.Point(106, 0);
+            this.trackBar1.Maximum = 100;
+            this.trackBar1.Name = "trackBar1";
+            this.trackBar1.Size = new System.Drawing.Size(176, 45);
+            this.trackBar1.TabIndex = 1;
+            this.trackBar1.Value = 50;
+            this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_ValueChanged);
+            // 
+            // labelScale
+            // 
+            this.labelScale.ForeColor = System.Drawing.SystemColors.Window;
+            this.labelScale.Location = new System.Drawing.Point(0, 0);
+            this.labelScale.Name = "labelScale";
+            this.labelScale.Size = new System.Drawing.Size(100, 45);
+            this.labelScale.TabIndex = 2;
+            this.labelScale.Text = "视图缩放";
+            this.labelScale.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // btnReset
+            // 
+            this.btnReset.Location = new System.Drawing.Point(289, 0);
+            this.btnReset.Name = "btnReset";
+            this.btnReset.Size = new System.Drawing.Size(75, 45);
+            this.btnReset.TabIndex = 3;
+            this.btnReset.Text = "重置视图";
+            this.btnReset.UseVisualStyleBackColor = true;
+            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
+            // 
             // GraphEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.HotTrack;
             this.ContextMenuStrip = this.contextMenuStrip1;
+            this.Controls.Add(this.btnReset);
+            this.Controls.Add(this.labelScale);
+            this.Controls.Add(this.trackBar1);
             this.DoubleBuffered = true;
             this.Name = "GraphEditor";
             this.Size = new System.Drawing.Size(582, 421);
             this.Load += new System.EventHandler(this.GraphEditor_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.GraphEditor_Paint);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.GraphEditor_MouseDown);
+            this.MouseEnter += new System.EventHandler(this.GraphEditor_MouseEnter);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GraphEditor_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.GraphEditor_MouseUp);
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
 
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.TrackBar trackBar1;
+        private System.Windows.Forms.Label labelScale;
+        private System.Windows.Forms.Button btnReset;
     }
 }

@@ -1,37 +1,61 @@
 ﻿[
   {
     "MethodID": "00000001-1",
-    "OffsetX": 466,
-    "OffsetY": 285,
+    "OffsetX": 506,
+    "OffsetY": 491,
     "Nodes": [
       {
         "NodeID": "24b41b87-c327-4b41-a77b-32130d57761c",
         "Name": "00000001-1",
-        "X": -20,
-        "Y": -100
+        "ControlInputs": [
+          null
+        ],
+        "ControlOutputs": [
+          null
+        ],
+        "X": -68,
+        "Y": -151
       },
       {
         "NodeID": "4af4ad78-01fa-442d-bafe-48732766cfd1",
         "Name": "if",
-        "X": -135,
-        "Y": -45
+        "ControlOutputs": [
+          null,
+          null
+        ],
+        "X": -240,
+        "Y": -143
       },
       {
         "NodeID": "31d9d579-3d63-42c6-91ff-184846b9b96a",
         "Name": "while",
-        "X": -83,
-        "Y": 56
+        "ControlInputs": [
+          null
+        ],
+        "ControlOutputs": [
+          null
+        ],
+        "X": -85,
+        "Y": 47
       }
     ]
   },
   {
     "MethodID": "00000001-2",
-    "OffsetX": 432,
-    "OffsetY": 425,
+    "OffsetX": 154,
+    "OffsetY": 200,
     "Nodes": [
       {
         "NodeID": "8646f662-ad44-43fc-ba23-4176890ea14f",
-        "Name": ""
+        "Name": "",
+        "ControlInputs": [
+          null
+        ],
+        "ControlOutputs": [
+          null
+        ],
+        "X": -40,
+        "Y": -96
       }
     ]
   }

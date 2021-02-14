@@ -104,10 +104,10 @@ namespace Model
     {
         public string NodeID { get; set; }          //节点ID，每个方法体内部唯一
         public string Name { get; set; }            //调用的方法ID，或者特殊关键字节点
-        public string[] Args { get; set; }          //参数输入类型：常量，某个节点的输出
+        public string[] Inputs { get; set; }          //参数输入类型：常量，某个节点的输出
 
-        public string[] Inputs { get; set; }        //控制输入
-        public string[] Outputs { get; set; }       //控制输出
+        public string[] ControlInputs { get; set; }        //控制输入
+        public string[] ControlOutputs { get; set; }       //控制输出
 
         public int X { get; set; }
         public int Y { get; set; }

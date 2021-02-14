@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Text;
 using System.Windows.Forms;
 using Model;
@@ -47,28 +48,27 @@ namespace ULEditor2
             }
         }
 
-        ULNode _selectedNode;
+        INode _selectedNode;
 
         public System.Action<ULNode> onSelectNodeChanged;
 
-        ULNode selectedNode { get { return _selectedNode; }
+        INode selectedNode { get { return _selectedNode; }
             set
             {
                 if(_selectedNode!=value)
                 {
                     _selectedNode = value;
-                    onSelectNodeChanged?.Invoke(_selectedNode);
+                    if(_selectedNode!=null)
+                        onSelectNodeChanged?.Invoke(_selectedNode.Node);
+                    else
+                        onSelectNodeChanged?.Invoke(null);
                 }
             }
         }
 
-        int NodeWidth = 100;
-        int NodeHeight = 50;
-
         int OffsetX = 0;
         int OffsetY = 0;
-
-
+        float ScaleFactor = 1.0f;
 
         private void GraphEditor_Load(object sender, EventArgs e)
         {
@@ -89,50 +89,56 @@ namespace ULEditor2
             item.Name = "DeleteNode";
 
             add_node.DropDownItemClicked += contextMenuStrip1_ItemClicked;
+
+            labelScale.Text = string.Format("视图缩放：{0:F2}", ScaleFactor);
         }
 
 
+        INode CreateNodeWrapper(ULNode node)
+        {
+            switch (node.Name)
+            {
+                case "if":
+                    return new IF_Node(node);
+                default:
+                    break;
+            }
+            return new MethodNode(node);
+        }
+
         Pen penBG = new Pen(new SolidBrush(Color.White));
-        Pen penSelected = new Pen(new SolidBrush(Color.Yellow));
+        Pen penSelected = new Pen(new SolidBrush(Color.Yellow),2);
+        List<INode> nodes = new List<INode>();
+        NodeDrawer drawer = new NodeDrawer();
 
         private void GraphEditor_Paint(object sender, PaintEventArgs e)
         {
             
             e.Graphics.TranslateTransform(OffsetX,OffsetY);
+            e.Graphics.ScaleTransform(ScaleFactor, ScaleFactor);
+
             e.Graphics.DrawLine(penBG, new Point(-10, 0), new Point(10, 0));
             e.Graphics.DrawLine(penBG, new Point(0, -10), new Point(0, 10));
 
             if (graph != null)
             {
-                foreach(var n in graph.Nodes)
+                nodes.Clear();
+
+                foreach (var n in graph.Nodes)
                 {
-                    DrawNode(n,e.Graphics);
+                    nodes.Add(CreateNodeWrapper(n));
+                }
+
+                foreach(var n in nodes)
+                {
+                    drawer.Draw(n, e.Graphics);
                 }
 
                 if(_selectedNode!=null)
                 {
-                    e.Graphics.DrawRectangle(penSelected, _selectedNode.X - 1, _selectedNode.Y - 1, NodeWidth + 2, NodeHeight + 2);
+                    var node = _selectedNode;
+                    e.Graphics.DrawRectangle(penSelected, node.X - 2, node.Y - 2, node.Width + 2, node.Height + 2);
                 }
-            }
-        }
-
-        void DrawNode(ULNode node,Graphics g)
-        {
-            g.FillRectangle(new SolidBrush(Color.LightGray), new Rectangle(node.X, node.Y, 100, 50));
-            if (node.Name == null)
-                node.Name = "";
-
-            g.FillRectangle(new SolidBrush(Color.White), new Rectangle(node.X, node.Y, 100, 20));
-
-            StringFormat stringFormat = new StringFormat(StringFormatFlags.NoWrap);
-            stringFormat.Alignment = StringAlignment.Center;
-            if (Data.members.TryGetValue(node.Name,out var m))
-            {
-                g.DrawString(m.Name, Font, new SolidBrush(BackColor),new RectangleF(node.X, node.Y,NodeWidth,20), stringFormat);
-            }
-            else
-            {
-                g.DrawString(node.Name, Font, new SolidBrush(BackColor), new RectangleF(node.X, node.Y, NodeWidth, 20), stringFormat);
             }
         }
 
@@ -155,7 +161,7 @@ namespace ULEditor2
             {
                 if(selectedNode!=null)
                 {
-                    graph.Nodes.Remove(selectedNode);
+                    graph.Nodes.Remove(selectedNode.Node);
                 }
                 selectedNode = null;
                 Invalidate();
@@ -171,7 +177,14 @@ namespace ULEditor2
         }
         Point PointToContext(Point pointClient)
         {
-            return new Point(pointClient.X - OffsetX, pointClient.Y- OffsetY);
+            Matrix matrix = new Matrix();
+            matrix.Translate(OffsetX, OffsetY);
+            matrix.Scale(ScaleFactor, ScaleFactor);
+            matrix.Invert();
+
+            var pts = new PointF[] { pointClient };
+            matrix.TransformPoints(pts);
+            return new Point((int)pts[0].X,(int)pts[0].Y);
         }
 
         bool mouseDown;
@@ -182,9 +195,9 @@ namespace ULEditor2
             lastMousePoint = e.Location;
 
             var contextPoint = PointToContext(e.Location);
-            foreach (var n in graph.Nodes)
+            foreach (var n in nodes)
             {
-                if(new Rectangle(n.X,n.Y,NodeWidth,NodeHeight).Contains(contextPoint))
+                if(new Rectangle(n.X,n.Y,n.Width,n.Height).Contains(contextPoint))
                 {
                     selectedNode = n;
                     Invalidate();
@@ -193,6 +206,12 @@ namespace ULEditor2
             }
         }
 
+        private void GraphEditor_MouseEnter(object sender, EventArgs e)
+        {
+            //获得焦点，以触发滚轮事件
+            trackBar1.Focus();
+
+        }
         private void GraphEditor_MouseMove(object sender, MouseEventArgs e)
         {
             if(mouseDown && _selectedNode != null && e.Button == MouseButtons.Left)
@@ -223,6 +242,30 @@ namespace ULEditor2
         private void GraphEditor_MouseUp(object sender, MouseEventArgs e)
         {
             mouseDown = false;
+        }
+
+        private void trackBar1_ValueChanged(object sender, EventArgs e)
+        {
+            if (trackBar1.Value >= 50)
+            {
+                ScaleFactor = 1.0f + (trackBar1.Value - 50.0f) / 50*3;
+            }
+            else
+            {
+                ScaleFactor = MathF.Max(0.1f,trackBar1.Value / 50.0f);
+            }
+            labelScale.Text = string.Format( "视图缩放：{0:F2}" , ScaleFactor);
+            Invalidate();
+        }
+
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            trackBar1.Value = trackBar1.Maximum/2;
+
+            OffsetX = ClientRectangle.Width / 2;
+            OffsetY = ClientRectangle.Height / 2;
+
+            Invalidate();
         }
     }
 }
