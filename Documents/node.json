@@ -1,88 +1,48 @@
 ﻿[
   {
-    "MethodID": "00000001-1",
-    "OffsetX": 403,
-    "OffsetY": 357,
-    "Args": [],
     "Outputs": [],
     "Nodes": [
       {
-        "NodeID": "24b41b87-c327-4b41-a77b-32130d57761c",
-        "Name": "00000001-1",
+        "NodeID": "e03f0a18-a778-456a-854a-54f103a70fe1",
+        "Name": "00000001-2",
         "Inputs": [],
         "ControlInputs": [
           null
         ],
         "ControlOutputs": [
-          "4af4ad78-01fa-442d-bafe-48732766cfd1.0"
+          "f86d5432-143b-485f-90fc-0184613c1799.0"
         ],
-        "X": -255,
-        "Y": -98
+        "X": -138,
+        "Y": -10
       },
       {
-        "NodeID": "4af4ad78-01fa-442d-bafe-48732766cfd1",
+        "NodeID": "f86d5432-143b-485f-90fc-0184613c1799",
         "Name": "if",
         "Inputs": [
           null
         ],
         "ControlInputs": [
-          "24b41b87-c327-4b41-a77b-32130d57761c.0"
+          "e03f0a18-a778-456a-854a-54f103a70fe1.0"
         ],
         "ControlOutputs": [
-          "7dc4b175-7b82-45a9-8976-c1a76ee9ad84.0",
-          "31d9d579-3d63-42c6-91ff-184846b9b96a.0"
-        ],
-        "X": -85,
-        "Y": -105
-      },
-      {
-        "NodeID": "31d9d579-3d63-42c6-91ff-184846b9b96a",
-        "Name": "while",
-        "Inputs": [],
-        "ControlInputs": [
-          "4af4ad78-01fa-442d-bafe-48732766cfd1.1"
-        ],
-        "ControlOutputs": [
-          "76143236-a3e7-46be-bd3f-051829ba21a3.0"
-        ],
-        "X": 112,
-        "Y": -53
-      },
-      {
-        "NodeID": "7dc4b175-7b82-45a9-8976-c1a76ee9ad84",
-        "Name": "do",
-        "Inputs": [],
-        "ControlInputs": [
-          "4af4ad78-01fa-442d-bafe-48732766cfd1.0"
-        ],
-        "ControlOutputs": [
+          null,
           null
         ],
-        "X": 110,
-        "Y": -160
+        "X": 46,
+        "Y": -20
       }
-    ]
+    ],
+    "MethodID": "00000001-1",
+    "OffsetX": 196,
+    "OffsetY": 183,
+    "Args": []
   },
   {
-    "MethodID": "00000001-2",
-    "OffsetX": 154,
-    "OffsetY": 200,
-    "Args": [],
     "Outputs": [],
-    "Nodes": [
-      {
-        "NodeID": "8646f662-ad44-43fc-ba23-4176890ea14f",
-        "Name": "",
-        "Inputs": [],
-        "ControlInputs": [
-          null
-        ],
-        "ControlOutputs": [
-          null
-        ],
-        "X": -40,
-        "Y": -96
-      }
-    ]
+    "Nodes": [],
+    "MethodID": "00000001-2",
+    "OffsetX": 144,
+    "OffsetY": 142,
+    "Args": []
   }
 ]

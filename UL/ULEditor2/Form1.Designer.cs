@@ -33,12 +33,12 @@ namespace ULEditor2
             this.treeViewTypes = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
-            this.graphEditor1 = new ULEditor2.GraphEditor();
-            this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_Graph = new System.Windows.Forms.TabPage();
+            this.graphEditor1 = new ULEditor2.GraphEditor();
             this.tabPage_CSharp = new System.Windows.Forms.TabPage();
             this.rtb_CSharpCode = new System.Windows.Forms.RichTextBox();
+            this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -99,26 +99,6 @@ namespace ULEditor2
             this.splitContainer2.SplitterDistance = 400;
             this.splitContainer2.TabIndex = 0;
             // 
-            // graphEditor1
-            // 
-            this.graphEditor1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.graphEditor1.BackColor = System.Drawing.SystemColors.HotTrack;
-            this.graphEditor1.Location = new System.Drawing.Point(3, 3);
-            this.graphEditor1.memberInfo = null;
-            this.graphEditor1.Name = "graphEditor1";
-            this.graphEditor1.Size = new System.Drawing.Size(386, 416);
-            this.graphEditor1.TabIndex = 0;
-            // 
-            // propertyGrid1
-            // 
-            this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.propertyGrid1.Location = new System.Drawing.Point(0, 0);
-            this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(193, 448);
-            this.propertyGrid1.TabIndex = 0;
-            // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPage_Graph);
@@ -141,6 +121,16 @@ namespace ULEditor2
             this.tabPage_Graph.Text = "蓝图";
             this.tabPage_Graph.UseVisualStyleBackColor = true;
             // 
+            // graphEditor1
+            // 
+            this.graphEditor1.BackColor = System.Drawing.SystemColors.HotTrack;
+            this.graphEditor1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.graphEditor1.Location = new System.Drawing.Point(3, 3);
+            this.graphEditor1.memberInfo = null;
+            this.graphEditor1.Name = "graphEditor1";
+            this.graphEditor1.Size = new System.Drawing.Size(386, 412);
+            this.graphEditor1.TabIndex = 0;
+            // 
             // tabPage_CSharp
             // 
             this.tabPage_CSharp.Controls.Add(this.rtb_CSharpCode);
@@ -160,6 +150,14 @@ namespace ULEditor2
             this.rtb_CSharpCode.Size = new System.Drawing.Size(386, 412);
             this.rtb_CSharpCode.TabIndex = 0;
             this.rtb_CSharpCode.Text = "";
+            // 
+            // propertyGrid1
+            // 
+            this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.propertyGrid1.Location = new System.Drawing.Point(0, 0);
+            this.propertyGrid1.Name = "propertyGrid1";
+            this.propertyGrid1.Size = new System.Drawing.Size(193, 448);
+            this.propertyGrid1.TabIndex = 0;
             // 
             // Form1
             // 

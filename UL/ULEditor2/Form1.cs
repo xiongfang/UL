@@ -127,7 +127,7 @@ namespace ULEditor2
         private void treeViewTypes_AfterSelect(object sender, TreeViewEventArgs e)
         {
             propertyGrid1.SelectedObject = e.Node.Tag;
-            if(e.Node.Tag is ULMemberInfo)
+            if (e.Node.Tag is ULMemberInfo)
             {
                 graphEditor1.memberInfo = e.Node.Tag as ULMemberInfo;
             }
