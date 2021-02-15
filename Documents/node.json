@@ -3,6 +3,8 @@
     "MethodID": "00000001-1",
     "OffsetX": 291,
     "OffsetY": 259,
+    "Args": [],
+    "Outputs": [],
     "Nodes": [
       {
         "NodeID": "24b41b87-c327-4b41-a77b-32130d57761c",
@@ -48,6 +50,8 @@
     "MethodID": "00000001-2",
     "OffsetX": 154,
     "OffsetY": 200,
+    "Args": [],
+    "Outputs": [],
     "Nodes": [
       {
         "NodeID": "8646f662-ad44-43fc-ba23-4176890ea14f",
