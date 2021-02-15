@@ -31,17 +31,8 @@ namespace ULEditor2
                 }
                 else
                 {
-                    nodes.Clear();
 
-                    foreach (var n in graph.Nodes)
-                    {
-                        nodes.Add(CreateNodeWrapper(n));
-                    }
-                    foreach (var n in nodes)
-                    {
-                        n.PostInit((v)=>nodes.Find(x=>x.Data.NodeID == v));
-                    }
-
+                    ResetNodes();
                     this.Enabled = true;
                     OffsetX = _memberInfo.Graph.OffsetX;
                     OffsetY = _memberInfo.Graph.OffsetY;
@@ -49,6 +40,21 @@ namespace ULEditor2
                 Invalidate();
             }
         }
+
+        public void ResetNodes()
+        {
+            nodes.Clear();
+
+            foreach (var n in graph.Nodes)
+            {
+                nodes.Add(CreateNodeWrapper(n));
+            }
+            foreach (var n in nodes)
+            {
+                n.PostInit((v) => nodes.Find(x => x.Data.NodeID == v));
+            }
+        }
+
         ULGraph graph
         {
             get
@@ -170,6 +176,7 @@ namespace ULEditor2
                 var node = new ULNode();
                 node.NodeID = Guid.NewGuid().ToString();
                 graph.Nodes.Add(node);
+                ResetNodes();
                 Invalidate();
             }
             else if(e.ClickedItem.Name == "DeleteNode")
@@ -179,6 +186,7 @@ namespace ULEditor2
                     graph.Nodes.Remove(selectedNode.Data);
                 }
                 selectedNode = null;
+                ResetNodes();
                 Invalidate();
             }
             else if(new List<string>(ULNode.keywords).Contains(e.ClickedItem.Name))
@@ -187,6 +195,7 @@ namespace ULEditor2
                 node.NodeID = Guid.NewGuid().ToString();
                 node.Name = e.ClickedItem.Name;
                 graph.Nodes.Add(node);
+                ResetNodes();
                 Invalidate();
             }
         }

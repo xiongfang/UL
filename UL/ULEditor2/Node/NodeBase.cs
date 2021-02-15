@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using Model;
 
@@ -234,18 +235,57 @@ namespace ULEditor2
 
     class DataPinIn : PinIn
     {
-        public DataPinIn(INode node,string name, int x, int y) : base(node)
+        int _index;
+
+        public DataPinIn(INode node,string name,int idx, int x, int y) : base(node)
         {
+            _index = idx;
             _Name = name;
             _LocalX = x;
             _LocalY = y;
+        }
+
+        public override void AddLink(IPinOut po)
+        {
+            base.AddLink(po);
+            DataPinOut dataPinOut = po as DataPinOut;
+            Node.Data.Inputs[_index] = dataPinOut.Node.Data.NodeID+"."+ dataPinOut.Index;
+        }
+
+        public override void RemoveLink(IPinOut po)
+        {
+            base.RemoveLink(po);
+            Node.Data.Inputs[_index] = "";
+        }
+
+
+        public override void PostInit(Func<string, INode> find)
+        {
+            base.PostInit(find);
+
+            if (!string.IsNullOrEmpty(Node.Data.Inputs[_index]))
+            {
+                string[] args = Node.Data.Inputs[_index].Split('.');
+
+                var node = find(args[0]);
+                if (node != null)
+                {
+                    var dataPins = node.PinOuts.Select((v)=>v as DataPinOut).Where((v)=>v is DataPinOut).ToArray();
+                    var pinOut = dataPins[Int32.Parse(args[1])];
+                    Outs.Add(pinOut);
+                    pinOut.Ins.Add(this);
+                }
+            }
         }
     }
 
     class DataPinOut : PinOut
     {
-        public DataPinOut(INode node, string name, int x, int y) : base(node)
+        int _index;
+        public int Index { get { return _index; } }
+        public DataPinOut(INode node, string name, int idx, int x, int y) : base(node)
         {
+            _index = idx;
             _Name = name;
             _LocalX = x;
             _LocalY = y;
