@@ -27,7 +27,6 @@ namespace ULEditor2
             stringFormat.Trimming = StringTrimming.None;
             g.DrawString(node.Title, font, titleBrush, new RectangleF(node.X, node.Y, node.Width, INode.TitleHeight), stringFormat);
 
-
             StringFormat stringFormatLeft = new StringFormat(StringFormatFlags.NoClip | StringFormatFlags.NoWrap);
             stringFormatLeft.Alignment = StringAlignment.Near;
             stringFormatLeft.LineAlignment = StringAlignment.Center;
@@ -44,7 +43,8 @@ namespace ULEditor2
                     g.DrawEllipse(penControl, new Rectangle(p.X, p.Y, p.Width, p.Height));
                 else if(p is DataPinIn)
                 {
-                    g.DrawEllipse(penData, new Rectangle(p.X, p.Y, p.Width, p.Height));
+                    penData.Color = (p as DataPinIn).color;
+                    g.FillEllipse(penData.Brush, new Rectangle(p.X, p.Y, p.Width, p.Height));
 
                     g.DrawString(p.Name, fontData, titleBrush, new RectangleF(node.X, p.Y, node.Width / 2, INode.LineHeight), stringFormatLeft);
                 }
@@ -67,7 +67,8 @@ namespace ULEditor2
                     
                 else if(p is DataPinOut)
                 {
-                    g.DrawEllipse(penData, new Rectangle(p.X, p.Y, p.Width, p.Height));
+                    penData.Color = (p as DataPinOut).color;
+                    g.FillEllipse(penData.Brush, new Rectangle(p.X, p.Y, p.Width, p.Height));
                     g.DrawString(p.Name, fontData, titleBrush, new RectangleF(node.X+ node.Width/2, p.Y, node.Width / 2, INode.LineHeight), stringFormatRight);
                     foreach (var pin in p.Ins)
                     {

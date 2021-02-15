@@ -123,7 +123,7 @@ namespace ULEditor2
             // 
             // graphEditor1
             // 
-            this.graphEditor1.BackColor = System.Drawing.SystemColors.HotTrack;
+            this.graphEditor1.BackColor = System.Drawing.SystemColors.ControlLight;
             this.graphEditor1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.graphEditor1.Location = new System.Drawing.Point(3, 3);
             this.graphEditor1.memberInfo = null;

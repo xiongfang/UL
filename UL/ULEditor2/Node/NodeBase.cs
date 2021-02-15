@@ -96,7 +96,7 @@ namespace ULEditor2
 
         public int LocalX { get => _LocalX; set => _LocalX=value; }
         public int LocalY { get => _LocalY; set => _LocalY=value; }
-        public string Name { get => _Name; set => _Name = value; }
+        public virtual string Name { get => _Name;  }
 
         public Point Center => new Point(X + Width / 2, Y + Height / 2);
 
@@ -236,15 +236,51 @@ namespace ULEditor2
     class DataPinIn : PinIn
     {
         int _index;
+        ULArg _arg;
 
-        public DataPinIn(INode node,string name,int idx, int x, int y) : base(node)
+        public DataPinIn(INode node, ULArg a,int idx, int x, int y) : base(node)
         {
             _index = idx;
-            _Name = name;
+            _arg = a;
             _LocalX = x;
             _LocalY = y;
         }
+        public ULTypeInfo typeInfo
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_arg.TypeID) && Data.types.TryGetValue(_arg.TypeID, out var t))
+                {
+                    return t;
+                }
 
+                return null;
+            }
+        }
+        public Color color { 
+            get
+            {
+                if (typeInfo!=null)
+                {
+                    var name = typeInfo.Name;
+                    var c = Color.FromArgb((int)(name.GetHashCode()|0xff000000));
+                    return c;
+                }
+
+                return Color.Black;
+            } 
+        }
+
+        public override string Name { 
+            get
+            {
+                if (typeInfo != null)
+                {
+                    return _arg.Name + " " + typeInfo.Name;
+                }
+                return _arg.Name;
+            } 
+        }
         public override void AddLink(IPinOut po)
         {
             base.AddLink(po);
@@ -281,18 +317,58 @@ namespace ULEditor2
 
     class DataPinOut : PinOut
     {
+        ULArg _arg;
         int _index;
         public int Index { get { return _index; } }
-        public DataPinOut(INode node, string name, int idx, int x, int y) : base(node)
+        public DataPinOut(INode node, ULArg a, int idx, int x, int y) : base(node)
         {
             _index = idx;
-            _Name = name;
+            _arg = a;
             _LocalX = x;
             _LocalY = y;
         }
+        public ULTypeInfo typeInfo
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_arg.TypeID) && Data.types.TryGetValue(_arg.TypeID, out var t))
+                {
+                    return t;
+                }
+
+                return null;
+            }
+        }
+        public Color color
+        {
+            get
+            {
+                if (typeInfo!=null)
+                {
+                    var name = typeInfo.Name;
+                    var c = Color.FromArgb((int)(name.GetHashCode() | 0xff000000));
+                    return c;
+                }
+
+                return Color.Black;
+            }
+        }
+
+        public override string Name
+        {
+            get
+            {
+                if (typeInfo != null)
+                {
+                    return typeInfo.Name+ " " +_arg.Name;
+                }
+                return _arg.Name;
+            }
+        }
+
         public override bool CanLink(IPinIn pinIn)
         {
-            return pinIn is DataPinIn;
+            return pinIn is DataPinIn && (pinIn as DataPinIn).typeInfo.ID == typeInfo.ID;
         }
         public override void Link(IPinIn pinIn)
         {

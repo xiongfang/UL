@@ -78,7 +78,7 @@ namespace ULEditor2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.HotTrack;
+            this.BackColor = System.Drawing.SystemColors.ScrollBar;
             this.ContextMenuStrip = this.contextMenuStrip1;
             this.Controls.Add(this.btnReset);
             this.Controls.Add(this.labelScale);

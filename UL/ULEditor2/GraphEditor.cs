@@ -319,6 +319,42 @@ namespace ULEditor2
                     }
                 }
             }
+            else if(e.Button == MouseButtons.Right)
+            {
+                var contextPoint = PointToContext(e.Location);
+                foreach (var n in nodes)
+                {
+                    foreach (var pinIn in n.PinIns)
+                    {
+                        if (new Rectangle(pinIn.X, pinIn.Y, pinIn.Width, pinIn.Height).Contains(contextPoint))
+                        {
+                            var temp = new List<IPinOut>(pinIn.Outs);
+                            foreach(var t in temp)
+                            {
+                                t.UnLink(pinIn);
+                            }
+                            editMode = EEditMode.None;
+                            Invalidate();
+                            return;
+                        }
+                    }
+
+                    foreach (var pinIn in n.PinOuts)
+                    {
+                        if (new Rectangle(pinIn.X, pinIn.Y, pinIn.Width, pinIn.Height).Contains(contextPoint))
+                        {
+                            var temp = new List<IPinIn>(pinIn.Ins);
+                            foreach (var t in temp)
+                            {
+                                pinIn.UnLink(t);
+                            }
+                            editMode = EEditMode.None;
+                            Invalidate();
+                            return;
+                        }
+                    }
+                }
+            }
             editMode = EEditMode.None;
             Invalidate();
         }

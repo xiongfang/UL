@@ -37,7 +37,7 @@ namespace ULEditor2
         int Width { get; }
         int Height { get; }
         Point Center { get; }
-        string Name { get; set; }
+        string Name { get; }
         void PostInit(System.Func<string, INode> find);
     }
 
