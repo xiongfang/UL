@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using Model;
 
@@ -23,7 +24,9 @@ namespace ULEditor2
                 node.Inputs = new string[0];
         }
 
-        public ULNode Node { get { return node; } }
+        public virtual void PostInit(System.Func<string, INode> find) { foreach (var p in PinOuts) p.PostInit(find); }
+
+        public ULNode Data { get { return node; } }
 
         public int X { get => node.X; set => node.X = value; }
         public int Y { get => node.Y; set => node.Y = value; }
@@ -37,7 +40,7 @@ namespace ULEditor2
         {
             get
             {
-                if(Data.members.TryGetValue(node.Name, out var m))
+                if(Model.Data.members.TryGetValue(node.Name, out var m))
                 {
                     return m.Name;
                 }
@@ -93,6 +96,12 @@ namespace ULEditor2
         public int LocalX { get => _LocalX; set => _LocalX=value; }
         public int LocalY { get => _LocalY; set => _LocalY=value; }
         public string Name { get => _Name; set => _Name = value; }
+
+        public Point Center => new Point(X + Width / 2, Y + Height / 2);
+
+        public virtual void PostInit(Func<string, INode> find)
+        {
+        }
     }
 
     class PinIn : PinBase, IPinIn
@@ -152,16 +161,41 @@ namespace ULEditor2
 
     class ControlPinIn : PinIn
     {
-        public ControlPinIn(INode node,int x,int y) : base(node)
+        int _index;
+        public ControlPinIn(INode node, int index, int x,int y) : base(node)
         {
             _LocalX = x;
             _LocalY = y;
+            _index = index;
+        }
+        public int Index { get { return _index; } }
+
+        public string RefString { get { return Node.Data.NodeID + "." + Index; } }
+
+        public override void AddLink(IPinOut po)
+        {
+            base.AddLink(po);
+            ControlPinOut controlPinOut = po as ControlPinOut;
+            controlPinOut.Node.Data.ControlOutputs[controlPinOut.Index] = RefString;
+            Node.Data.ControlInputs[Index] = controlPinOut.RefString;
+        }
+        public override void RemoveLink(IPinOut po)
+        {
+            ControlPinOut controlPinOut = po as ControlPinOut;
+            controlPinOut.Node.Data.ControlOutputs[controlPinOut.Index] = "";
+            Node.Data.ControlInputs[Index] = "";
+            base.RemoveLink(po);
+
         }
     }
     class ControlPinOut : PinOut
     {
-        public ControlPinOut(INode node, int x, int y) : base(node)
+        int _index;
+        public int Index { get { return _index; } }
+        public string RefString { get { return Node.Data.NodeID + "." + Index; } }
+        public ControlPinOut(INode node,int index, int x, int y) : base(node)
         {
+            _index = index;
             _LocalX = x;
             _LocalY = y;
         }
@@ -178,6 +212,23 @@ namespace ULEditor2
                 pinIn.Outs[0].UnLink(pinIn);
             }
             base.Link(pinIn);
+        }
+
+        public override void PostInit(Func<string, INode> find)
+        {
+            base.PostInit(find);
+            if(!string.IsNullOrEmpty(Node.Data.ControlOutputs[Index]))
+            {
+                string[] args = Node.Data.ControlOutputs[Index].Split('.');
+
+                var node = find(args[0]);
+                if(node!=null)
+                {
+                    var pinIn = node.PinIns[Int32.Parse(args[1])];
+                    Ins.Add(pinIn);
+                    pinIn.Outs.Add(this);
+                }
+            }
         }
     }
 

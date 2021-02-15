@@ -23,27 +23,29 @@ namespace ULEditor2
 
             foreach(var ci in node.ControlInputs)
             {
-                GetPinInputPos(input_count++, out int x, out int y);
-                PinIns.Add(new ControlPinIn(this,x,y));
+                GetPinInputPos(input_count, out int x, out int y);
+                PinIns.Add(new ControlPinIn(this, input_count,x, y));
+                input_count++;
             }
             foreach(var co in node.ControlOutputs)
             {
-                GetPinOutputPos(output_count++, out int x, out int y);
-                PinOuts.Add(new ControlPinOut(this,x,y));
+                GetPinOutputPos(output_count, out int x, out int y);
+                PinOuts.Add(new ControlPinOut(this, output_count, x,y));
+                output_count++;
             }
 
-            if(Data.members.TryGetValue(node.Name,out var member))
+            if(Model.Data.members.TryGetValue(node.Name,out var member))
             {
                 foreach(var a in member.Graph.Args)
                 {
                     GetPinInputPos(input_count++, out int x, out int y);
-                    PinIns.Add(new DataPinIn(this, a[1],x,y));
+                    PinIns.Add(new DataPinIn(this, a[1], x, y));
                 }
 
                 foreach (var a in member.Graph.Outputs)
                 {
                     GetPinOutputPos(output_count++, out int x, out int y);
-                    PinOuts.Add(new DataPinOut(this, a[1],x,y));
+                    PinOuts.Add(new DataPinOut(this, a[1], x, y));
                 }
             }
 

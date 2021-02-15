@@ -11,7 +11,9 @@ namespace ULEditor2
         Font font = SystemFonts.DefaultFont;
         Brush titleBrush = new SolidBrush(Color.Black);
         Pen penControl = new Pen(new SolidBrush(Color.Red));
+        Pen penControlLink = new Pen(new SolidBrush(Color.YellowGreen),3);
         Pen penData = new Pen(new SolidBrush(Color.Blue));
+        Pen penDataLink = new Pen(new SolidBrush(Color.Yellow),3);
         public void Draw(INode node, Graphics g,GraphEditor editor)
         {
             g.FillRectangle(new SolidBrush(Color.LightGray), new Rectangle(node.X, node.Y, node.Width, node.Height));
@@ -34,7 +36,32 @@ namespace ULEditor2
 
             foreach (var p in node.PinOuts)
             {
-                g.DrawEllipse(penControl, new Rectangle(p.X, p.Y, p.Width, p.Height));
+                if(p is ControlPinOut)
+                {
+                    g.DrawEllipse(penControl, new Rectangle(p.X, p.Y, p.Width, p.Height));
+                    foreach (var pin in p.Ins)
+                    {
+                        var ptStart = p.Center;
+                        var ptEnd = pin.Center;
+                        var pt1 = new Point(ptStart.X + 10, ptStart.Y);
+                        var pt2 = new Point(ptEnd.X - 10, ptEnd.Y);
+                        g.DrawBezier(penControlLink, ptStart, pt1, pt2, ptEnd);
+                    }
+                }
+                    
+                else if(p is DataPinOut)
+                {
+                    g.DrawEllipse(penData, new Rectangle(p.X, p.Y, p.Width, p.Height));
+                    foreach (var pin in p.Ins)
+                    {
+                        var ptStart = p.Center;
+                        var ptEnd = pin.Center;
+                        var pt1 = new Point(ptStart.X + 10, ptStart.Y);
+                        var pt2 = new Point(ptEnd.X - 10, ptEnd.Y);
+                        g.DrawBezier(penDataLink, ptStart, pt1, pt2, ptEnd);
+                    }
+                }
+                    
             }
         }
     }

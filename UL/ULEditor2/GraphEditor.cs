@@ -31,6 +31,17 @@ namespace ULEditor2
                 }
                 else
                 {
+                    nodes.Clear();
+
+                    foreach (var n in graph.Nodes)
+                    {
+                        nodes.Add(CreateNodeWrapper(n));
+                    }
+                    foreach (var n in nodes)
+                    {
+                        n.PostInit((v)=>nodes.Find(x=>x.Data.NodeID == v));
+                    }
+
                     this.Enabled = true;
                     OffsetX = _memberInfo.Graph.OffsetX;
                     OffsetY = _memberInfo.Graph.OffsetY;
@@ -49,6 +60,7 @@ namespace ULEditor2
         }
 
         INode _selectedNode;
+        IPinOut _selectedPin;
 
         public System.Action<ULNode> onSelectNodeChanged;
 
@@ -59,7 +71,7 @@ namespace ULEditor2
                 {
                     _selectedNode = value;
                     if(_selectedNode!=null)
-                        onSelectNodeChanged?.Invoke(_selectedNode.Node);
+                        onSelectNodeChanged?.Invoke(_selectedNode.Data);
                     else
                         onSelectNodeChanged?.Invoke(null);
                 }
@@ -108,6 +120,7 @@ namespace ULEditor2
 
         Pen penBG = new Pen(new SolidBrush(Color.White));
         Pen penSelected = new Pen(new SolidBrush(Color.Yellow),2);
+        Pen penLinkNode = new Pen(new SolidBrush(Color.Yellow), 2);
         List<INode> nodes = new List<INode>();
         NodeDrawer drawer = new NodeDrawer();
 
@@ -122,13 +135,6 @@ namespace ULEditor2
 
             if (graph != null)
             {
-                nodes.Clear();
-
-                foreach (var n in graph.Nodes)
-                {
-                    nodes.Add(CreateNodeWrapper(n));
-                }
-
                 foreach(var n in nodes)
                 {
                     drawer.Draw(n, e.Graphics,this);
@@ -139,6 +145,15 @@ namespace ULEditor2
                     var node = _selectedNode;
                     e.Graphics.DrawRectangle(penSelected, node.X - 2, node.Y - 2, node.Width + 2, node.Height + 2);
                 }
+            }
+
+            if(editMode == EEditMode.LinkNode)
+            {
+                var ptStart = _selectedPin.Center;
+                var ptEnd = PointToContext(lastMousePoint);
+                var pt1 = new Point(ptStart.X + 10, ptStart.Y);
+                var pt2 = new Point(ptEnd.X - 10, ptEnd.Y);
+                e.Graphics.DrawBezier(penLinkNode, ptStart, pt1, pt2, ptEnd);
             }
         }
 
@@ -161,7 +176,7 @@ namespace ULEditor2
             {
                 if(selectedNode!=null)
                 {
-                    graph.Nodes.Remove(selectedNode.Node);
+                    graph.Nodes.Remove(selectedNode.Data);
                 }
                 selectedNode = null;
                 Invalidate();
@@ -187,22 +202,51 @@ namespace ULEditor2
             return new Point((int)pts[0].X,(int)pts[0].Y);
         }
 
+        enum EEditMode
+        {
+            None,
+            MoveScreen,
+            MoveNode,
+            LinkNode,
+        }
+        EEditMode editMode;
         bool mouseDown;
         Point lastMousePoint;
         private void GraphEditor_MouseDown(object sender, MouseEventArgs e)
         {
             mouseDown = true;
             lastMousePoint = e.Location;
-
-            var contextPoint = PointToContext(e.Location);
-            foreach (var n in nodes)
+            editMode = EEditMode.None;
+            if(e.Button == MouseButtons.Left)
             {
-                if(new Rectangle(n.X,n.Y,n.Width,n.Height).Contains(contextPoint))
+                var contextPoint = PointToContext(e.Location);
+                foreach (var n in nodes)
                 {
-                    selectedNode = n;
-                    Invalidate();
-                    return;
+                    if (new Rectangle(n.X, n.Y, n.Width, n.Height).Contains(contextPoint))
+                    {
+                        editMode = EEditMode.MoveNode;
+                        selectedNode = n;
+                        Invalidate();
+                        return;
+                    }
+                    else
+                    {
+                        foreach (var pinIn in n.PinOuts)
+                        {
+                            if (new Rectangle(pinIn.X, pinIn.Y, pinIn.Width, pinIn.Height).Contains(contextPoint))
+                            {
+                                editMode = EEditMode.LinkNode;
+                                _selectedPin = pinIn;
+                                Invalidate();
+                                return;
+                            }
+                        }
+                    }
                 }
+            }
+            else if(e.Button == MouseButtons.Middle)
+            {
+                editMode = EEditMode.MoveScreen;
             }
         }
 
@@ -214,14 +258,14 @@ namespace ULEditor2
         }
         private void GraphEditor_MouseMove(object sender, MouseEventArgs e)
         {
-            if(mouseDown && _selectedNode != null && e.Button == MouseButtons.Left)
+            if(editMode == EEditMode.MoveNode)
             {
                 _selectedNode.X += e.Location.X - lastMousePoint.X;
                 _selectedNode.Y += e.Location.Y - lastMousePoint.Y;
                 lastMousePoint = e.Location;
                 Invalidate();
             }
-            else if(mouseDown && e.Button == MouseButtons.Middle)
+            else if(editMode == EEditMode.MoveScreen)
             {
 
                 OffsetX += e.Location.X - lastMousePoint.X;
@@ -236,12 +280,38 @@ namespace ULEditor2
 
                 Invalidate();
             }
-
+            else if(editMode == EEditMode.LinkNode)
+            {
+                lastMousePoint = e.Location;
+                Invalidate();
+            }
         }
 
         private void GraphEditor_MouseUp(object sender, MouseEventArgs e)
         {
             mouseDown = false;
+            if(editMode == EEditMode.LinkNode)
+            {
+                var contextPoint = PointToContext(e.Location);
+                foreach (var n in nodes)
+                {
+                    foreach (var pinIn in n.PinIns)
+                    {
+                        if (new Rectangle(pinIn.X, pinIn.Y, pinIn.Width, pinIn.Height).Contains(contextPoint))
+                        {
+                            if(_selectedPin.CanLink(pinIn))
+                            {
+                                _selectedPin.Link(pinIn);
+                            }
+                            editMode = EEditMode.None;
+                            Invalidate();
+                            return;
+                        }
+                    }
+                }
+            }
+            editMode = EEditMode.None;
+            Invalidate();
         }
 
         private void trackBar1_ValueChanged(object sender, EventArgs e)

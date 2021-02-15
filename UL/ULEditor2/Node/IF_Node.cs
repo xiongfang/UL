@@ -25,13 +25,15 @@ namespace ULEditor2
 
             foreach (var ci in node.ControlInputs)
             {
-                GetPinInputPos(input_count++, out int x, out int y);
-                PinIns.Add(new ControlPinIn(this,x,y));
+                GetPinInputPos(input_count, out int x, out int y);
+                PinIns.Add(new ControlPinIn(this, input_count,x, y));
+                input_count++;
             }
             foreach (var co in node.ControlOutputs)
             {
-                GetPinOutputPos(output_count++, out int x, out int y);
-                PinOuts.Add(new ControlPinOut(this,x,y));
+                GetPinOutputPos(output_count, out int x, out int y);
+                PinOuts.Add(new ControlPinOut(this, output_count,x, y));
+                output_count++;
             }
             {
                 GetPinInputPos(input_count++, out int x, out int y);
@@ -39,7 +41,5 @@ namespace ULEditor2
             }
 
         }
-
-        
     }
 }

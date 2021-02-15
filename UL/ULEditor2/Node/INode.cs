@@ -1,6 +1,7 @@
 ﻿using Model;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace ULEditor2
@@ -13,10 +14,12 @@ namespace ULEditor2
         int Height { get; }
 
         string Title { get; }
-        ULNode Node { get; }
+        ULNode Data { get; }
 
         List<IPinIn> PinIns { get; }
         List<IPinOut> PinOuts { get; }
+
+        void PostInit(System.Func<string,INode> find);
 
         const int TitleHeight = 20;
         const int LineHeight = 15;
@@ -33,7 +36,9 @@ namespace ULEditor2
         int LocalY { get; set; }
         int Width { get; }
         int Height { get; }
+        Point Center { get; }
         string Name { get; set; }
+        void PostInit(System.Func<string, INode> find);
     }
 
     interface IPinOut: IPin
