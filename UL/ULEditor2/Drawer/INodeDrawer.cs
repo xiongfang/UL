@@ -7,6 +7,6 @@ namespace ULEditor2
 {
     interface INodeDrawer
     {
-        void Draw(INode node,Graphics g);
+        void Draw(INode node,Graphics g, GraphEditor editor);
     }
 }

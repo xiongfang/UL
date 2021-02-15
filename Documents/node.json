@@ -1,8 +1,8 @@
 ﻿[
   {
     "MethodID": "00000001-1",
-    "OffsetX": 291,
-    "OffsetY": 259,
+    "OffsetX": 255,
+    "OffsetY": 279,
     "Args": [],
     "Outputs": [],
     "Nodes": [
@@ -16,20 +16,24 @@
         "ControlOutputs": [
           null
         ],
-        "X": -68,
-        "Y": -151
+        "X": 7,
+        "Y": -126
       },
       {
         "NodeID": "4af4ad78-01fa-442d-bafe-48732766cfd1",
         "Name": "if",
-        "Inputs": [],
-        "ControlInputs": [],
+        "Inputs": [
+          null
+        ],
+        "ControlInputs": [
+          null
+        ],
         "ControlOutputs": [
           null,
           null
         ],
-        "X": -240,
-        "Y": -143
+        "X": -168,
+        "Y": -130
       },
       {
         "NodeID": "31d9d579-3d63-42c6-91ff-184846b9b96a",
@@ -41,8 +45,8 @@
         "ControlOutputs": [
           null
         ],
-        "X": -85,
-        "Y": 47
+        "X": -49,
+        "Y": -29
       }
     ]
   },

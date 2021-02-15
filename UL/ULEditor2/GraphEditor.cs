@@ -131,7 +131,7 @@ namespace ULEditor2
 
                 foreach(var n in nodes)
                 {
-                    drawer.Draw(n, e.Graphics);
+                    drawer.Draw(n, e.Graphics,this);
                 }
 
                 if(_selectedNode!=null)

@@ -11,7 +11,8 @@ namespace ULEditor2
         Font font = SystemFonts.DefaultFont;
         Brush titleBrush = new SolidBrush(Color.Black);
         Pen penControl = new Pen(new SolidBrush(Color.Red));
-        public void Draw(INode node, Graphics g)
+        Pen penData = new Pen(new SolidBrush(Color.Blue));
+        public void Draw(INode node, Graphics g,GraphEditor editor)
         {
             g.FillRectangle(new SolidBrush(Color.LightGray), new Rectangle(node.X, node.Y, node.Width, node.Height));
 
@@ -22,9 +23,18 @@ namespace ULEditor2
             stringFormat.LineAlignment = StringAlignment.Center;
             g.DrawString(node.Title, font, titleBrush, new RectangleF(node.X, node.Y, node.Width, INode.TitleHeight), stringFormat);
 
-            for(int i=0;i<node.ControlOutputs.Length;i++)
+            foreach(var p in node.PinIns)
             {
-                g.DrawEllipse(penControl, new Rectangle(node.X + node.Width, node.Y + INode.TitleHeight + i * INode.LineHeight+2, INode.LineHeight-4, INode.LineHeight-4));
+                if(p is ControlPinIn)
+                    g.DrawEllipse(penControl, new Rectangle(p.X, p.Y, p.Width, p.Height));
+                else if(p is DataPinIn)
+                    g.DrawEllipse(penData, new Rectangle(p.X, p.Y, p.Width, p.Height));
+
+            }
+
+            foreach (var p in node.PinOuts)
+            {
+                g.DrawEllipse(penControl, new Rectangle(p.X, p.Y, p.Width, p.Height));
             }
         }
     }
