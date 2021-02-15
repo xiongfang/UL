@@ -171,9 +171,17 @@ namespace Model
         public int OffsetX { get; set; }
         [Browsable(false)]
         public int OffsetY { get; set; }
-        List<string[]> _Args = new List<string[]>();
-        public List<string[]> Args { get => _Args; set => _Args = value; }
-        public List<string[]> Outputs = new List<string[]>();
+        List<ULArg> _Args = new List<ULArg>();
+        public List<ULArg> Args { get => _Args; set => _Args = value; }
+        List<ULArg> _Outputs = new List<ULArg>();
+        public List<ULArg> Outputs { get => _Outputs; set => _Outputs = value; }
         public List<ULNode> Nodes = new List<ULNode>();
+    }
+
+    [TypeConverter(typeof(CustomExpandableObjectConverter))]
+    public class ULArg
+    {
+        public string TypeID { get; set; }
+        public string Name { get; set; }
     }
 }

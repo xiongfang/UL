@@ -1,6 +1,5 @@
 ﻿[
   {
-    "Outputs": [],
     "Nodes": [
       {
         "NodeID": "e03f0a18-a778-456a-854a-54f103a70fe1",
@@ -12,14 +11,14 @@
         "ControlOutputs": [
           "f86d5432-143b-485f-90fc-0184613c1799.0"
         ],
-        "X": -138,
-        "Y": -10
+        "X": -216,
+        "Y": -56
       },
       {
         "NodeID": "f86d5432-143b-485f-90fc-0184613c1799",
         "Name": "if",
         "Inputs": [
-          null
+          "86751e1c-75cc-4cc0-a22c-e4861699149a.0"
         ],
         "ControlInputs": [
           "e03f0a18-a778-456a-854a-54f103a70fe1.0"
@@ -28,21 +27,52 @@
           null,
           null
         ],
-        "X": 46,
-        "Y": -20
+        "X": 51,
+        "Y": -29
+      },
+      {
+        "NodeID": "86751e1c-75cc-4cc0-a22c-e4861699149a",
+        "Name": "00000001-1",
+        "Inputs": [
+          null,
+          null
+        ],
+        "ControlInputs": [
+          null
+        ],
+        "ControlOutputs": [
+          null
+        ],
+        "X": -156,
+        "Y": 54
       }
     ],
     "MethodID": "00000001-1",
-    "OffsetX": 196,
-    "OffsetY": 183,
-    "Args": []
+    "OffsetX": 402,
+    "OffsetY": 301,
+    "Args": [
+      {
+        "TypeID": "00000001",
+        "Name": "a"
+      },
+      {
+        "TypeID": "00000001",
+        "Name": "b"
+      }
+    ],
+    "Outputs": [
+      {
+        "TypeID": "00000001",
+        "Name": "result"
+      }
+    ]
   },
   {
-    "Outputs": [],
     "Nodes": [],
     "MethodID": "00000001-2",
     "OffsetX": 144,
     "OffsetY": 142,
-    "Args": []
+    "Args": [],
+    "Outputs": []
   }
 ]

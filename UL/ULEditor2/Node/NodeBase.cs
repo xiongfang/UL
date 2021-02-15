@@ -25,7 +25,7 @@ namespace ULEditor2
                 node.Inputs = new string[0];
         }
 
-        public virtual void PostInit(System.Func<string, INode> find) { foreach (var p in PinOuts) p.PostInit(find); }
+        public virtual void PostInit(System.Func<string, INode> find) { foreach (var p in PinIns) p.PostInit(find); foreach (var p in PinOuts) p.PostInit(find); }
 
         public ULNode Data { get { return node; } }
 

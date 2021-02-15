@@ -9,6 +9,7 @@ namespace ULEditor2
     class NodeDrawer : INodeDrawer
     {
         Font font = SystemFonts.DefaultFont;
+        Font fontData = SystemFonts.DefaultFont;
         Brush titleBrush = new SolidBrush(Color.Black);
         Pen penControl = new Pen(new SolidBrush(Color.Red));
         Pen penControlLink = new Pen(new SolidBrush(Color.YellowGreen),3);
@@ -20,18 +21,33 @@ namespace ULEditor2
 
             g.FillRectangle(new SolidBrush(Color.White), new Rectangle(node.X, node.Y, node.Width, INode.TitleHeight));
 
-            StringFormat stringFormat = new StringFormat(StringFormatFlags.NoWrap);
+            StringFormat stringFormat = new StringFormat(StringFormatFlags.NoClip|StringFormatFlags.NoWrap);
             stringFormat.Alignment = StringAlignment.Center;
             stringFormat.LineAlignment = StringAlignment.Center;
+            stringFormat.Trimming = StringTrimming.None;
             g.DrawString(node.Title, font, titleBrush, new RectangleF(node.X, node.Y, node.Width, INode.TitleHeight), stringFormat);
 
-            foreach(var p in node.PinIns)
+
+            StringFormat stringFormatLeft = new StringFormat(StringFormatFlags.NoClip | StringFormatFlags.NoWrap);
+            stringFormatLeft.Alignment = StringAlignment.Near;
+            stringFormatLeft.LineAlignment = StringAlignment.Center;
+            stringFormatLeft.Trimming = StringTrimming.None;
+
+            StringFormat stringFormatRight = new StringFormat(StringFormatFlags.NoClip | StringFormatFlags.NoWrap);
+            stringFormatRight.Alignment = StringAlignment.Far;
+            stringFormatRight.LineAlignment = StringAlignment.Center;
+            stringFormatRight.Trimming = StringTrimming.None;
+
+            foreach (var p in node.PinIns)
             {
                 if(p is ControlPinIn)
                     g.DrawEllipse(penControl, new Rectangle(p.X, p.Y, p.Width, p.Height));
                 else if(p is DataPinIn)
+                {
                     g.DrawEllipse(penData, new Rectangle(p.X, p.Y, p.Width, p.Height));
 
+                    g.DrawString(p.Name, fontData, titleBrush, new RectangleF(node.X, p.Y, node.Width / 2, INode.LineHeight), stringFormatLeft);
+                }
             }
 
             foreach (var p in node.PinOuts)
@@ -52,6 +68,7 @@ namespace ULEditor2
                 else if(p is DataPinOut)
                 {
                     g.DrawEllipse(penData, new Rectangle(p.X, p.Y, p.Width, p.Height));
+                    g.DrawString(p.Name, fontData, titleBrush, new RectangleF(node.X+ node.Width/2, p.Y, node.Width / 2, INode.LineHeight), stringFormatRight);
                     foreach (var pin in p.Ins)
                     {
                         var ptStart = p.Center;

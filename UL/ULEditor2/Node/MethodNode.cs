@@ -38,18 +38,21 @@ namespace ULEditor2
             {
                 int data_input_count = 0;
                 int data_output_count = 0;
-
+                if(node.Inputs.Length!= member.Graph.Args.Count)
+                {
+                    node.Inputs = new string[member.Graph.Args.Count];
+                }
                 foreach (var a in member.Graph.Args)
                 {
-                    GetPinInputPos(data_input_count, out int x, out int y);
-                    PinIns.Add(new DataPinIn(this, a[1], data_input_count, x, y));
+                    GetPinInputPos(data_input_count+control_input_count, out int x, out int y);
+                    PinIns.Add(new DataPinIn(this, a.Name, data_input_count, x, y));
                     data_input_count++;
                 }
 
                 foreach (var a in member.Graph.Outputs)
                 {
-                    GetPinOutputPos(data_output_count, out int x, out int y);
-                    PinOuts.Add(new DataPinOut(this, a[1], data_output_count, x, y));
+                    GetPinOutputPos(data_output_count+control_output_count, out int x, out int y);
+                    PinOuts.Add(new DataPinOut(this, a.Name, data_output_count, x, y));
                     data_output_count++;
                 }
             }
