@@ -161,7 +161,29 @@ namespace ULEditor2
         void UpdateCSCode()
         {
             if(_selectedType!=null)
+            {
+                rtb_CSharpCode.Clear();
+                rtb_CSharpCode.SelectionColor = Color.Black;
                 rtb_CSharpCode.Text = ULToCS.To(_selectedType);
+                
+                foreach(var key in ULToCS.keywords)
+                {
+                    int start = 0;
+                    do
+                    {
+                        start = rtb_CSharpCode.Find(key, start, RichTextBoxFinds.WholeWord);
+                        if(start>=0)
+                        {
+                            rtb_CSharpCode.Select(start, key.Length);
+                            rtb_CSharpCode.SelectionColor = Color.Blue;
+                            start++;
+                        }
+                    } while (start >= 0);
+                    
+                }
+            }
+                
+            
         }
 
         private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)

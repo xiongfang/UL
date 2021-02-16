@@ -151,6 +151,7 @@ namespace ULEditor2
             this.rtb_CSharpCode.Size = new System.Drawing.Size(386, 412);
             this.rtb_CSharpCode.TabIndex = 0;
             this.rtb_CSharpCode.Text = "";
+            this.rtb_CSharpCode.WordWrap = false;
             // 
             // propertyGrid1
             // 

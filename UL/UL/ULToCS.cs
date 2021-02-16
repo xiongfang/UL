@@ -15,7 +15,12 @@ namespace Model
             "protected",
             "private",
             "override",
-            "static"
+            "static",
+            "if",
+            "else",
+            "switch",
+            "do",
+            "while"
 
         };
         ULTypeInfo typeInfo;
@@ -301,76 +306,5 @@ namespace Model
             EndAppendLine();
             ToNode(GetControlNode(node.ControlOutputs[0]));
         }
-
-        //void ToStatement(ULStatement s)
-        //{
-        //    if (s == null)
-        //        return;
-        //    if (s is ULNodeBlock)
-        //    {
-        //        ToBody(s as ULNodeBlock);
-        //    }
-        //    else if (s is ULStatementIf)
-        //    {
-        //        ToStatement(s as ULStatementIf);
-        //    }
-        //    else if (s is ULCall)
-        //    {
-        //        ToStatement(s as ULCall);
-        //    }
-        //    else if (s is ULStatementReturn)
-        //    {
-        //        ToStatement(s as ULStatementReturn);
-        //    }
-        //    else
-        //    {
-        //        Console.Error.WriteLine("unknow statement " + s.GetType().Name);
-        //    }
-        //}
-
-        //void ToStatement(ULStatementIf s)
-        //{
-        //    AppendLine("if(" + s.arg + ")");
-        //    ToBody(s.trueBlock);
-        //    AppendLine("else");
-        //    ToBody(s.falseBlock);
-        //}
-
-        //void ToStatement(ULCall s)
-        //{
-        //    BeginAppendLine();
-        //    if (s.callType == ULCall.ECallType.Assign)
-        //    {
-        //        Append(s.Args[0] + " = " + s.Args[1] + ";");
-        //    }
-        //    else
-        //    {
-        //        //Append(s.Name);
-        //        //Append("(");
-        //        //for (int i = 0; i < s.Args.Count; i++)
-        //        //{
-        //        //    Append(s.Args[i]);
-        //        //    if (i != s.Args.Count - 1)
-        //        //    {
-        //        //        Append(",");
-        //        //    }
-        //        //}
-        //        //Append(");");
-        //    }
-
-        //    EndAppendLine();
-        //}
-
-        //void ToStatement(ULStatementReturn s)
-        //{
-        //    BeginAppendLine();
-        //    Append("return");
-        //    if (!string.IsNullOrEmpty(s.Arg))
-        //    {
-        //        Append(" " + s.Arg);
-        //    }
-        //    Append(";");
-        //    EndAppendLine();
-        //}
     }
 }
