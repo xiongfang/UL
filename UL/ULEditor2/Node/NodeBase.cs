@@ -163,8 +163,9 @@ namespace ULEditor2
     class ControlPinIn : PinIn
     {
         int _index;
-        public ControlPinIn(INode node, int index, int x,int y) : base(node)
+        public ControlPinIn(INode node, int index,string name, int x,int y) : base(node)
         {
+            _Name = name;
             _LocalX = x;
             _LocalY = y;
             _index = index;
@@ -194,8 +195,9 @@ namespace ULEditor2
         int _index;
         public int Index { get { return _index; } }
         public string RefString { get { return Node.Data.NodeID + "." + Index; } }
-        public ControlPinOut(INode node,int index, int x, int y) : base(node)
+        public ControlPinOut(INode node,int index, string name, int x, int y) : base(node)
         {
+            _Name = name;
             _index = index;
             _LocalX = x;
             _LocalY = y;

@@ -119,5 +119,79 @@
     "OffsetY": 393,
     "Args": [],
     "Outputs": []
+  },
+  {
+    "Nodes": [
+      {
+        "NodeID": "5babaa92-a658-488b-a41a-ec73eaef0b49",
+        "Name": "entry",
+        "Inputs": [],
+        "ControlInputs": [],
+        "ControlOutputs": [
+          "0f5814c3-ad5b-4021-b5d0-f6a3c066e404.0"
+        ],
+        "X": -241,
+        "Y": -38,
+        "Type": 1
+      },
+      {
+        "NodeID": "0f5814c3-ad5b-4021-b5d0-f6a3c066e404",
+        "Name": "if",
+        "Inputs": [
+          null
+        ],
+        "ControlInputs": [
+          "5babaa92-a658-488b-a41a-ec73eaef0b49.0"
+        ],
+        "ControlOutputs": [
+          "156080be-cc1d-44a4-a7c0-83f3d8f3036c.0",
+          ""
+        ],
+        "X": -129,
+        "Y": 49,
+        "Type": 1
+      },
+      {
+        "NodeID": "156080be-cc1d-44a4-a7c0-83f3d8f3036c",
+        "Name": "System.Int32.Add",
+        "Inputs": [
+          "3",
+          "4"
+        ],
+        "ControlInputs": [
+          "0f5814c3-ad5b-4021-b5d0-f6a3c066e404.0"
+        ],
+        "ControlOutputs": [
+          null
+        ],
+        "X": 130,
+        "Y": 81
+      }
+    ],
+    "MethodID": "System.Int32.Add",
+    "OffsetX": 383,
+    "OffsetY": 282,
+    "Args": [
+      {
+        "TypeID": "System.Int32",
+        "Name": "a"
+      },
+      {
+        "TypeID": "System.Int32",
+        "Name": "b"
+      }
+    ],
+    "Outputs": [
+      {
+        "TypeID": "System.Int32",
+        "Name": "v"
+      }
+    ]
+  },
+  {
+    "Nodes": [],
+    "MethodID": "System.Int32.Sub",
+    "Args": [],
+    "Outputs": []
   }
 ]

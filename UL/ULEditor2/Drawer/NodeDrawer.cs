@@ -40,7 +40,11 @@ namespace ULEditor2
             foreach (var p in node.PinIns)
             {
                 if(p is ControlPinIn)
+                {
                     g.DrawEllipse(penControl, new Rectangle(p.X, p.Y, p.Width, p.Height));
+                    g.DrawString(p.Name, fontData, titleBrush, new RectangleF(node.X, p.Y, node.Width / 2, INode.LineHeight), stringFormatLeft);
+                }
+                    
                 else if(p is DataPinIn)
                 {
                     penData.Color = (p as DataPinIn).color;
@@ -55,6 +59,7 @@ namespace ULEditor2
                 if(p is ControlPinOut)
                 {
                     g.DrawEllipse(penControl, new Rectangle(p.X, p.Y, p.Width, p.Height));
+                    g.DrawString(p.Name, fontData, titleBrush, new RectangleF(node.X + node.Width / 2, p.Y, node.Width / 2, INode.LineHeight), stringFormatRight);
                     foreach (var pin in p.Ins)
                     {
                         var ptStart = p.Center;

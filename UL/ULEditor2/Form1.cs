@@ -47,9 +47,19 @@ namespace ULEditor2
             var file_dir = System.IO.Path.Combine(app_path, "..", "..", "..", "..", "..", "Documents");
             var filePath = System.IO.Path.Combine(file_dir, "System.xlsx");
             BeginLoadData(filePath);
-            Data.types = LoadDataDic<string, ULTypeInfo>("Type");
-            Data.members = LoadDataDic<string, ULMemberInfo>("Member");
-            
+            Data.types.Clear();
+            var type_list = LoadDataList<ULTypeInfo>("Type");
+            foreach(var t in type_list)
+            {
+                Data.types.Add(t.ID, t);
+            }
+            Data.members.Clear();
+            var member_list = LoadDataList<ULMemberInfo>("Member");
+            foreach (var t in member_list)
+            {
+                Data.members.Add(t.ID, t);
+            }
+
             EndLoadData();
 
 

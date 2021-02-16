@@ -30,13 +30,13 @@ namespace ULEditor2
             foreach (var ci in node.ControlInputs)
             {
                 GetPinInputPos(control_input_count, out int x, out int y);
-                PinIns.Add(new ControlPinIn(this, control_input_count, x, y));
+                PinIns.Add(new ControlPinIn(this, control_input_count,"in", x, y));
                 control_input_count++;
             }
             foreach(var co in node.ControlOutputs)
             {
                 GetPinOutputPos(control_output_count, out int x, out int y);
-                PinOuts.Add(new ControlPinOut(this, control_output_count, x,y));
+                PinOuts.Add(new ControlPinOut(this, control_output_count,"out", x,y));
                 control_output_count++;
             }
 

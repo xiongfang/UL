@@ -43,8 +43,7 @@ namespace Model
 
     public class ULTypeInfo
     {
-        [System.ComponentModel.ReadOnly(true)]
-        public string ID { get; set; }
+        public string ID { get { return Namespace + "." + Name; } }
 
         public string Name { get; set; }
         public string Namespace { get; set; }
@@ -67,8 +66,7 @@ namespace Model
 
     public class ULMemberInfo
     {
-        [System.ComponentModel.ReadOnly(true)]
-        public string ID { get; set; }
+        public string ID { get { return DeclareTypeID + "." + Name; } }
         public string Name { get; set; }
         [System.ComponentModel.ReadOnly(true)]
         public string DeclareTypeID { get; set; }

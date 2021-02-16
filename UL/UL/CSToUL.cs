@@ -118,10 +118,9 @@ namespace Model
             }
             name = c.Identifier.Text;
 
-            type.ID = GetOrCreateGuid(c.AttributeLists);
+            //type.ID = GetOrCreateGuid(c.AttributeLists);
             type.Name = name;
             type.Namespace = nameSpace;
-
 
             //导出所有变量
             var virableNodes = c.ChildNodes().OfType<BaseFieldDeclarationSyntax>();

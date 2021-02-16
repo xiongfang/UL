@@ -20,7 +20,7 @@ namespace ULEditor2
             foreach (var co in node.ControlOutputs)
             {
                 GetPinOutputPos(output_count, out int x, out int y);
-                PinOuts.Add(new ControlPinOut(this, output_count,x, y));
+                PinOuts.Add(new ControlPinOut(this, output_count,"start",x, y));
                 output_count++;
             }
 
