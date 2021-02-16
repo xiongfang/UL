@@ -30,9 +30,12 @@ namespace ULEditor2
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.treeViewTypes = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.tsb_Compile = new System.Windows.Forms.ToolStripButton();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_Graph = new System.Windows.Forms.TabPage();
             this.graphEditor1 = new ULEditor2.GraphEditor();
@@ -47,6 +50,7 @@ namespace ULEditor2
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
             this.splitContainer2.SuspendLayout();
+            this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage_Graph.SuspendLayout();
             this.tabPage_CSharp.SuspendLayout();
@@ -57,7 +61,7 @@ namespace ULEditor2
             this.treeViewTypes.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeViewTypes.Location = new System.Drawing.Point(0, 0);
             this.treeViewTypes.Name = "treeViewTypes";
-            this.treeViewTypes.Size = new System.Drawing.Size(200, 448);
+            this.treeViewTypes.Size = new System.Drawing.Size(267, 664);
             this.treeViewTypes.TabIndex = 0;
             this.treeViewTypes.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeViewTypes_AfterSelect);
             // 
@@ -76,8 +80,8 @@ namespace ULEditor2
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
-            this.splitContainer1.Size = new System.Drawing.Size(801, 448);
-            this.splitContainer1.SplitterDistance = 200;
+            this.splitContainer1.Size = new System.Drawing.Size(1070, 664);
+            this.splitContainer1.SplitterDistance = 267;
             this.splitContainer1.TabIndex = 1;
             // 
             // splitContainer2
@@ -90,24 +94,48 @@ namespace ULEditor2
             // 
             // splitContainer2.Panel1
             // 
+            this.splitContainer2.Panel1.Controls.Add(this.toolStrip1);
             this.splitContainer2.Panel1.Controls.Add(this.tabControl1);
             // 
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.propertyGrid1);
-            this.splitContainer2.Size = new System.Drawing.Size(597, 448);
-            this.splitContainer2.SplitterDistance = 400;
+            this.splitContainer2.Size = new System.Drawing.Size(799, 664);
+            this.splitContainer2.SplitterDistance = 535;
             this.splitContainer2.TabIndex = 0;
+            // 
+            // toolStrip1
+            // 
+            this.toolStrip1.BackColor = System.Drawing.Color.YellowGreen;
+            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsb_Compile});
+            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
+            this.toolStrip1.Name = "toolStrip1";
+            this.toolStrip1.Size = new System.Drawing.Size(535, 25);
+            this.toolStrip1.TabIndex = 2;
+            this.toolStrip1.Text = "toolStrip1";
+            // 
+            // tsb_Compile
+            // 
+            this.tsb_Compile.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsb_Compile.ForeColor = System.Drawing.Color.DodgerBlue;
+            this.tsb_Compile.Image = ((System.Drawing.Image)(resources.GetObject("tsb_Compile.Image")));
+            this.tsb_Compile.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsb_Compile.Name = "tsb_Compile";
+            this.tsb_Compile.Size = new System.Drawing.Size(23, 22);
+            this.tsb_Compile.Text = "Compile";
             // 
             // tabControl1
             // 
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tabPage_Graph);
             this.tabControl1.Controls.Add(this.tabPage_CSharp);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Location = new System.Drawing.Point(0, 28);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(400, 448);
+            this.tabControl1.Size = new System.Drawing.Size(535, 636);
             this.tabControl1.TabIndex = 1;
             this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
             // 
@@ -117,7 +145,7 @@ namespace ULEditor2
             this.tabPage_Graph.Location = new System.Drawing.Point(4, 26);
             this.tabPage_Graph.Name = "tabPage_Graph";
             this.tabPage_Graph.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_Graph.Size = new System.Drawing.Size(392, 418);
+            this.tabPage_Graph.Size = new System.Drawing.Size(527, 606);
             this.tabPage_Graph.TabIndex = 0;
             this.tabPage_Graph.Text = "蓝图";
             this.tabPage_Graph.UseVisualStyleBackColor = true;
@@ -129,7 +157,7 @@ namespace ULEditor2
             this.graphEditor1.Location = new System.Drawing.Point(3, 3);
             this.graphEditor1.memberInfo = null;
             this.graphEditor1.Name = "graphEditor1";
-            this.graphEditor1.Size = new System.Drawing.Size(386, 412);
+            this.graphEditor1.Size = new System.Drawing.Size(521, 600);
             this.graphEditor1.TabIndex = 0;
             // 
             // tabPage_CSharp
@@ -138,7 +166,7 @@ namespace ULEditor2
             this.tabPage_CSharp.Location = new System.Drawing.Point(4, 26);
             this.tabPage_CSharp.Name = "tabPage_CSharp";
             this.tabPage_CSharp.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_CSharp.Size = new System.Drawing.Size(392, 418);
+            this.tabPage_CSharp.Size = new System.Drawing.Size(392, 389);
             this.tabPage_CSharp.TabIndex = 1;
             this.tabPage_CSharp.Text = "C#";
             this.tabPage_CSharp.UseVisualStyleBackColor = true;
@@ -148,7 +176,7 @@ namespace ULEditor2
             this.rtb_CSharpCode.Dock = System.Windows.Forms.DockStyle.Fill;
             this.rtb_CSharpCode.Location = new System.Drawing.Point(3, 3);
             this.rtb_CSharpCode.Name = "rtb_CSharpCode";
-            this.rtb_CSharpCode.Size = new System.Drawing.Size(386, 412);
+            this.rtb_CSharpCode.Size = new System.Drawing.Size(386, 383);
             this.rtb_CSharpCode.TabIndex = 0;
             this.rtb_CSharpCode.Text = "";
             this.rtb_CSharpCode.WordWrap = false;
@@ -158,14 +186,14 @@ namespace ULEditor2
             this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertyGrid1.Location = new System.Drawing.Point(0, 0);
             this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(193, 448);
+            this.propertyGrid1.Size = new System.Drawing.Size(260, 664);
             this.propertyGrid1.TabIndex = 0;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1069, 666);
             this.Controls.Add(this.splitContainer1);
             this.Name = "Form1";
             this.Text = "ULEditor";
@@ -176,9 +204,12 @@ namespace ULEditor2
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel1.PerformLayout();
             this.splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
+            this.toolStrip1.ResumeLayout(false);
+            this.toolStrip1.PerformLayout();
             this.tabControl1.ResumeLayout(false);
             this.tabPage_Graph.ResumeLayout(false);
             this.tabPage_CSharp.ResumeLayout(false);
@@ -197,6 +228,8 @@ namespace ULEditor2
         private System.Windows.Forms.TabPage tabPage_Graph;
         private System.Windows.Forms.TabPage tabPage_CSharp;
         private System.Windows.Forms.RichTextBox rtb_CSharpCode;
+        private System.Windows.Forms.ToolStrip toolStrip1;
+        private System.Windows.Forms.ToolStripButton tsb_Compile;
     }
 }
 

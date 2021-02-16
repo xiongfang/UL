@@ -37,7 +37,7 @@ namespace ULEditor2
             }
             {
                 GetPinInputPos(input_count++, out int x, out int y);
-                PinIns.Add(new DataPinIn(this, new ULArg() { Name = "condition", TypeID = "00000009" },0,x,y));
+                PinIns.Add(new DataPinIn(this, new ULArg() { Name = "condition", TypeID = "System.Boolean" },0,x,y));
             }
 
         }
