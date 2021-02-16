@@ -114,13 +114,19 @@ namespace ULEditor2
 
         INode CreateNodeWrapper(ULNode node)
         {
-            switch (node.Name)
+            if(node.Type == ULNode.ENodeType.Control)
             {
-                case "if":
-                    return new IF_Node(node);
-                default:
-                    break;
+                switch (node.Name)
+                {
+                    case ULNode.name_if:
+                        return new IF_Node(node);
+                    case ULNode.name_entry:
+                        return new Node_Entry(node);
+                    default:
+                        break;
+                }
             }
+            
             return new MethodNode(node);
         }
 
@@ -175,6 +181,7 @@ namespace ULEditor2
             {
                 var node = new ULNode();
                 node.NodeID = Guid.NewGuid().ToString();
+                node.Type = ULNode.ENodeType.Method;
                 graph.Nodes.Add(node);
                 ResetNodes();
                 Invalidate();
@@ -194,6 +201,7 @@ namespace ULEditor2
                 var node = new ULNode();
                 node.NodeID = Guid.NewGuid().ToString();
                 node.Name = e.ClickedItem.Name;
+                node.Type = ULNode.ENodeType.Control;
                 graph.Nodes.Add(node);
                 ResetNodes();
                 Invalidate();

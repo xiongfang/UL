@@ -86,6 +86,7 @@ namespace ULEditor2
         }
         #endregion
 
+        ULTypeInfo _selectedType;
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -127,15 +128,49 @@ namespace ULEditor2
         private void treeViewTypes_AfterSelect(object sender, TreeViewEventArgs e)
         {
             propertyGrid1.SelectedObject = e.Node.Tag;
-            if (e.Node.Tag is ULMemberInfo)
+
+            if (e.Node.Tag is ULTypeInfo)
             {
-                graphEditor1.memberInfo = e.Node.Tag as ULMemberInfo;
+                _selectedType = e.Node.Tag as ULTypeInfo;
             }
+            else if (e.Node.Tag is ULMemberInfo)
+            {
+                _selectedType = Data.GetType((e.Node.Tag as ULMemberInfo).DeclareTypeID);
+            }
+
+            if (tabControl1.SelectedIndex == 0)
+            {
+                if (e.Node.Tag is ULMemberInfo)
+                {
+                    graphEditor1.memberInfo = e.Node.Tag as ULMemberInfo;
+                }
+            }
+            else if(tabControl1.SelectedIndex == 1)
+            {
+                UpdateCSCode();
+            }
+
+            
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             SaveData();
+        }
+
+        void UpdateCSCode()
+        {
+            if(_selectedType!=null)
+                rtb_CSharpCode.Text = ULToCS.To(_selectedType);
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //c#
+            if(tabControl1.SelectedIndex == 1)
+            {
+                UpdateCSCode();
+            }
         }
     }
 }

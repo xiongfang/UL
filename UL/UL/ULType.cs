@@ -22,7 +22,24 @@ namespace Model
             }
             return null;
         }
+        public static ULMemberInfo GetMember(string id)
+        {
+            if (members.TryGetValue(id, out var t))
+            {
+                return t;
+            }
+            return null;
+        }
     }
+
+
+    public enum EModifier
+    {
+        Public,
+        Protected,
+        Private
+    }
+
 
     public class ULTypeInfo
     {
@@ -33,7 +50,7 @@ namespace Model
         public string Namespace { get; set; }
 
         //修饰符：0 public,1 protected,2 private
-        public int Modifier { get; set; }
+        public EModifier Modifier { get; set; }
 
         [System.ComponentModel.Browsable(false)]
         public ULMemberInfo[] Members { 
@@ -59,7 +76,7 @@ namespace Model
         public string TypeID { get; set; }
 
         //修饰符：0 public,1 protected,2 private
-        public int Modifier { get; set; }
+        public EModifier Modifier { get; set; }
 
         public bool IsStatic { get; set; }
 
@@ -132,7 +149,7 @@ namespace Model
         public string NodeID { get; set; }          //节点ID，每个方法体内部唯一
         string _Name = "";
         public string Name { get => _Name; set => _Name = value; }            //调用的方法ID，或者特殊关键字节点
-        [System.ComponentModel.Browsable(false)]
+        //[System.ComponentModel.Browsable(false)]
         public string[] Inputs { get; set; }          //参数输入类型：常量，某个节点的输出
         [System.ComponentModel.Browsable(false)]
         public string[] ControlInputs { get; set; }        //控制输入
@@ -143,7 +160,23 @@ namespace Model
         [System.ComponentModel.Browsable(false)]
         public int Y { get; set; }
 
-        public static readonly string[] keywords = { "if","switch","while","do","loop","for" };
+        public enum ENodeType
+        {
+            Method,
+            Control
+        }
+
+        public ENodeType Type { get; set; }
+
+        public const string name_if = "if";
+        public const string name_switch = "switch";
+        public const string name_while = "while";
+        public const string name_do = "do";
+        public const string name_loop = "loop";
+        public const string name_for = "for";
+        public const string name_entry = "entry";
+
+        public static readonly string[] keywords = { name_entry,name_if, name_switch, name_while, name_do, name_loop, name_for };
     }
 
     class CustomExpandableObjectConverter:ExpandableObjectConverter
@@ -176,6 +209,11 @@ namespace Model
         List<ULArg> _Outputs = new List<ULArg>();
         public List<ULArg> Outputs { get => _Outputs; set => _Outputs = value; }
         public List<ULNode> Nodes = new List<ULNode>();
+
+        public ULNode FindNode(string node_id)
+        {
+            return Nodes.Find((v) => v.NodeID == node_id);
+        }
     }
 
     [TypeConverter(typeof(CustomExpandableObjectConverter))]
