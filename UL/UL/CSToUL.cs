@@ -35,7 +35,81 @@ namespace Model
             return null;
         }
 
-        public virtual ULTypeInfo GetTypeInfo(TypeSyntax typeSyntax) { return null; }
+        protected static string GetKeywordTypeName(string kw)
+        {
+            switch (kw)
+            {
+                case "char":
+                    return "Char";
+                case "sbyte":
+                    return "SByte";
+                case "int":
+                    return "Int32";
+                case "string":
+                    return "String";
+                case "short":
+                    return "Int16";
+                case "byte":
+                    return "Byte";
+                case "float":
+                    return "Single";
+                case "double":
+                    return "Double";
+                case "object":
+                    return "Object";
+                case "bool":
+                    return "Boolean";
+                case "uint":
+                    return "UInt32";
+                case "ulong":
+                    return "UInt64";
+                case "long":
+                    return "Int64";
+                case "ushort":
+                    return "UInt16";
+                case "void":
+                    return "";
+                default:
+                    return kw;
+            }
+        }
+        public virtual ULTypeInfo GetTypeInfo(TypeSyntax typeSyntax) 
+        {
+            if (typeSyntax == null)
+                return null;
+
+            if (typeSyntax is PredefinedTypeSyntax)
+            {
+                PredefinedTypeSyntax predefinedTypeSyntax = typeSyntax as PredefinedTypeSyntax;
+                string typeName = GetKeywordTypeName(predefinedTypeSyntax.Keyword.Text);
+                return Data.GetType("System." + typeName);
+            }
+            else if (typeSyntax is IdentifierNameSyntax)
+            {
+                IdentifierNameSyntax ts = typeSyntax as IdentifierNameSyntax;
+                var identifier = ts.Identifier.Text;
+                var info = GetIdentifierInfo(identifier);
+                if (info != null)
+                {
+                    return Data.GetType(info.TypeFullName);
+                }
+            }
+            else if (typeSyntax is QualifiedNameSyntax)
+            {
+                QualifiedNameSyntax qns = typeSyntax as QualifiedNameSyntax;
+                string name_space = qns.Left.ToString();
+                var name = qns.Right.Identifier.Text;
+                //Metadata.Expression.QualifiedNameSyntax my_qns = new Metadata.Expression.QualifiedNameSyntax();
+                //my_qns.Left = GetTypeSyntax(qns.Left) as Metadata.Expression.NameSyntax;
+
+                return Data.GetType(name_space + "." + name);
+            }
+            else
+            {
+                Console.Error.WriteLine("不支持的类型语法 " + typeSyntax.GetType().FullName);
+            }
+            return null;
+        }
     }
 
     public class CompileNode_Globle :CompileNode
@@ -81,7 +155,25 @@ namespace Model
         public void Compile(ClassDeclarationSyntax classDeclaration)
         {
             type = new ULTypeInfo();
+            ExportClass(classDeclaration);
+        }
 
+        public override ULTypeInfo GetTypeInfo(TypeSyntax typeSyntax)
+        {
+
+            return base.GetTypeInfo(typeSyntax);
+        }
+
+        public override IdentifierInfo GetIdentifierInfo(string identifier)
+        {
+            if(identifier==type.Name)
+            {
+                var info = new IdentifierInfo();
+                info.type = IdentifierInfo.EIdentifierType.Type;
+                info.TypeFullName = type.ID;
+                return info;
+            }
+            return base.GetIdentifierInfo(identifier);
         }
 
         string GetOrCreateGuid(SyntaxList<AttributeListSyntax> attributeLists)
@@ -345,44 +437,7 @@ namespace Model
 
             return EModifier.Private;
         }
-        static string GetKeywordTypeName(string kw)
-        {
-            switch (kw)
-            {
-                case "char":
-                    return "Char";
-                case "sbyte":
-                    return "SByte";
-                case "int":
-                    return "Int32";
-                case "string":
-                    return "String";
-                case "short":
-                    return "Int16";
-                case "byte":
-                    return "Byte";
-                case "float":
-                    return "Single";
-                case "double":
-                    return "Double";
-                case "object":
-                    return "Object";
-                case "bool":
-                    return "Boolean";
-                case "uint":
-                    return "UInt32";
-                case "ulong":
-                    return "UInt64";
-                case "long":
-                    return "Int64";
-                case "ushort":
-                    return "UInt16";
-                case "void":
-                    return "";
-                default:
-                    return kw;
-            }
-        }
+        
     }
 
     public class CSToUL

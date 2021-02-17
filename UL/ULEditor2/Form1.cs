@@ -96,12 +96,12 @@ namespace ULEditor2
                     nsNode = treeViewTypes.Nodes.Add(t.Namespace, t.Namespace);
                 }
 
-                var typeNode = nsNode.Nodes.Add(t.Name, t.Name);
+                var typeNode = nsNode.Nodes.Add(t.ID, t.Name);
                 typeNode.Tag = t;
 
                 foreach (var m in t.Members)
                 {
-                    var memberNode = typeNode.Nodes.Add(m.Name, m.Name);
+                    var memberNode = typeNode.Nodes.Add(m.ID, m.Name);
                     memberNode.Tag = m;
                 }
             }
@@ -188,6 +188,20 @@ namespace ULEditor2
                 {
                     Data.types[g.ID] = g;
                 }
+                ResetView();
+                if(_selectedType!=null)
+                {
+                    _selectedType = Data.GetType(_selectedType.ID);
+                    UpdateCSCode();
+                    var nodes = treeViewTypes.Nodes.Find(_selectedType.ID, true);
+                    if (nodes.Length > 0)
+                    {
+                        treeViewTypes.SelectedNode = nodes[0];
+                        treeViewTypes.SelectedNode.Expand();
+                    }
+                       
+                }
+                    
             }
         }
 
