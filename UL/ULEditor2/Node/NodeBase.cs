@@ -41,10 +41,12 @@ namespace ULEditor2
         {
             get
             {
-                if(Model.Data.members.TryGetValue(node.Name, out var m))
-                {
-                    return m.Name;
-                }
+                if (node.Type == ULNode.ENodeType.Control)
+                    return node.Name;
+                var member = Model.Data.GetMember(node.Name);
+                if (member != null)
+                    return member.Name;
+
                 return node.Name;
             }
         }

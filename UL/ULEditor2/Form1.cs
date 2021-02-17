@@ -18,58 +18,21 @@ namespace ULEditor2
             InitializeComponent();
         }
         #region 加载
-        static Core.ExcelReader excelReader = null;
-
-        static List<T> LoadDataList<T>(string fileName) where T : new()
-        {
-            return excelReader.LoadDataList<T>(fileName);
-        }
-
-        static Dictionary<K, T> LoadDataDic<K, T>(string fileName) where T : new()
-        {
-            return excelReader.LoadDataDic<K, T>(fileName);
-        }
-
-        static void BeginLoadData(string path)
-        {
-            excelReader = Core.ExcelReader.LoadFromExcel(path);
-        }
-
-        static void EndLoadData()
-        {
-            excelReader = null;
-        }
 
         public static void LoadData()
         {
             var app_path = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
             app_path = System.IO.Path.GetDirectoryName(app_path);
             var file_dir = System.IO.Path.Combine(app_path, "..", "..", "..", "..", "..", "Documents");
-            var filePath = System.IO.Path.Combine(file_dir, "System.xlsx");
-            BeginLoadData(filePath);
-            Data.types.Clear();
-            var type_list = LoadDataList<ULTypeInfo>("Type");
-            foreach(var t in type_list)
-            {
-                Data.types.Add(t.ID, t);
-            }
-            Data.members.Clear();
-            var member_list = LoadDataList<ULMemberInfo>("Member");
-            foreach (var t in member_list)
-            {
-                Data.members.Add(t.ID, t);
-            }
 
-            EndLoadData();
-
-
-            var nodeFilePath = System.IO.Path.Combine(file_dir, "node.json");
             try
             {
-                var graphs = Core.JSON.ToObject<List<ULGraph>>(System.IO.File.ReadAllText(nodeFilePath, Encoding.UTF8));
-                foreach(var g in graphs)
+
+                var nodeFilePath = System.IO.Path.Combine(file_dir, "data.json");
+                var types = Core.JSON.ToObject<List<ULTypeInfo>>(System.IO.File.ReadAllText(nodeFilePath, Encoding.UTF8));
+                foreach (var g in types)
                 {
-                    Data.graphics.Add(g.MethodID, g);
+                    Data.types[g.ID] = g;
                 }
             }
             catch(Exception e)
@@ -83,11 +46,11 @@ namespace ULEditor2
             var app_path = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
             app_path = System.IO.Path.GetDirectoryName(app_path);
             var file_dir = System.IO.Path.Combine(app_path, "..", "..", "..", "..", "..", "Documents");
-            var nodeFilePath = System.IO.Path.Combine(file_dir, "node.json");
+            var nodeFilePath = System.IO.Path.Combine(file_dir, "data.json");
 
             try
             {
-                System.IO.File.WriteAllText(nodeFilePath, Core.JSON.ToJSON(Data.graphics.Values.ToList()), Encoding.UTF8);
+                System.IO.File.WriteAllText(nodeFilePath, Core.JSON.ToJSON(Data.types.Values.ToList()), Encoding.UTF8);
             }
             catch (Exception e)
             {
@@ -102,16 +65,33 @@ namespace ULEditor2
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            LoadData();
 
+            LoadData();
+            ResetView();
+
+
+            graphEditor1.onSelectNodeChanged += (node) =>
+                {
+                    if(node!=null)
+                        propertyGrid1.SelectedObject = node;
+                };
+
+            tsmi_Load.Click += MenuItemClicked;
+            tsmi_Save.Click += MenuItemClicked;
+        }
+
+        void ResetView()
+        {
             treeViewTypes.BeginUpdate();
+            treeViewTypes.Nodes.Clear();
+            
             foreach (var t in Data.types.Values)
             {
                 TreeNode nsNode = null;
-                var ns = treeViewTypes.Nodes.Find(t.Namespace,false);
+                var ns = treeViewTypes.Nodes.Find(t.Namespace, false);
                 if (ns.Length > 0)
                     nsNode = ns[0];
-                if(nsNode == null)
+                if (nsNode == null)
                 {
                     nsNode = treeViewTypes.Nodes.Add(t.Namespace, t.Namespace);
                 }
@@ -119,7 +99,7 @@ namespace ULEditor2
                 var typeNode = nsNode.Nodes.Add(t.Name, t.Name);
                 typeNode.Tag = t;
 
-                foreach(var m in t.Members)
+                foreach (var m in t.Members)
                 {
                     var memberNode = typeNode.Nodes.Add(m.Name, m.Name);
                     memberNode.Tag = m;
@@ -127,12 +107,6 @@ namespace ULEditor2
             }
 
             treeViewTypes.EndUpdate();
-
-            graphEditor1.onSelectNodeChanged += (node) =>
-                {
-                    if(node!=null)
-                        propertyGrid1.SelectedObject = node;
-                };
         }
 
         private void treeViewTypes_AfterSelect(object sender, TreeViewEventArgs e)
@@ -202,6 +176,108 @@ namespace ULEditor2
             if(tabControl1.SelectedIndex == 1)
             {
                 UpdateCSCode();
+            }
+        }
+
+        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            if(e.ClickedItem == tsb_Compile)
+            {
+                var r = CSToUL.Convert(rtb_CSharpCode.Text);
+                foreach (var g in r.GetChildrenTypes(r))
+                {
+                    Data.types[g.ID] = g;
+                }
+            }
+        }
+
+        void MenuItemClicked(object sender, EventArgs e)
+        {
+            if(sender == tsmi_Load)
+            {
+                OpenFileDialog dialog = new OpenFileDialog();
+                dialog.Filter = "JSON文件(*.json)|*.json";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        var types = Core.JSON.ToObject<List<ULTypeInfo>>(System.IO.File.ReadAllText(dialog.FileName, Encoding.UTF8));
+                        foreach (var g in types)
+                        {
+                            Data.types[g.ID] = g;
+                        }
+
+                        ResetView();
+                    }
+                    catch (Exception excep)
+                    {
+                        Console.Error.WriteLine(excep.Message);
+                    }
+                }
+            }
+            else if(sender == tsmi_Save)
+            {
+
+            }
+        }
+
+        private void contextMenuStrip_TreeView_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            if(e.ClickedItem == tsmi_AddType)
+            {
+                var form = new Form_AddType();
+                if(form.ShowDialog() == DialogResult.OK)
+                {
+                    var type = new ULTypeInfo();
+                    type.Name = form.InputName;
+                    type.Namespace = form.InputNamespace;
+                    if (Data.types.ContainsKey(type.ID))
+                    {
+                        return;
+                    }
+                    Data.types[type.ID] = type;
+                    ResetView();
+                }
+
+                
+            }
+            else if(e.ClickedItem == tsmi_AddMember && _selectedType!=null)
+            {
+                var form = new Form_AddMember();
+                if (form.ShowDialog() == DialogResult.OK)
+                {
+                    var member = new ULMemberInfo();
+                    member.Name = form.InputName;
+                    member.TypeID = form.InputTypeID;
+                    member.DeclareTypeID = _selectedType.ID;
+                    _selectedType.Members.Add(member);
+                    ResetView();
+                }
+            }
+            else if(e.ClickedItem == tsmi_Delete)
+            {
+                if(treeViewTypes.SelectedNode!=null)
+                {
+                    var selectedType = treeViewTypes.SelectedNode.Tag as ULTypeInfo;
+                    if(selectedType!=null)
+                    {
+                        Data.types.Remove(selectedType.ID);
+                        treeViewTypes.Nodes.Remove(treeViewTypes.SelectedNode);
+                    }
+                    else
+                    {
+                        var selectMethod = treeViewTypes.SelectedNode.Tag as ULMemberInfo;
+                        if(selectMethod!=null)
+                        {
+                            Data.GetType(selectMethod.DeclareTypeID).Members.Remove(selectMethod);
+                            treeViewTypes.Nodes.Remove(treeViewTypes.SelectedNode);
+                        }
+                    }
+                }
+            }
+            else if(e.ClickedItem == tsmi_Refresh)
+            {
+                ResetView();
             }
         }
     }

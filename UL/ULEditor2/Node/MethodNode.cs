@@ -39,8 +39,8 @@ namespace ULEditor2
                 PinOuts.Add(new ControlPinOut(this, control_output_count,"out", x,y));
                 control_output_count++;
             }
-
-            if(Model.Data.members.TryGetValue(node.Name,out var member))
+            var member = Model.Data.GetMember(node.Name);
+            if (member!=null)
             {
                 int data_input_count = 0;
                 int data_output_count = 0;

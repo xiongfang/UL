@@ -57,26 +57,26 @@ namespace Model
             return result;
         }
 
-        public List<ULMemberInfo> GetChildrenMembers(CompileNode baseNode)
-        {
-            List<ULMemberInfo> result = new List<ULMemberInfo>();
+        //public List<ULMemberInfo> GetChildrenMembers(CompileNode baseNode)
+        //{
+        //    List<ULMemberInfo> result = new List<ULMemberInfo>();
 
-            foreach (var c in baseNode.Children)
-            {
-                if (c is CompileNode_Class)
-                {
-                    result.AddRange((c as CompileNode_Class).memberInfos);
-                    GetChildrenTypes(c);
-                }
-            }
-            return result;
-        }
+        //    foreach (var c in baseNode.Children)
+        //    {
+        //        if (c is CompileNode_Class)
+        //        {
+        //            result.AddRange((c as CompileNode_Class).memberInfos);
+        //            GetChildrenTypes(c);
+        //        }
+        //    }
+        //    return result;
+        //}
     }
 
     class CompileNode_Class:CompileNode
     {
         public ULTypeInfo type;
-        public List<ULMemberInfo> memberInfos = new List<ULMemberInfo>();
+        //public List<ULMemberInfo> memberInfos = new List<ULMemberInfo>();
 
         public void Compile(ClassDeclarationSyntax classDeclaration)
         {
@@ -189,7 +189,7 @@ namespace Model
             property.IsStatic = ContainModifier(v.Modifiers, "static") || ContainModifier(v.Modifiers, "const");
             property.Modifier = GetModifier(v.Modifiers);
             property.TypeID = v_type.ID;
-            memberInfos.Add(property);
+            type.Members.Add(property);
 
 
             //    foreach (var ve in v.AccessorList.Accessors)
@@ -322,7 +322,7 @@ namespace Model
                 //dB_Member.attributes = ExportAttributes(v.AttributeLists);
                 //Metadata.DB.SaveDBMember(dB_Member, _con, _trans);
                 //Model.AddMember(type.static_full_name, dB_Member);
-                memberInfos.Add(dB_Member);
+                type.Members.Add(dB_Member);
             }
         }
 

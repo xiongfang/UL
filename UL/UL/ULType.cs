@@ -11,8 +11,8 @@ namespace Model
     {
 
         public static Dictionary<string, ULTypeInfo> types = new Dictionary<string, ULTypeInfo>();
-        public static Dictionary<string, ULMemberInfo> members = new Dictionary<string, ULMemberInfo>();
-        public static Dictionary<string,ULGraph> graphics = new Dictionary<string,ULGraph>();
+        //public static Dictionary<string, ULMemberInfo> members = new Dictionary<string, ULMemberInfo>();
+        //public static Dictionary<string,ULGraph> graphics = new Dictionary<string,ULGraph>();
 
         public static ULTypeInfo GetType(string id)
         {
@@ -24,9 +24,13 @@ namespace Model
         }
         public static ULMemberInfo GetMember(string id)
         {
-            if (members.TryGetValue(id, out var t))
+            if (string.IsNullOrEmpty(id) || !id.Contains("."))
+                return null;
+            var type_id = id.Substring(0, id.LastIndexOf("."));
+            var type = GetType(type_id);
+            if(type!=null)
             {
-                return t;
+                return type.Members.Find((v) => v.ID == id);
             }
             return null;
         }
@@ -44,21 +48,17 @@ namespace Model
     public class ULTypeInfo
     {
         public string ID { get { return Namespace + "." + Name; } }
-
+        [System.ComponentModel.ReadOnly(true)]
         public string Name { get; set; }
+        [System.ComponentModel.ReadOnly(true)]
         public string Namespace { get; set; }
 
         //修饰符：0 public,1 protected,2 private
         public EModifier Modifier { get; set; }
 
+        List<ULMemberInfo> _Members = new List<ULMemberInfo>();
         [System.ComponentModel.Browsable(false)]
-        public ULMemberInfo[] Members { 
-            get
-            {
-                var r =  Data.members.Select((v) => v.Value).Where((v)=>v.DeclareTypeID == ID);
-                return r.ToArray();
-            } 
-        }
+        public List<ULMemberInfo> Members { get=> _Members; set=> _Members=value; }
 
 
         
@@ -106,32 +106,8 @@ namespace Model
         public bool MethodIsVirtual { get; set; }
 
         //[System.ComponentModel.Browsable(false)]
-        public ULGraph Graph { 
-            get
-            {
-                if (Data.graphics.TryGetValue(ID, out var v))
-                {
-                    return v;
-                }
-                    
-                var g = new ULGraph();
-                g.MethodID = ID;
-                Data.graphics[ID] = g;
-                return g;
-            }
-            //set
-            //{
-            //    if (value != null)
-            //    {
-            //        value.MethodID = ID;
-            //        Data.graphics[ID] = value;
-            //    }
-            //    else
-            //    {
-            //        Data.graphics.Remove(ID);
-            //    }
-            //}
-        }
+        ULGraph _Graph = new ULGraph();
+        public ULGraph Graph { get=> _Graph; set=> _Graph=value; }
 
     }
 
@@ -196,8 +172,8 @@ namespace Model
     [TypeConverter(typeof(CustomExpandableObjectConverter))]
     public class ULGraph
     {
-        [ReadOnly(true)]
-        public string MethodID { get; set; }       //所属的方法ID
+        //[ReadOnly(true)]
+        //public string MethodID { get; set; }       //所属的方法ID
         [Browsable(false)]
         public int OffsetX { get; set; }
         [Browsable(false)]

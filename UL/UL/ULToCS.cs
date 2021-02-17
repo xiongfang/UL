@@ -240,9 +240,10 @@ namespace Model
         }
         void ToNode_Entry(ULNode node)
         {
-            if(node.ControlOutputs[0].Contains("."))
+            var next = GetControlNode(node.ControlOutputs[0]);
+            if (next!=null)
             {
-                ToNode(GetControlNode(node.ControlOutputs[0]));
+                ToNode(next);
             }
             
         }
@@ -284,6 +285,9 @@ namespace Model
         void ToNode_Method(ULNode node)
         {
             var method = Data.GetMember(node.Name);
+            if (method == null)
+                return;
+
             bool hasRet = method.Graph.Outputs.Count > 0;
 
             BeginAppendLine();
