@@ -47,6 +47,33 @@
           "Args": [],
           "Outputs": []
         }
+      },
+      {
+        "ID": "System.Int32.Add",
+        "Name": "Add",
+        "DeclareTypeID": "System.Int32",
+        "TypeID": "System.Int32",
+        "MemberType": 2,
+        "Graph": {
+          "Nodes": [
+            {
+              "NodeID": "7e54651b-f961-48de-bc49-c93f5bd3a4a2",
+              "Name": "entry",
+              "Inputs": [],
+              "ControlInputs": [],
+              "ControlOutputs": [
+                null
+              ],
+              "X": -69,
+              "Y": -55,
+              "Type": 1
+            }
+          ],
+          "OffsetX": 217,
+          "OffsetY": 218,
+          "Args": [],
+          "Outputs": []
+        }
       }
     ]
   }

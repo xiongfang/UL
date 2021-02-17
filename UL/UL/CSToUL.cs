@@ -233,7 +233,7 @@ namespace Model
             var funcNodes = c.ChildNodes().OfType<BaseMethodDeclarationSyntax>();
             foreach (var f in funcNodes)
             {
-                //ExportMethod(f);
+                ExportMethod(f);
             }
 
             var operatorNodes = c.ChildNodes().OfType<OperatorDeclarationSyntax>();
@@ -416,6 +416,40 @@ namespace Model
                 //Model.AddMember(type.static_full_name, dB_Member);
                 type.Members.Add(dB_Member);
             }
+        }
+
+        void ExportMethod(BaseMethodDeclarationSyntax v)
+        {
+
+            MethodDeclarationSyntax method = v as MethodDeclarationSyntax;
+
+            var methodInfo = new Model.ULMemberInfo();
+            methodInfo.DeclareTypeID = this.type.ID;
+            methodInfo.Name = method.Identifier.ValueText;
+            methodInfo.IsStatic = ContainModifier(method.Modifiers, "static");
+            methodInfo.Modifier = GetModifier(method.Modifiers);
+            var memberType = GetTypeInfo(method.ReturnType);
+            methodInfo.TypeID = memberType != null ? memberType.ID : "";
+            methodInfo.MemberType = ULMemberInfo.EMemberType.Method;
+            type.Members.Add(methodInfo);
+
+        
+            //else if (step == ECompilerStet.Compile)
+            //{
+            //    currentMember = MemberMap[v];
+            //    MethodDeclarationSyntax method = v as MethodDeclarationSyntax;
+
+            //    //参数
+            //    if (currentMember.Args == null)
+            //    {
+            //        currentMember.Args = new List<ULMemberInfo.MethodArg>();
+            //    }
+            //    foreach (var a in method.ParameterList.Parameters)
+            //    {
+            //        currentMember.Args.Add(GetArgument(a));
+            //    }
+            //    ExportBody(v.Body);
+            //}
         }
 
         static bool ContainModifier(SyntaxTokenList Modifiers, string token)

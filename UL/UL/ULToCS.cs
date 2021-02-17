@@ -135,7 +135,7 @@ namespace Model
             }
             var memberType = Data.GetType(memberInfo.TypeID);
 
-            Append(memberType.Name);
+            Append(memberType!=null? memberType.Name:"void");
             Append(" ");
             Append(memberInfo.Name);
             switch (memberInfo.MemberType)
