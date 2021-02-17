@@ -151,15 +151,29 @@ namespace Model
 
                     if (memberInfo.Graph != null)
                     {
+                        int arg_count = memberInfo.Graph.Args.Count + memberInfo.Graph.Outputs.Count;
+                        if (memberType != null)
+                            arg_count -= 1;
                         for (int i = 0; i < memberInfo.Graph.Args.Count; i++)
                         {
                             Append(Data.GetType(memberInfo.Graph.Args[i].TypeID).Name + " " + memberInfo.Graph.Args[i].Name);
-                            if (i < memberInfo.Graph.Args.Count - 1)
+                            if (i < arg_count - 1)
                             {
                                 Append(",");
                             }
                         }
-
+                        for (int i = 0; i < memberInfo.Graph.Outputs.Count; i++)
+                        {
+                            if(memberInfo.Graph.Outputs[i].Name!="ret")
+                            {
+                                Append("out " + Data.GetType(memberInfo.Graph.Outputs[i].TypeID).Name + " " + memberInfo.Graph.Outputs[i].Name);
+                                if (i+ memberInfo.Graph.Args.Count < arg_count - 1)
+                                {
+                                    Append(",");
+                                }
+                            }
+                            
+                        }
                     }
 
                     Append(")");

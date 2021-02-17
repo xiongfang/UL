@@ -418,6 +418,14 @@ namespace Model
             }
         }
 
+        ULArg GetArgument(ParameterSyntax a)
+        {
+            var Arg = new ULArg();
+            Arg.Name = a.Identifier.Text;
+            Arg.TypeID = GetTypeInfo(a.Type).ID;
+            return Arg;
+        }
+
         void ExportMethod(BaseMethodDeclarationSyntax v)
         {
 
@@ -433,7 +441,30 @@ namespace Model
             methodInfo.MemberType = ULMemberInfo.EMemberType.Method;
             type.Members.Add(methodInfo);
 
-        
+            if(memberType!=null)
+            {
+                methodInfo.Graph.Outputs.Add(new ULArg() { Name="ret", TypeID=memberType.ID });
+            }
+
+            foreach (var a in method.ParameterList.Parameters)
+            {
+                if (ContainModifier(a.Modifiers, "ref"))
+                {
+                    methodInfo.Graph.Outputs.Add(GetArgument(a));
+                    methodInfo.Graph.Args.Add(GetArgument(a));
+                }
+
+                else if (ContainModifier(a.Modifiers,"out"))
+                {
+                    methodInfo.Graph.Outputs.Add(GetArgument(a));
+                }
+                else
+                {
+                    methodInfo.Graph.Args.Add(GetArgument(a));
+                }
+                
+            }
+
             //else if (step == ECompilerStet.Compile)
             //{
             //    currentMember = MemberMap[v];
