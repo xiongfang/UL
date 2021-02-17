@@ -14,13 +14,13 @@ namespace ULEditor2
 
         public MethodNode(ULNode node) :base(node)
         {
-            if (node.ControlInputs.Length != 1)
+            if (node.ControlInputs.Count == 0)
             {
-                node.ControlInputs = new string[1];
+                node.ControlInputs.Add("");
             }
-            if (node.ControlOutputs.Length!=1)
+            if (node.ControlOutputs.Count==0)
             {
-                node.ControlOutputs = new string[1];
+                node.ControlOutputs.Add("");
             }
             int control_input_count = 0;
             int control_output_count = 0;
@@ -44,10 +44,14 @@ namespace ULEditor2
             {
                 int data_input_count = 0;
                 int data_output_count = 0;
-                if(node.Inputs.Length!= member.Graph.Args.Count)
+                if(node.Inputs.Count==0)
                 {
-                    node.Inputs = new string[member.Graph.Args.Count];
+                    for (int i = 0; i < member.Graph.Args.Count; i++)
+                    {
+                        node.Inputs.Add("");
+                    }
                 }
+                
                 int left_width = 0;
                 int right_width = 0;
 

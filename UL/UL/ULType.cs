@@ -124,15 +124,50 @@ namespace Model
         string _Name = "";
         public string Name { get => _Name; set => _Name = value; }            //调用的方法ID，或者特殊关键字节点
         //[System.ComponentModel.Browsable(false)]
-        public string[] Inputs { get; set; }          //参数输入类型：常量，某个节点的输出
+        List<string> _Inputs = new List<string>();
+        public List<string> Inputs { get=> _Inputs; set=> _Inputs = value; }          //参数输入类型：常量，某个节点的输出
+
+        List<string> _ControlInputs = new List<string>();
         [System.ComponentModel.Browsable(false)]
-        public string[] ControlInputs { get; set; }        //控制输入
+        public List<string> ControlInputs { get=> _ControlInputs; set=> _ControlInputs = value; }        //控制输入
+
+        List<string> _ControlOutputs = new List<string>();
         [System.ComponentModel.Browsable(false)]
-        public string[] ControlOutputs { get; set; }       //控制输出
+        public List<string> ControlOutputs { get=> _ControlOutputs; set=> _ControlOutputs = value; }       //控制输出
         [System.ComponentModel.Browsable(false)]
         public int X { get; set; }
         [System.ComponentModel.Browsable(false)]
         public int Y { get; set; }
+
+        void CheckSize(List<string> list,int size)
+        {
+            while(list.Count<size)
+            {
+                list.Add("");
+            }
+        }
+
+        public void LinkControlTo(ULNode to,int fromControlIndex=0, int toControlIndex=0)
+        {
+            CheckSize(ControlOutputs, fromControlIndex + 1);
+            ControlOutputs[fromControlIndex] = to.NodeID + "." + toControlIndex;
+            CheckSize(to.ControlInputs, toControlIndex + 1);
+            to.ControlInputs[toControlIndex] = NodeID + "." + fromControlIndex;
+        }
+        public void UnLinkControlTo(ULNode to, int fromControlIndex = 0, int toControlIndex = 0)
+        {
+            ControlOutputs[fromControlIndex] = "";
+            to.ControlInputs[toControlIndex] = "";
+        }
+        public void LinkDataTo(ULNode to,int fromIndex=0, int toIndex = 0)
+        {
+            CheckSize(to.Inputs, toIndex + 1);
+            to.Inputs[toIndex] = NodeID + "." + fromIndex;
+        }
+        public void UnLinkDataTo(ULNode to, int fromIndex = 0, int toIndex = 0)
+        {
+            to.Inputs[toIndex] = "";
+        }
 
         public enum ENodeType
         {
@@ -149,8 +184,9 @@ namespace Model
         public const string name_loop = "loop";
         public const string name_for = "for";
         public const string name_entry = "entry";
-
-        public static readonly string[] keywords = { name_entry,name_if, name_switch, name_while, name_do, name_loop, name_for };
+        public const string name_const = "const";
+        public const string name_getthis = "get_this";
+        public static readonly string[] keywords = { name_entry, name_const,name_if, name_switch, name_while, name_do, name_loop, name_for, name_getthis };
     }
 
     class CustomExpandableObjectConverter:ExpandableObjectConverter

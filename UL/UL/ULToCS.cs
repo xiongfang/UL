@@ -312,10 +312,10 @@ namespace Model
 
             Append(method.Name);
             Append("(");
-            for(int i=0;i<node.Inputs.Length;i++)
+            for(int i=0;i<node.Inputs.Count;i++)
             {
                 Append(GetInputArg(node.Inputs[i]));
-                if (i!=node.Inputs.Length-1)
+                if (i!=node.Inputs.Count - 1)
                 {
                     Append(",");
                 }

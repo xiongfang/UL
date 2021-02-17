@@ -10,9 +10,10 @@ namespace ULEditor2
         public Node_Entry(ULNode node) :base(node)
         {
 
-            if (node.ControlOutputs.Length!=1)
+            if (node.ControlOutputs.Count!=1)
             {
-                node.ControlOutputs = new string[1];
+                node.ControlOutputs.Clear();
+                node.ControlOutputs.AddRange(new string[1]);
             }
 
             int output_count = 0;

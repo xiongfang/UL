@@ -17,12 +17,6 @@ namespace ULEditor2
             node = n;
             _PinIns = new List<IPinIn>();
             _PinOuts = new List<IPinOut>();
-            if (node.ControlInputs == null)
-                node.ControlInputs = new string[0];
-            if (node.ControlOutputs == null)
-                node.ControlOutputs = new string[0];
-            if (node.Inputs == null)
-                node.Inputs = new string[0];
         }
 
         public virtual void PostInit(System.Func<string, INode> find) { foreach (var p in PinIns) p.PostInit(find); foreach (var p in PinOuts) p.PostInit(find); }
@@ -174,20 +168,17 @@ namespace ULEditor2
         }
         public int Index { get { return _index; } }
 
-        public string RefString { get { return Node.Data.NodeID + "." + Index; } }
 
         public override void AddLink(IPinOut po)
         {
             base.AddLink(po);
             ControlPinOut controlPinOut = po as ControlPinOut;
-            controlPinOut.Node.Data.ControlOutputs[controlPinOut.Index] = RefString;
-            Node.Data.ControlInputs[Index] = controlPinOut.RefString;
+            controlPinOut.Node.Data.LinkControlTo(Node.Data, controlPinOut.Index, Index);
         }
         public override void RemoveLink(IPinOut po)
         {
             ControlPinOut controlPinOut = po as ControlPinOut;
-            controlPinOut.Node.Data.ControlOutputs[controlPinOut.Index] = "";
-            Node.Data.ControlInputs[Index] = "";
+            controlPinOut.Node.Data.UnLinkControlTo(Node.Data, controlPinOut.Index, Index);
             base.RemoveLink(po);
 
         }
@@ -196,7 +187,7 @@ namespace ULEditor2
     {
         int _index;
         public int Index { get { return _index; } }
-        public string RefString { get { return Node.Data.NodeID + "." + Index; } }
+
         public ControlPinOut(INode node,int index, string name, int x, int y) : base(node)
         {
             _Name = name;
@@ -289,13 +280,14 @@ namespace ULEditor2
         {
             base.AddLink(po);
             DataPinOut dataPinOut = po as DataPinOut;
-            Node.Data.Inputs[_index] = dataPinOut.Node.Data.NodeID+"."+ dataPinOut.Index;
+            dataPinOut.Node.Data.LinkDataTo(Node.Data, dataPinOut.Index, _index);
         }
 
         public override void RemoveLink(IPinOut po)
         {
             base.RemoveLink(po);
-            Node.Data.Inputs[_index] = "";
+            DataPinOut dataPinOut = po as DataPinOut;
+            dataPinOut.Node.Data.UnLinkDataTo(Node.Data, dataPinOut.Index, _index);
         }
 
 
