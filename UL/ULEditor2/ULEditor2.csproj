@@ -11,25 +11,5 @@
     <ProjectReference Include="..\UL\UL.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Form_AddType.Designer.cs">
-      <DependentUpon>Form_AddType.Designer.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Form_AddType.resx">
-      <DependentUpon>Form_AddType.resx</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
 
 </Project>

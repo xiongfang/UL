@@ -122,6 +122,8 @@ namespace ULEditor2
                         return new IF_Node(node);
                     case ULNode.name_entry:
                         return new Node_Entry(node);
+                    case ULNode.name_const:
+                        return new Node_Const(node);
                     default:
                         break;
                 }

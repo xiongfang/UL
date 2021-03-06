@@ -14,10 +14,10 @@ namespace ULEditor2
 
         public MethodNode(ULNode node) :base(node)
         {
-            if (node.ControlInputs.Count == 0)
-            {
-                node.ControlInputs.Add("");
-            }
+            //if (node.ControlInputs.Count == 0)
+            //{
+            //    node.ControlInputs.Add("");
+            //}
             if (node.ControlOutputs.Count==0)
             {
                 node.ControlOutputs.Add("");
@@ -27,7 +27,7 @@ namespace ULEditor2
 
             
 
-            foreach (var ci in node.ControlInputs)
+            //foreach (var ci in node.ControlInputs)
             {
                 GetPinInputPos(control_input_count, out int x, out int y);
                 PinIns.Add(new ControlPinIn(this, control_input_count,"in", x, y));

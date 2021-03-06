@@ -9,11 +9,11 @@ namespace ULEditor2
     {
         public IF_Node(ULNode node) :base(node)
         {
-            if (node.ControlInputs.Count != 1)
-            {
-                node.ControlInputs.Clear();
-                node.ControlInputs.Add("");
-            }
+            //if (node.ControlInputs.Count != 1)
+            //{
+            //    node.ControlInputs.Clear();
+            //    node.ControlInputs.Add("");
+            //}
             if (node.ControlOutputs.Count!=2)
             {
                 node.ControlOutputs.Clear();
@@ -29,7 +29,7 @@ namespace ULEditor2
             int input_count = 0;
             int output_count = 0;
 
-            foreach (var ci in node.ControlInputs)
+            //foreach (var ci in node.ControlInputs)
             {
                 GetPinInputPos(input_count, out int x, out int y);
                 PinIns.Add(new ControlPinIn(this, input_count,"in",x, y));

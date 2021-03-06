@@ -127,9 +127,9 @@ namespace Model
         List<string> _Inputs = new List<string>();
         public List<string> Inputs { get=> _Inputs; set=> _Inputs = value; }          //参数输入类型：常量，某个节点的输出
 
-        List<string> _ControlInputs = new List<string>();
-        [System.ComponentModel.Browsable(false)]
-        public List<string> ControlInputs { get=> _ControlInputs; set=> _ControlInputs = value; }        //控制输入
+        //List<string> _ControlInputs = new List<string>();
+        //[System.ComponentModel.Browsable(false)]
+        //public List<string> ControlInputs { get=> _ControlInputs; set=> _ControlInputs = value; }        //控制输入
 
         List<string> _ControlOutputs = new List<string>();
         [System.ComponentModel.Browsable(false)]
@@ -151,13 +151,13 @@ namespace Model
         {
             CheckSize(ControlOutputs, fromControlIndex + 1);
             ControlOutputs[fromControlIndex] = to.NodeID + "." + toControlIndex;
-            CheckSize(to.ControlInputs, toControlIndex + 1);
-            to.ControlInputs[toControlIndex] = NodeID + "." + fromControlIndex;
+            //CheckSize(to.ControlInputs, toControlIndex + 1);
+            //to.ControlInputs[toControlIndex] = NodeID + "." + fromControlIndex;
         }
         public void UnLinkControlTo(ULNode to, int fromControlIndex = 0, int toControlIndex = 0)
         {
             ControlOutputs[fromControlIndex] = "";
-            to.ControlInputs[toControlIndex] = "";
+            //to.ControlInputs[toControlIndex] = "";
         }
         public void LinkDataTo(ULNode to,int fromIndex=0, int toIndex = 0)
         {
@@ -187,6 +187,52 @@ namespace Model
         public const string name_const = "const";
         public const string name_getthis = "get_this";
         public static readonly string[] keywords = { name_entry, name_const,name_if, name_switch, name_while, name_do, name_loop, name_for, name_getthis };
+
+        static void ReSize(List<string> list,int size)
+        {
+            list.Clear();
+            for (int i=0;i<size;i++)
+            {
+                list.Add("");
+            }
+        }
+        public static ULNode NewControlNode(string kw)
+        {
+            switch(kw)
+            {
+                case name_if:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_if;
+                        node.Type = ENodeType.Control;
+                        ReSize(node.Inputs, 1);
+                        ReSize(node.ControlOutputs, 3);
+                        return node;
+                    }
+                case name_entry:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_entry;
+                        node.Type = ENodeType.Control;
+                        ReSize(node.Inputs, 1);
+                        ReSize(node.ControlOutputs, 1);
+                        return node;
+                    }
+                case name_while:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_while;
+                        node.Type = ENodeType.Control;
+                        ReSize(node.Inputs, 1);
+                        ReSize(node.ControlOutputs, 2);
+                        return node;
+                    }
+            }
+            return null;
+        }
     }
 
     class CustomExpandableObjectConverter:ExpandableObjectConverter
