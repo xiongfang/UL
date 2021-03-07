@@ -13,10 +13,76 @@ namespace ULEditor2
         List<IPinIn> _PinIns;
         List<IPinOut> _PinOuts;
 
+        const int font_size = 7;
+        int _width = 100;
+
         public NodeBase(ULNode n) { 
             node = n;
             _PinIns = new List<IPinIn>();
             _PinOuts = new List<IPinOut>();
+
+            int control_input_count = 0;
+            int control_output_count = 0;
+
+
+            foreach (var ci in node.Inputs)
+            {
+                GetPinInputPos(control_input_count, out int x, out int y);
+                if(string.IsNullOrEmpty( ci.TypeID))
+                {
+                    PinIns.Add(new ControlPinIn(this, control_input_count, ci.Name, x, y));
+                }
+                else
+                {
+                    PinIns.Add(new DataPinIn(this, ci, control_input_count, x, y));
+                }
+                control_input_count++;
+            }
+
+            foreach (var co in node.Outputs)
+            {
+                GetPinOutputPos(control_output_count, out int x, out int y);
+                if (string.IsNullOrEmpty(co.TypeID))
+                {
+                    PinOuts.Add(new ControlPinOut(this, control_output_count, co.Name, x, y));
+                }
+                else
+                {
+                    PinOuts.Add(new DataPinOut(this, co, control_output_count, x, y));
+                }
+                control_output_count++;
+            }
+
+            int left_width = 0;
+            int right_width = 0;
+            //计算宽度
+            foreach (var ci in PinIns)
+            {
+                left_width = Math.Max(left_width, ci.Name.Length * font_size);
+            }
+            foreach (var co in PinOuts)
+            {
+                right_width = Math.Max(right_width, co.Name.Length * font_size);
+            }
+
+            _width = left_width + right_width + 20;
+            _width = Math.Max(100, _width);
+            _width = Math.Max(font_size*Title.Length, _width);
+
+            //重新计算端口位置
+            for (int i=0;i<PinIns.Count;i++)
+            {
+                GetPinInputPos(i, out int x, out int y);
+                PinIns[i].LocalX = x;
+                PinIns[i].LocalY = y;
+            }
+
+            for (int i = 0; i < PinOuts.Count; i++)
+            {
+                GetPinOutputPos(i, out int x, out int y);
+                PinOuts[i].LocalX = x;
+                PinOuts[i].LocalY = y;
+            }
         }
 
         public virtual void PostInit(System.Func<string, INode> find) { foreach (var p in PinIns) p.PostInit(find); foreach (var p in PinOuts) p.PostInit(find); }
@@ -27,7 +93,7 @@ namespace ULEditor2
         public int Y { get => node.Y; set => node.Y = value; }
 
 
-        public virtual int Width => 100;
+        public virtual int Width => _width;
 
         public virtual int Height => INode.TitleHeight + (int)(MathF.Max(PinIns.Count, PinOuts.Count) * INode.LineHeight);
 
@@ -35,12 +101,6 @@ namespace ULEditor2
         {
             get
             {
-                if (node.Type == ULNode.ENodeType.Control)
-                    return node.Name;
-                var member = Model.Data.GetMember(node.Name);
-                if (member != null)
-                    return member.Name;
-
                 return node.Name;
             }
         }
@@ -173,12 +233,12 @@ namespace ULEditor2
         {
             base.AddLink(po);
             ControlPinOut controlPinOut = po as ControlPinOut;
-            controlPinOut.Node.Data.LinkControlTo(Node.Data, controlPinOut.Index, Index);
+            controlPinOut.Node.Data.LinkTo(Node.Data, controlPinOut.Index, Index);
         }
         public override void RemoveLink(IPinOut po)
         {
             ControlPinOut controlPinOut = po as ControlPinOut;
-            controlPinOut.Node.Data.UnLinkControlTo(Node.Data, controlPinOut.Index, Index);
+            controlPinOut.Node.Data.UnLinkTo(Node.Data, controlPinOut.Index, Index);
             base.RemoveLink(po);
 
         }
@@ -213,9 +273,9 @@ namespace ULEditor2
         public override void PostInit(Func<string, INode> find)
         {
             base.PostInit(find);
-            if(!string.IsNullOrEmpty(Node.Data.ControlOutputs[Index]))
+            if(!string.IsNullOrEmpty(Node.Data.Outputs[Index].Link))
             {
-                string[] args = Node.Data.ControlOutputs[Index].Split('.');
+                string[] args = Node.Data.Outputs[Index].Link.Split('.');
 
                 var node = find(args[0]);
                 if(node!=null)
@@ -231,12 +291,12 @@ namespace ULEditor2
     class DataPinIn : PinIn
     {
         int _index;
-        ULArg _arg;
+        ULPin _pin;
 
-        public DataPinIn(INode node, ULArg a,int idx, int x, int y) : base(node)
+        public DataPinIn(INode node, ULPin a,int idx, int x, int y) : base(node)
         {
             _index = idx;
-            _arg = a;
+            _pin = a;
             _LocalX = x;
             _LocalY = y;
         }
@@ -244,7 +304,7 @@ namespace ULEditor2
         {
             get
             {
-                if (!string.IsNullOrEmpty(_arg.TypeID) && Data.types.TryGetValue(_arg.TypeID, out var t))
+                if (!string.IsNullOrEmpty(_pin.TypeID) && Data.types.TryGetValue(_pin.TypeID, out var t))
                 {
                     return t;
                 }
@@ -271,23 +331,23 @@ namespace ULEditor2
             {
                 if (typeInfo != null)
                 {
-                    return _arg.Name + " " + typeInfo.Name;
+                    return _pin.Name + " " + typeInfo.Name;
                 }
-                return _arg.Name;
+                return _pin.Name;
             } 
         }
         public override void AddLink(IPinOut po)
         {
             base.AddLink(po);
             DataPinOut dataPinOut = po as DataPinOut;
-            dataPinOut.Node.Data.LinkDataTo(Node.Data, dataPinOut.Index, _index);
+            dataPinOut.Node.Data.LinkTo(Node.Data, dataPinOut.Index, _index);
         }
 
         public override void RemoveLink(IPinOut po)
         {
             base.RemoveLink(po);
             DataPinOut dataPinOut = po as DataPinOut;
-            dataPinOut.Node.Data.UnLinkDataTo(Node.Data, dataPinOut.Index, _index);
+            dataPinOut.Node.Data.UnLinkTo(Node.Data, dataPinOut.Index, _index);
         }
 
 
@@ -295,9 +355,9 @@ namespace ULEditor2
         {
             base.PostInit(find);
 
-            if (!string.IsNullOrEmpty(Node.Data.Inputs[_index]))
+            if (!string.IsNullOrEmpty(Node.Data.Inputs[_index].Link))
             {
-                string[] args = Node.Data.Inputs[_index].Split('.');
+                string[] args = Node.Data.Inputs[_index].Link.Split('.');
 
                 var node = find(args[0]);
                 if (node != null)
@@ -313,10 +373,10 @@ namespace ULEditor2
 
     class DataPinOut : PinOut
     {
-        ULArg _arg;
+        ULPin _arg;
         int _index;
         public int Index { get { return _index; } }
-        public DataPinOut(INode node, ULArg a, int idx, int x, int y) : base(node)
+        public DataPinOut(INode node, ULPin a, int idx, int x, int y) : base(node)
         {
             _index = idx;
             _arg = a;

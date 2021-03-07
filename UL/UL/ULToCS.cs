@@ -135,7 +135,7 @@ namespace Model
             }
             var memberType = Data.GetType(memberInfo.TypeID);
 
-            Append(memberType!=null? memberType.Name:"void");
+            Append(memberType != null ? memberType.Name : "void");
             Append(" ");
             Append(memberInfo.Name);
             switch (memberInfo.MemberType)
@@ -164,15 +164,15 @@ namespace Model
                         }
                         for (int i = 0; i < memberInfo.Graph.Outputs.Count; i++)
                         {
-                            if(memberInfo.Graph.Outputs[i].Name!="ret")
+                            if (memberInfo.Graph.Outputs[i].Name != "ret")
                             {
                                 Append("out " + Data.GetType(memberInfo.Graph.Outputs[i].TypeID).Name + " " + memberInfo.Graph.Outputs[i].Name);
-                                if (i+ memberInfo.Graph.Args.Count < arg_count - 1)
+                                if (i + memberInfo.Graph.Args.Count < arg_count - 1)
                                 {
                                     Append(",");
                                 }
                             }
-                            
+
                         }
                     }
 
@@ -197,7 +197,7 @@ namespace Model
             depth++;
 
             var start = block.Nodes.Find((v) => v.Name == ULNode.name_entry);
-            if(start!=null)
+            if (start != null)
                 ToNode(start);
             depth--;
 
@@ -209,52 +209,49 @@ namespace Model
             if (node == null)
                 return;
 
-            if(node.Type == ULNode.ENodeType.Control)
+
+            switch (node.Name)
             {
-                switch(node.Name)
-                {
-                    case ULNode.name_if:
-                        ToNode_IF(node);
-                        break;
-                    case ULNode.name_switch:
-                        ToNode_Switch(node);
-                        break;
-                    case ULNode.name_entry:
-                        ToNode_Entry(node);
-                        break;
-                }
-            }
-            else
-            {
-                ToNode_Method(node);
+                case ULNode.name_if:
+                    ToNode_IF(node);
+                    break;
+                case ULNode.name_switch:
+                    ToNode_Switch(node);
+                    break;
+                case ULNode.name_entry:
+                    ToNode_Entry(node);
+                    break;
+                default:
+                    ToNode_Method(node);
+                    break;
             }
         }
 
 
-        ULNode GetControlNode(string control)
+        ULNode GetControlNode(ULPin control)
         {
-            if (string.IsNullOrEmpty(control))
+            if (string.IsNullOrEmpty(control.Link))
                 return null;
-            return _graph.FindNode(control.Split('.')[0]);
+            return _graph.FindNode(control.Link.Split('.')[0]);
         }
-        string GetInputArg(string input)
+        string GetInputArg(ULPin input)
         {
-            if (input == null)
+            if (input == null || string.IsNullOrEmpty(input.Link))
                 return "";
 
-            if (input.Contains("."))
+            if (input.Link.Contains("."))
             {
-                var str = input.Split('.');
+                var str = input.Link.Split('.');
                 return (str[0] + "_" + str[1]);
             }
             else
             {
-                return input;
+                return input.Value;
             }
         }
         void ToNode_Entry(ULNode node)
         {
-            var next = GetControlNode(node.ControlOutputs[0]);
+            var next = GetControlNode(node.Outputs[0]);
             if (next!=null)
             {
                 ToNode(next);
@@ -267,8 +264,8 @@ namespace Model
         {
             AppendLine("if(" + GetInputArg(node.Inputs[0]) + ")");
 
-            var trueNode = GetControlNode(node.ControlOutputs[0]);
-            var falseNode = GetControlNode(node.ControlOutputs[1]);
+            var trueNode = GetControlNode(node.Outputs[0]);
+            var falseNode = GetControlNode(node.Outputs[1]);
             AppendLine("{");
             if (trueNode!=null)
             {
@@ -322,7 +319,7 @@ namespace Model
             }
             Append(");");
             EndAppendLine();
-            ToNode(GetControlNode(node.ControlOutputs[0]));
+            ToNode(GetControlNode(node.Outputs[0]));
         }
     }
 }

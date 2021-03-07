@@ -111,12 +111,20 @@ namespace Model
 
     }
 
+    public class ULPin
+    {
+        public string TypeID;   //如果TypeID == 为空，则为控制端口
+        public string Name;     //名称
+        public string Value;    //值，常量
+        public string Link;     
+    }
+
     //参数输入：
     //__type.id
     //__method.id
     //__arg.name
     //__node.[id].output[0] 节点输出参数
-
+    [TypeConverter(typeof(CustomExpandableObjectConverter))]
     public class ULNode
     {
         [System.ComponentModel.ReadOnly(true)]
@@ -124,16 +132,12 @@ namespace Model
         string _Name = "";
         public string Name { get => _Name; set => _Name = value; }            //调用的方法ID，或者特殊关键字节点
         //[System.ComponentModel.Browsable(false)]
-        List<string> _Inputs = new List<string>();
-        public List<string> Inputs { get=> _Inputs; set=> _Inputs = value; }          //参数输入类型：常量，某个节点的输出
+        List<ULPin> _Inputs = new List<ULPin>();
+        public List<ULPin> Inputs { get=> _Inputs; }          //参数输入类型：常量，某个节点的输出
 
-        //List<string> _ControlInputs = new List<string>();
-        //[System.ComponentModel.Browsable(false)]
-        //public List<string> ControlInputs { get=> _ControlInputs; set=> _ControlInputs = value; }        //控制输入
+        List<ULPin> _Outputs = new List<ULPin>();
+        public List<ULPin> Outputs { get => _Outputs;  }          //参数输入类型：常量，某个节点的输出
 
-        List<string> _ControlOutputs = new List<string>();
-        [System.ComponentModel.Browsable(false)]
-        public List<string> ControlOutputs { get=> _ControlOutputs; set=> _ControlOutputs = value; }       //控制输出
         [System.ComponentModel.Browsable(false)]
         public int X { get; set; }
         [System.ComponentModel.Browsable(false)]
@@ -147,35 +151,24 @@ namespace Model
             }
         }
 
-        public void LinkControlTo(ULNode to,int fromControlIndex=0, int toControlIndex=0)
+        public void LinkTo(ULNode to,int fromIndex=0, int toIndex=0)
         {
-            CheckSize(ControlOutputs, fromControlIndex + 1);
-            ControlOutputs[fromControlIndex] = to.NodeID + "." + toControlIndex;
-            //CheckSize(to.ControlInputs, toControlIndex + 1);
-            //to.ControlInputs[toControlIndex] = NodeID + "." + fromControlIndex;
+            Outputs[fromIndex].Link = (to.NodeID + "." + toIndex);
+            to.Inputs[toIndex].Link = (NodeID + "." + fromIndex);
         }
-        public void UnLinkControlTo(ULNode to, int fromControlIndex = 0, int toControlIndex = 0)
+        public void UnLinkTo(ULNode to, int fromIndex = 0, int toIndex = 0)
         {
-            ControlOutputs[fromControlIndex] = "";
-            //to.ControlInputs[toControlIndex] = "";
-        }
-        public void LinkDataTo(ULNode to,int fromIndex=0, int toIndex = 0)
-        {
-            CheckSize(to.Inputs, toIndex + 1);
-            to.Inputs[toIndex] = NodeID + "." + fromIndex;
-        }
-        public void UnLinkDataTo(ULNode to, int fromIndex = 0, int toIndex = 0)
-        {
-            to.Inputs[toIndex] = "";
+            Outputs[fromIndex].Link = "";
+            to.Inputs[toIndex].Link = "";
         }
 
-        public enum ENodeType
-        {
-            Method,
-            Control
-        }
+        //public enum ENodeType
+        //{
+        //    Method,
+        //    Control
+        //}
 
-        public ENodeType Type { get; set; }
+        //public ENodeType Type { get; set; }
 
         public const string name_if = "if";
         public const string name_switch = "switch";
@@ -188,12 +181,12 @@ namespace Model
         public const string name_getthis = "get_this";
         public static readonly string[] keywords = { name_entry, name_const,name_if, name_switch, name_while, name_do, name_loop, name_for, name_getthis };
 
-        static void ReSize(List<string> list,int size)
+        static void ReSize(List<ULPin> list,int size)
         {
             list.Clear();
             for (int i=0;i<size;i++)
             {
-                list.Add("");
+                list.Add(new ULPin());
             }
         }
         public static ULNode NewControlNode(string kw)
@@ -205,9 +198,13 @@ namespace Model
                         ULNode node = new ULNode();
                         node.NodeID = Guid.NewGuid().ToString();
                         node.Name = name_if;
-                        node.Type = ENodeType.Control;
-                        ReSize(node.Inputs, 1);
-                        ReSize(node.ControlOutputs, 3);
+                        //node.Type = ENodeType.Control;
+                        node.Inputs.Add(new ULPin() { Name = "in" });
+                        node.Inputs.Add(new ULPin() { Name = "condition" ,TypeID = "System.Boolean"});
+                        node.Outputs.Add(new ULPin() { Name = "exit" });
+                        node.Outputs.Add(new ULPin() { Name = "true" });
+                        node.Outputs.Add(new ULPin() { Name = "false" });
+
                         return node;
                     }
                 case name_entry:
@@ -215,9 +212,7 @@ namespace Model
                         ULNode node = new ULNode();
                         node.NodeID = Guid.NewGuid().ToString();
                         node.Name = name_entry;
-                        node.Type = ENodeType.Control;
-                        ReSize(node.Inputs, 1);
-                        ReSize(node.ControlOutputs, 1);
+                        node.Outputs.Add(new ULPin() { Name = "start" });
                         return node;
                     }
                 case name_while:
@@ -225,11 +220,30 @@ namespace Model
                         ULNode node = new ULNode();
                         node.NodeID = Guid.NewGuid().ToString();
                         node.Name = name_while;
-                        node.Type = ENodeType.Control;
-                        ReSize(node.Inputs, 1);
-                        ReSize(node.ControlOutputs, 2);
+                        node.Inputs.Add(new ULPin() { Name = "in" });
+                        node.Inputs.Add(new ULPin() { Name = "condition",TypeID = "System.Boolean" });
+                        node.Outputs.Add(new ULPin() { Name = "exit"});
+                        node.Outputs.Add(new ULPin() { Name = "loop" });
                         return node;
                     }
+                case name_const:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_const;
+                        node.Outputs.Add(new ULPin() { Name = "Value" });
+                        return node;
+                    }
+                case name_getthis:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_getthis;
+                        node.Outputs.Add(new ULPin() { Name = "this" });
+                        return node;
+                    }
+                default:
+                    throw new Exception("Unknow keyword" + kw);
             }
             return null;
         }

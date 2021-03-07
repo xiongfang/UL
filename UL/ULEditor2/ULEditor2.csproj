@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Node\IF_Node.cs" />
+    <Compile Remove="Node\MethodNode.cs" />
+    <Compile Remove="Node\Node_Const.cs" />
+    <Compile Remove="Node\Node_Entry.cs" />
+    <Compile Remove="Node\Node_Exit.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\UL\UL.csproj" />
   </ItemGroup>

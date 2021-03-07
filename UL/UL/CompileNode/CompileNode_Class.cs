@@ -31,9 +31,19 @@ namespace UL.CompileNode
             {
                 var info = new IdentifierInfo();
                 info.type = IdentifierInfo.EIdentifierType.Type;
-                info.TypeFullName = type.ID;
+                info.TypeID = type.ID;
                 return info;
             }
+
+            var member = type.Members.Find((v) => v.Name == identifier);
+            if(member!=null)
+            {
+                var info = new IdentifierInfo();
+                info.type = IdentifierInfo.EIdentifierType.Member;
+                info.Member = member;
+                return info;
+            }
+
             return base.GetIdentifierInfo(identifier);
         }
 

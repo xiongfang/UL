@@ -30,17 +30,19 @@ namespace UL.CompileNode
             {
                 Local,
                 Arg,
-                Field,
-                Method,
+                Member,
                 Type,
                 Namesapce
             }
             public EIdentifierType type;
-            public string TypeFullName;
+            public string TypeID;
+            public ULMemberInfo Member;
         }
 
         public virtual IdentifierInfo GetIdentifierInfo(string identifier)
         {
+            if (Parent != null)
+                return Parent.GetIdentifierInfo(identifier);
             return null;
         }
 
@@ -100,7 +102,7 @@ namespace UL.CompileNode
                 var info = GetIdentifierInfo(identifier);
                 if (info != null)
                 {
-                    return Data.GetType(info.TypeFullName);
+                    return Data.GetType(info.TypeID);
                 }
             }
             else if (typeSyntax is QualifiedNameSyntax)

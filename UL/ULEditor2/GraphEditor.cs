@@ -114,22 +114,7 @@ namespace ULEditor2
 
         INode CreateNodeWrapper(ULNode node)
         {
-            if(node.Type == ULNode.ENodeType.Control)
-            {
-                switch (node.Name)
-                {
-                    case ULNode.name_if:
-                        return new IF_Node(node);
-                    case ULNode.name_entry:
-                        return new Node_Entry(node);
-                    case ULNode.name_const:
-                        return new Node_Const(node);
-                    default:
-                        break;
-                }
-            }
-            
-            return new MethodNode(node);
+            return new NodeBase(node);
         }
 
         Pen penBG = new Pen(new SolidBrush(Color.White));
@@ -183,7 +168,6 @@ namespace ULEditor2
             {
                 var node = new ULNode();
                 node.NodeID = Guid.NewGuid().ToString();
-                node.Type = ULNode.ENodeType.Method;
                 graph.Nodes.Add(node);
                 ResetNodes();
                 Invalidate();
@@ -200,10 +184,7 @@ namespace ULEditor2
             }
             else if(new List<string>(ULNode.keywords).Contains(e.ClickedItem.Name))
             {
-                var node = new ULNode();
-                node.NodeID = Guid.NewGuid().ToString();
-                node.Name = e.ClickedItem.Name;
-                node.Type = ULNode.ENodeType.Control;
+                var node = ULNode.NewControlNode(e.ClickedItem.Name);
                 graph.Nodes.Add(node);
                 ResetNodes();
                 Invalidate();

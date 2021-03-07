@@ -54,7 +54,7 @@ namespace UL.CompileNode
             //blocks.Push(block);
             var n = ExportStatement(bs);
             if(n!=null)
-                entry.LinkControlTo(n, 0, 0);
+                entry.LinkTo(n, 0, 0);
         }
 
         ULNode ExportStatement(StatementSyntax node)
@@ -131,7 +131,7 @@ namespace UL.CompileNode
                     }
                     if(preNode!=null)
                     {
-                        preNode.LinkControlTo(n, 0, 0);
+                        preNode.LinkTo(n, 0, 0);
                     }
 
                     preNode = n;
@@ -148,17 +148,17 @@ namespace UL.CompileNode
             graph.Nodes.Add(nodeIf);
 
             var cond = ExportExp(node.Condition);
-            cond.LinkDataTo(nodeIf, 0, 0);
+            cond.LinkTo(nodeIf, 1, 0);
 
             if (node.Statement != null)
             {
                 var node_true = ExportStatement(node.Statement);
-                nodeIf.LinkControlTo(node_true, 1, 0);
+                nodeIf.LinkTo(node_true, 1, 0);
             }
             if (node.Else.Statement != null)
             {
                 var node_false = ExportStatement(node.Else.Statement);
-                nodeIf.LinkControlTo(node_false, 2, 0);
+                nodeIf.LinkTo(node_false, 2, 0);
             }
 
             return nodeIf;
@@ -169,12 +169,12 @@ namespace UL.CompileNode
             graph.Nodes.Add(nodeWhile);
 
             var cond = ExportExp(node.Condition);
-            cond.LinkDataTo(nodeWhile, 0, 0);
+            cond.LinkTo(nodeWhile, 1, 0);
 
             if (node.Statement != null)
             {
                 var node_true = ExportStatement(node.Statement);
-                nodeWhile.LinkControlTo(node_true, 1, 0);
+                nodeWhile.LinkTo(node_true, 1, 0);
             }
 
             return nodeWhile;
@@ -375,24 +375,23 @@ namespace UL.CompileNode
 
         ULNode ExportExp(LiteralExpressionSyntax e)
         {
-            ULNode node = new ULNode();
-            node.NodeID = Guid.NewGuid().ToString();
-            node.Name = ULNode.name_const;
-            node.Type = ULNode.ENodeType.Control;
+            ULNode node = ULNode.NewControlNode(ULNode.name_const);
             graph.Nodes.Add(node);
-            node.Inputs.Add(e.Token.Text);
-            //currentBlock.statements.Add(node);
-            //node.Inputs = new string[1];
-
+            node.Outputs[0].Value = (e.Token.Text);
+            if(e.Token.Text.StartsWith("\""))
+            {
+                node.Outputs[0].TypeID = "System.String";
+            }
+            else
+            {
+                node.Outputs[0].TypeID = "System.Int32";
+            }
             return node;
         }
         ULNode ExportExp(ThisExpressionSyntax e)
         {
-            ULNode node = new ULNode();
-            node.NodeID = Guid.NewGuid().ToString();
-            node.Name = ULNode.name_getthis;
+            ULNode node = ULNode.NewControlNode(ULNode.name_getthis);
             graph.Nodes.Add(node);
-            node.Type = ULNode.ENodeType.Control;
             return node;
         }
         //ULCall ExportExp(AssignmentExpressionSyntax es)
@@ -430,7 +429,7 @@ namespace UL.CompileNode
         {
             ULNode node = new ULNode();
             node.NodeID = Guid.NewGuid().ToString();
-            node.Type = ULNode.ENodeType.Method;
+            //node.Type = ULNode.ENodeType.Method;
             graph.Nodes.Add(node);
 
             //if (es.Expression is MemberAccessExpressionSyntax)
@@ -449,18 +448,38 @@ namespace UL.CompileNode
             //{
             //    Console.Error.WriteLine("不支持的方法调用表达式 " + es.ToString());
             //}
+            var identifier = (es.Expression as IdentifierNameSyntax).Identifier.Text;
+            var idInfo =  GetIdentifierInfo(identifier);
+            node.Name = idInfo.Member.ID;
+            MakeNodePins(node,idInfo.Member);
 
-            node.Name = (es.Expression as IdentifierNameSyntax).Identifier.Text;
-
-            int arg_index = 0;
+            int arg_index = 1;
             foreach (var a in es.ArgumentList.Arguments)
             {
                 var exp = ExportExp(a.Expression);
-                exp.LinkDataTo(node, 0, arg_index);
+                exp.LinkTo(node, 0, arg_index);
                 arg_index++;
             }
             //currentBlock.statements.Add(node);
             return node;
+        }
+
+        void MakeNodePins(ULNode node,ULMemberInfo member)
+        {
+            node.Inputs.Add(new ULPin() { Name = "in" });
+            node.Outputs.Add(new ULPin() { Name = "exit" });
+
+            if (member != null)
+            {
+                for (int i = 0; i < member.Graph.Args.Count; i++)
+                {
+                    node.Inputs.Add(new ULPin() { TypeID = member.Graph.Args[i].TypeID,  Name = member.Graph.Args[i].Name});
+                }
+                for (int i = 0; i < member.Graph.Outputs.Count; i++)
+                {
+                    node.Outputs.Add(new ULPin() { TypeID = member.Graph.Outputs[i].TypeID, Name = member.Graph.Outputs[i].Name });
+                }
+            }
         }
 
         //ULCall ExportExp(MemberAccessExpressionSyntax es)
