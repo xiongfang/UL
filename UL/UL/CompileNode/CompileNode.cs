@@ -84,6 +84,17 @@ namespace UL.CompileNode
                     return kw;
             }
         }
+
+        public virtual ULTypeInfo GetTypeInfo(string TypeID)
+        {
+            var t= Data.GetType(TypeID);
+            if (t != null)
+                return t;
+            if (Parent != null)
+                return Parent.GetTypeInfo(TypeID);
+            return null;
+        }
+
         public virtual ULTypeInfo GetTypeInfo(TypeSyntax typeSyntax)
         {
             if (typeSyntax == null)
@@ -119,6 +130,10 @@ namespace UL.CompileNode
             {
                 Console.Error.WriteLine("不支持的类型语法 " + typeSyntax.GetType().FullName);
             }
+
+            if (Parent != null)
+                return Parent.GetTypeInfo(typeSyntax);
+
             return null;
         }
     }

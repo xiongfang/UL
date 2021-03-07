@@ -25,6 +25,13 @@ namespace UL.CompileNode
             return base.GetTypeInfo(typeSyntax);
         }
 
+        public override ULTypeInfo GetTypeInfo(string TypeID)
+        {
+            if (type.ID == TypeID)
+                return type;
+            return base.GetTypeInfo(TypeID);
+        }
+
         public override IdentifierInfo GetIdentifierInfo(string identifier)
         {
             if (identifier == type.Name)

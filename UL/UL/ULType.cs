@@ -179,7 +179,11 @@ namespace Model
         public const string name_entry = "entry";
         public const string name_const = "const";
         public const string name_getthis = "get_this";
-        public static readonly string[] keywords = { name_entry, name_const,name_if, name_switch, name_while, name_do, name_loop, name_for, name_getthis };
+        public const string name_setlocal = "set_local";
+        public const string name_break = "break";
+        public const string name_exit = "exit";
+
+        public static readonly string[] keywords = { name_entry, name_const,name_if, name_switch, name_while, name_do, name_loop, name_for, name_getthis, name_setlocal, name_break , name_exit };
 
         static void ReSize(List<ULPin> list,int size)
         {
@@ -240,6 +244,57 @@ namespace Model
                         node.NodeID = Guid.NewGuid().ToString();
                         node.Name = name_getthis;
                         node.Outputs.Add(new ULPin() { Name = "this" });
+                        return node;
+                    }
+                case name_setlocal:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_setlocal;
+                        node.Inputs.Add(new ULPin() { Name = "in" });
+                        node.Outputs.Add(new ULPin() { Name = "exit" });
+                        node.Inputs.Add(new ULPin() { Name = "Name",TypeID = "System.String" });
+                        return node;
+                    }
+                case name_for:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_for;
+                        node.Inputs.Add(new ULPin() { Name = "in" });
+                        node.Inputs.Add(new ULPin() { Name = "condition", TypeID = "System.Boolean" });
+                        node.Outputs.Add(new ULPin() { Name = "exit" });
+                        node.Outputs.Add(new ULPin() { Name = "Incrementor" });
+                        node.Outputs.Add(new ULPin() { Name = "loop" });
+
+                        return node;
+                    }
+                case name_do:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_do;
+                        node.Inputs.Add(new ULPin() { Name = "in" });
+                        node.Inputs.Add(new ULPin() { Name = "condition", TypeID = "System.Boolean" });
+                        node.Outputs.Add(new ULPin() { Name = "exit" });
+                        node.Outputs.Add(new ULPin() { Name = "loop" });
+                        return node;
+                    }
+                case name_break:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_break;
+                        node.Inputs.Add(new ULPin() { Name = "in" });
+                        return node;
+                    }
+
+                case name_exit:
+                    {
+                        ULNode node = new ULNode();
+                        node.NodeID = Guid.NewGuid().ToString();
+                        node.Name = name_exit;
+                        node.Inputs.Add(new ULPin() { Name = "in" });
                         return node;
                     }
                 default:

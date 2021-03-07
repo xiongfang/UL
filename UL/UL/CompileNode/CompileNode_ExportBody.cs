@@ -11,37 +11,20 @@ namespace UL.CompileNode
     {
         public ULGraph graph;
 
-        class PinOut
+        Dictionary<string, string> LocalVarables = new Dictionary<string, string>();
+
+        public override IdentifierInfo GetIdentifierInfo(string identifier)
         {
-            public ULNode node;
-            public int index;
+            if(LocalVarables.TryGetValue(identifier,out var type))
+            {
+                IdentifierInfo info = new IdentifierInfo();
+                info.type = IdentifierInfo.EIdentifierType.Local;
+                info.TypeID = type;
+                return info;
+            }
+
+            return base.GetIdentifierInfo(identifier);
         }
-        //public class NodeBlock
-        //{
-        //    ULNode parentNode;
-        //    public int pinOutIndex;
-        //    public NodeBlock(ULNode p, int index) { parentNode = p; pinOutIndex = index; }
-            
-        //    public void AddNode(ULNode node)
-        //    {
-        //        if (nodes.Count > 0)
-        //        {
-        //            nodes[nodes.Count - 1].LinkControlTo(node);
-        //        }
-        //        else
-        //        {
-        //            if (parentNode != null)
-        //            {
-        //                parentNode.LinkControlTo(node, pinOutIndex, 0);
-        //            }
-        //        }
-        //        nodes.Add(node);
-        //    }
-        //}
-
-        //Stack<NodeBlock> blocks = new Stack<NodeBlock>();
-        //NodeBlock currentBlock { get { return blocks.Peek(); } }
-
 
         public void ExportBody(BlockSyntax bs, ULGraph graph)
         {
@@ -71,34 +54,34 @@ namespace UL.CompileNode
             {
                 return ExportStatement(node as BlockSyntax);
             }
-            //else if (node is LocalDeclarationStatementSyntax)
-            //{
-            //    ExportStatement(node as LocalDeclarationStatementSyntax);
-            //}
-            //else if (node is ForStatementSyntax)
-            //{
-            //    ExportStatement(node as ForStatementSyntax);
-            //}
-            //else if (node is DoStatementSyntax)
-            //{
-            //    ExportStatement(node as DoStatementSyntax);
-            //}
+            else if (node is LocalDeclarationStatementSyntax)
+            {
+                return ExportStatement(node as LocalDeclarationStatementSyntax);
+            }
+            else if (node is ForStatementSyntax)
+            {
+                return ExportStatement(node as ForStatementSyntax);
+            }
+            else if (node is DoStatementSyntax)
+            {
+                return ExportStatement(node as DoStatementSyntax);
+            }
             else if (node is WhileStatementSyntax)
             {
-                ExportStatement(node as WhileStatementSyntax);
+                return ExportStatement(node as WhileStatementSyntax);
             }
             //else if (node is SwitchStatementSyntax)
             //{
             //    ExportStatement(node as SwitchStatementSyntax);
             //}
-            //else if (node is BreakStatementSyntax)
-            //{
-            //    ExportStatement(node as BreakStatementSyntax);
-            //}
-            //else if (node is ReturnStatementSyntax)
-            //{
-            //    ExportStatement(node as ReturnStatementSyntax);
-            //}
+            else if (node is BreakStatementSyntax)
+            {
+                return ExportStatement(node as BreakStatementSyntax);
+            }
+            else if (node is ReturnStatementSyntax)
+            {
+                ExportStatement(node as ReturnStatementSyntax);
+            }
             //else if (node is TryStatementSyntax)
             //{
             //    ExportStatement(node as TryStatementSyntax);
@@ -195,62 +178,95 @@ namespace UL.CompileNode
             return call;
         }
 
-        void ExportStatement(LocalDeclarationStatementSyntax ss)
+        ULNode ExportStatement(LocalDeclarationStatementSyntax ss)
         {
-            //var Type = GetType(ss.Declaration.Type);
-            //foreach (var v in ss.Declaration.Variables)
-            //{
-            //    var vName = v.Identifier.Text;
-            //    frames.Peek().variables[vName] = Type.FullName;
-            //    if (v.Initializer != null)
-            //    {
-            //        ULCall node = new ULCall();
-            //        node.Parent = currentBlock;
-            //        node.callType = ULCall.ECallType.Assign;
-            //        node.Args.Add("local." + vName);
-            //        node.Args.Add(ExportExp(v.Initializer.Value).GetOutputName(0));
-            //        currentBlock.statements.Add(node);
-            //    }
-            //}
+            ULNode firstNode = null;
+            ULNode preNode = null;
+            var Type = GetTypeInfo(ss.Declaration.Type);
+            foreach (var v in ss.Declaration.Variables)
+            {
+                var vName = v.Identifier.Text;
+                LocalVarables[vName] = Type.ID;
+                if (v.Initializer != null)
+                {
+                    ULNode node = ULNode.NewControlNode(ULNode.name_setlocal);
+                    graph.Nodes.Add(node);
+                    var exp = ExportExp(v.Initializer.Value);
+                    exp.LinkTo(node, 0, 1);
+                    if(firstNode == null)
+                    {
+                        firstNode = node;
+                    }
+                    if(preNode == null)
+                    {
+                        preNode = node;
+                    }
+                    else
+                    {
+                        preNode.LinkTo(node);
+                        preNode = node;
+                    }
+                }
+            }
+            return firstNode;
         }
 
-        void ExportStatement(ForStatementSyntax ss)
+        ULNode ExportStatement(ForStatementSyntax ss)
         {
-            //var db_ss = new ULStatementFor();
-            //db_ss.Condition = ExportExp(ss.Condition).GetOutputName(0);
-            //db_ss.Declaration = ExportExp(ss.Declaration).GetOutputName(0);
-            //foreach (var inc in ss.Incrementors)
-            //{
-            //    db_ss.Incrementors.Add(ExportExp(inc).GetOutputName(0));
-            //}
-            //db_ss.block = ExportStatement(ss.Statement as BlockSyntax);
+            var node = ULNode.NewControlNode(ULNode.name_for);
+            graph.Nodes.Add(node);
+
+            var Condition = ExportExp(ss.Condition);
+            Condition.LinkTo(node, 0, 1);
+            ULNode Declaration = ExportExp(ss.Declaration);
+            foreach (var inc in ss.Incrementors)
+            {
+                var i = ExportExp(inc);
+                node.LinkTo(i, 1, 0);
+            }
+            var block = ExportStatement(ss.Statement as BlockSyntax);
+            node.LinkTo(block,2, 0);
+            Declaration.LinkTo(node, 0, 0);
+            return Declaration;
         }
 
-        void ExportStatement(DoStatementSyntax ss)
+        ULNode ExportStatement(DoStatementSyntax ss)
         {
-            //var cond = ExportExp(ss.Condition);
+            
+            var node = ULNode.NewControlNode(ULNode.name_do);
+            graph.Nodes.Add(node);
 
-            //var ifStatement = new ULStatementWhile();
-            //ifStatement.Parent = currentBlock;
-            //ifStatement.arg = cond.GetOutputName(0);
-            //if (ss.Statement is BlockSyntax)
-            //    ifStatement.block = ExportStatement(ss.Statement as BlockSyntax);
-            //currentBlock.statements.Add(ifStatement);
+            var cond = ExportExp(ss.Condition);
+
+
+            cond.LinkTo(node, 1, 0);
+
+            if (ss.Statement != null)
+            {
+                var node_true = ExportStatement(ss.Statement);
+                node.LinkTo(node_true, 1, 0);
+            }
+
+            return node;
         }
 
-        void ExportStatement(BreakStatementSyntax ss)
+        ULNode ExportStatement(BreakStatementSyntax ss)
         {
-            //var node = new ULStatementBreak();
-            //node.Parent = currentBlock;
-            //currentBlock.statements.Add(node);
+            var node = ULNode.NewControlNode(ULNode.name_break);
+            graph.Nodes.Add(node);
+
+            return node;
         }
 
-        void ExportStatement(ReturnStatementSyntax ss)
+        ULNode ExportStatement(ReturnStatementSyntax ss)
         {
-            //var node = new ULStatementReturn();
-            //node.Parent = currentBlock;
-            //node.Arg = ExportExp(ss.Expression).GetOutputName(0);
-            //currentBlock.statements.Add(node);
+            var node = ULNode.NewControlNode(ULNode.name_exit);
+            graph.Nodes.Add(node);
+
+            var exp = ExportExp(ss.Expression);
+            exp.LinkTo(node, 0, 1);
+
+            return node;
         }
 
         void ExportStatement(SwitchStatementSyntax ss)
@@ -286,23 +302,45 @@ namespace UL.CompileNode
             //currentBlock.statements.Add(node);
         }
 
-        //ULNode ExportExp(VariableDeclarationSyntax es)
-        //{
-        //    var typeName = GetType(es.Type).FullName;
-        //    ULCall node = null;
-        //    foreach (var v in es.Variables)
-        //    {
-        //        node = new ULCall();
-        //        node.Parent = currentBlock;
-        //        node.callType = ULCall.ECallType.DeclarationLocal;
-        //        node.Args.Add(typeName);
-        //        node.Args.Add(v.Identifier.Text);
-        //        if (v.Initializer != null)
-        //            node.Args.Add(ExportExp(v.Initializer.Value).GetOutputName(0));
-        //    }
+        ULNode ExportExp(VariableDeclarationSyntax es)
+        {
+            var typeInfo = GetTypeInfo(es.Type);
 
-        //    return node;
-        //}
+            ULNode firstNode = null;
+            ULNode preNode = null;
+
+            foreach (var v in es.Variables)
+            {
+                //node = new ULCall();
+                //node.Parent = currentBlock;
+                //node.callType = ULCall.ECallType.DeclarationLocal;
+                //node.Args.Add(typeName);
+                //node.Args.Add(v.Identifier.Text);
+                LocalVarables[v.Identifier.Text] = typeInfo.ID;
+                if (v.Initializer != null)
+                {
+                    ULNode node = ULNode.NewControlNode(ULNode.name_setlocal);
+                    graph.Nodes.Add(node);
+                    var exp = ExportExp(v.Initializer.Value);
+                    exp.LinkTo(node, 0, 1);
+                    if (firstNode == null)
+                    {
+                        firstNode = node;
+                    }
+                    if (preNode == null)
+                    {
+                        preNode = node;
+                    }
+                    else
+                    {
+                        preNode.LinkTo(node);
+                        preNode = node;
+                    }
+                }
+            }
+
+            return firstNode;
+        }
 
         ULNode ExportExp(ExpressionSyntax es)
         {
@@ -314,30 +352,30 @@ namespace UL.CompileNode
             {
                 return ExportExp(es as ThisExpressionSyntax);
             }
-            //else if (es is ObjectCreationExpressionSyntax)
-            //{
-            //    return ExportExp(es as ObjectCreationExpressionSyntax);
-            //}
+            else if (es is ObjectCreationExpressionSyntax)
+            {
+                return ExportExp(es as ObjectCreationExpressionSyntax);
+            }
             else if (es is InvocationExpressionSyntax)
             {
                 return ExportExp(es as InvocationExpressionSyntax);
             }
-            //else if (es is MemberAccessExpressionSyntax)
-            //{
-            //    return ExportExp(es as MemberAccessExpressionSyntax);
-            //}
-            //else if (es is IdentifierNameSyntax)
-            //{
-            //    return ExportExp(es as IdentifierNameSyntax);
-            //}
-            //else if (es is AssignmentExpressionSyntax)
-            //{
-            //    return ExportExp(es as AssignmentExpressionSyntax);
-            //}
-            //else if (es is BinaryExpressionSyntax)
-            //{
-            //    return ExportExp(es as BinaryExpressionSyntax);
-            //}
+            else if (es is MemberAccessExpressionSyntax)
+            {
+                return ExportExp(es as MemberAccessExpressionSyntax);
+            }
+            else if (es is IdentifierNameSyntax)
+            {
+                return ExportExp(es as IdentifierNameSyntax);
+            }
+            else if (es is AssignmentExpressionSyntax)
+            {
+                return ExportExp(es as AssignmentExpressionSyntax);
+            }
+            else if (es is BinaryExpressionSyntax)
+            {
+                return ExportExp(es as BinaryExpressionSyntax);
+            }
             //else if (es is PostfixUnaryExpressionSyntax)
             //{
             //    return ExportExp(es as PostfixUnaryExpressionSyntax);
@@ -394,36 +432,39 @@ namespace UL.CompileNode
             graph.Nodes.Add(node);
             return node;
         }
-        //ULCall ExportExp(AssignmentExpressionSyntax es)
-        //{
-        //    ULCall node = new ULCall();
-        //    node.Parent = currentBlock;
-        //    node.callType = ULCall.ECallType.Assign;
-        //    node.Args.Add(ExportExp(es.Left).GetOutputName(0));
-        //    node.Args.Add(ExportExp(es.Right).GetOutputName(0));
-        //    //currentBlock.statements.Add(node);
-        //    return node;
-        //}
-        //ULCall ExportExp(ObjectCreationExpressionSyntax es)
-        //{
-        //    ULCall node = new ULCall();
-        //    node.Parent = currentBlock;
-        //    node.callType = ULCall.ECallType.Constructor;
+        ULNode ExportExp(AssignmentExpressionSyntax es)
+        {
+            var left = ExportExp(es.Left);
+            var right = ExportExp(es.Right);
+
+            right.LinkTo(left, 0, 0);
+
+            return right;
+        }
+        ULNode ExportExp(ObjectCreationExpressionSyntax es)
+        {
+            ULNode node = new ULNode();
+            node.NodeID = Guid.NewGuid().ToString();
+            graph.Nodes.Add(node);
+            var typeInfo = GetTypeInfo(es.Type);
+            node.Name = typeInfo.ID+"."+ typeInfo.Name;
+
+            node.Inputs.Add(new ULPin() { Name = "in" });
+            node.Outputs.Add(new ULPin() { Name = "exit" });
 
 
-        //    if (es.ArgumentList != null)
-        //    {
-        //        foreach (var a in es.ArgumentList.Arguments)
-        //        {
-        //            node.Args.Add(ExportExp(a.Expression).GetOutputName(0));
-        //        }
-        //    }
+            if (es.ArgumentList != null)
+            {
+                foreach (var a in es.ArgumentList.Arguments)
+                {
+                    var exp = ExportExp(a.Expression);
+                    node.Inputs.Add(new ULPin() { Name = a.NameColon.Name.Identifier.Text });
+                    exp.LinkTo(node, 0, node.Inputs.Count-1);
+                }
+            }
 
-        //    node.Name = GetType(es.Type).FullName;
-
-        //    //currentBlock.statements.Add(node);
-        //    return node;
-        //}
+            return node;
+        }
 
         ULNode ExportExp(InvocationExpressionSyntax es)
         {
@@ -482,28 +523,29 @@ namespace UL.CompileNode
             }
         }
 
-        //ULCall ExportExp(MemberAccessExpressionSyntax es)
-        //{
-        //    ULCall node = new ULCall();
-        //    node.Parent = currentBlock;
-        //    node.callType = ULCall.ECallType.GetField;
+        ULNode ExportExp(MemberAccessExpressionSyntax es)
+        {
+            ULNode node = new ULNode();
+            node.NodeID = Guid.NewGuid().ToString();
+            graph.Nodes.Add(node);
 
-        //    node.Args.Add(ExportExp(es.Expression).GetOutputName(0));
-        //    node.Name = es.Name.Identifier.Text;
-        //    //currentBlock.statements.Add(node);
-        //    return node;
-        //}
-        //ULCall ExportExp(IdentifierNameSyntax es)
-        //{
-        //    ULCall node = new ULCall();
-        //    node.Parent = currentBlock;
-        //    node.callType = ULCall.ECallType.Identifier;
+            var exp = ExportExp(es.Expression);
+            node.Name = es.Name.Identifier.Text;
+            node.Inputs.Add(new ULPin() { Name = "object" });
+            exp.LinkTo(node, 0, 0);
+            return node;
+        }
+        ULNode ExportExp(IdentifierNameSyntax es)
+        {
+            ULNode node = new ULNode();
+            node.NodeID = Guid.NewGuid().ToString();
+            graph.Nodes.Add(node);
+            var id = GetIdentifierInfo(es.Identifier.Text);
+            node.Name = es.Identifier.Text;
+            node.Outputs.Add(new ULPin() { Name = "Indentfier", Value = es.Identifier.Text,TypeID = id.TypeID });
 
-        //    node.Name = es.Identifier.Text;
-
-        //    //currentBlock.statements.Add(node);
-        //    return node;
-        //}
+            return node;
+        }
 
         string GetBinaryOperatorTokenMethodName(string token)
         {
@@ -546,25 +588,31 @@ namespace UL.CompileNode
             }
         }
 
-        //ULCall ExportExp(BinaryExpressionSyntax es)
-        //{
-        //    ULCall node = new ULCall();
-        //    node.Parent = currentBlock;
-        //    node.callType = ULCall.ECallType.Method;
-
-        //    node.Name = GetBinaryOperatorTokenMethodName(es.OperatorToken.Text);
-
-        //    var Left = ExportExp(es.Left);
-        //    var Right = ExportExp(es.Right);
-
-        //    node.Args.Add(Left.GetOutputName(0));
-        //    node.Args.Add(Right.GetOutputName(1));
-
-        //    //currentBlock.statements.Add(node);
+        ULNode ExportExp(BinaryExpressionSyntax es)
+        {
+            ULNode node = new ULNode();
+            node.NodeID = Guid.NewGuid().ToString();
+            graph.Nodes.Add(node);
 
 
-        //    return node;
-        //}
+
+            node.Name = GetBinaryOperatorTokenMethodName(es.OperatorToken.Text);
+
+            var Left = ExportExp(es.Left);
+            var Right = ExportExp(es.Right);
+
+            
+
+            node.Inputs.Add(new ULPin() { TypeID = Left.Outputs[0].TypeID, Name = "Left" });
+            node.Inputs.Add(new ULPin() { TypeID = Right.Outputs[0].TypeID, Name ="Right" });
+            node.Outputs.Add(new ULPin() { TypeID = Right.Outputs[0].TypeID, Name = "Result" });
+
+
+            Left.LinkTo(node, 0, 0);
+            Right.LinkTo(node, 0, 1);
+
+            return node;
+        }
 
         //ULCall ExportExp(PostfixUnaryExpressionSyntax es)
         //{

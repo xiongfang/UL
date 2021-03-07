@@ -24,82 +24,16 @@
         "Graph": {
           "Nodes": [
             {
-              "NodeID": "5a80829c-a2f0-44fa-83f3-9c5225a40aa2",
+              "NodeID": "e0896bb4-c2a6-477a-86f7-9de0c4807cdd",
               "Name": "entry",
               "Inputs": [],
               "Outputs": [
                 {
-                  "Name": "start",
-                  "Link": "53929a62-61de-46db-865e-321312b95dc3.0"
+                  "Name": "start"
                 }
-              ],
-              "X": -184,
-              "Y": 31
-            },
-            {
-              "NodeID": "53929a62-61de-46db-865e-321312b95dc3",
-              "Name": "System.Int32.Add",
-              "Inputs": [
-                {
-                  "Name": "in",
-                  "Link": "5a80829c-a2f0-44fa-83f3-9c5225a40aa2.0"
-                },
-                {
-                  "TypeID": "System.Int32",
-                  "Name": "a",
-                  "Link": "78ff36c2-ae8a-4169-abc4-3f8fc9e933c2.0"
-                },
-                {
-                  "TypeID": "System.Int32",
-                  "Name": "b",
-                  "Link": "e0de7407-2938-4707-b517-66b739130455.0"
-                }
-              ],
-              "Outputs": [
-                {
-                  "Name": "exit"
-                },
-                {
-                  "TypeID": "System.Int32",
-                  "Name": "ret"
-                }
-              ],
-              "X": 78,
-              "Y": 13
-            },
-            {
-              "NodeID": "78ff36c2-ae8a-4169-abc4-3f8fc9e933c2",
-              "Name": "const",
-              "Inputs": [],
-              "Outputs": [
-                {
-                  "TypeID": "System.Int32",
-                  "Name": "Value",
-                  "Value": "5",
-                  "Link": "53929a62-61de-46db-865e-321312b95dc3.1"
-                }
-              ],
-              "X": -154,
-              "Y": 101
-            },
-            {
-              "NodeID": "e0de7407-2938-4707-b517-66b739130455",
-              "Name": "const",
-              "Inputs": [],
-              "Outputs": [
-                {
-                  "TypeID": "System.Int32",
-                  "Name": "Value",
-                  "Value": "6",
-                  "Link": "53929a62-61de-46db-865e-321312b95dc3.2"
-                }
-              ],
-              "X": -155,
-              "Y": 163
+              ]
             }
           ],
-          "OffsetX": 236,
-          "OffsetY": 163,
           "Args": [
             {
               "TypeID": "System.Int32",
@@ -119,5 +53,59 @@
         }
       }
     ]
+  },
+  {
+    "ID": "System.Boolean",
+    "Name": "Boolean",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.Int64",
+    "Name": "Int64",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.String",
+    "Name": "String",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.Byte",
+    "Name": "Byte",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.Char",
+    "Name": "Char",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.UInt32",
+    "Name": "UInt32",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.UInt64",
+    "Name": "UInt64",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.Single",
+    "Name": "Single",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.Double",
+    "Name": "Double",
+    "Namespace": "System",
+    "Members": []
   }
 ]
