@@ -24,16 +24,138 @@
         "Graph": {
           "Nodes": [
             {
-              "NodeID": "e0896bb4-c2a6-477a-86f7-9de0c4807cdd",
+              "NodeID": "72cb88ec-c2ca-4717-a4ef-e4c8f09a216e",
               "Name": "entry",
               "Inputs": [],
               "Outputs": [
                 {
-                  "Name": "start"
+                  "Name": "start",
+                  "Link": "038ca25e-d6c7-46a8-be38-fd2b59145c60.0"
                 }
               ]
+            },
+            {
+              "NodeID": "038ca25e-d6c7-46a8-be38-fd2b59145c60",
+              "Name": "set_local",
+              "Inputs": [
+                {
+                  "Name": "in",
+                  "Link": "72cb88ec-c2ca-4717-a4ef-e4c8f09a216e.0"
+                },
+                {
+                  "TypeID": "System.String",
+                  "Name": "Name",
+                  "Link": "26da3449-569d-4bf7-94e0-87aec41416a7.0"
+                }
+              ],
+              "Outputs": [
+                {
+                  "Name": "exit",
+                  "Link": "2758e9d9-440d-4160-8afb-b46778f57181.0"
+                }
+              ],
+              "X": 200,
+              "Y": -1
+            },
+            {
+              "NodeID": "26da3449-569d-4bf7-94e0-87aec41416a7",
+              "Name": "const",
+              "Inputs": [],
+              "Outputs": [
+                {
+                  "TypeID": "System.Int32",
+                  "Name": "Value",
+                  "Value": "6",
+                  "Link": "038ca25e-d6c7-46a8-be38-fd2b59145c60.1"
+                }
+              ],
+              "X": 3,
+              "Y": 73
+            },
+            {
+              "NodeID": "2758e9d9-440d-4160-8afb-b46778f57181",
+              "Name": "if",
+              "Inputs": [
+                {
+                  "Name": "in",
+                  "Link": "038ca25e-d6c7-46a8-be38-fd2b59145c60.0"
+                },
+                {
+                  "TypeID": "System.Boolean",
+                  "Name": "condition",
+                  "Link": "37c4c1b6-2ea2-4e66-87d3-c0c3140aebcd.0"
+                }
+              ],
+              "Outputs": [
+                {
+                  "Name": "exit"
+                },
+                {
+                  "Name": "true"
+                },
+                {
+                  "Name": "false"
+                }
+              ],
+              "X": 425
+            },
+            {
+              "NodeID": "37c4c1b6-2ea2-4e66-87d3-c0c3140aebcd",
+              "Name": "error",
+              "Inputs": [
+                {
+                  "TypeID": "System.Int32",
+                  "Name": "Left",
+                  "Link": "778b6ebc-fddb-4302-b76d-37caa36cbd56.0"
+                },
+                {
+                  "TypeID": "System.Int32",
+                  "Name": "Right",
+                  "Link": "f8416fc0-641d-4a20-ae58-e3da5d517c04.0"
+                }
+              ],
+              "Outputs": [
+                {
+                  "TypeID": "System.Int32",
+                  "Name": "Result",
+                  "Link": "2758e9d9-440d-4160-8afb-b46778f57181.1"
+                }
+              ],
+              "X": 208,
+              "Y": 142
+            },
+            {
+              "NodeID": "778b6ebc-fddb-4302-b76d-37caa36cbd56",
+              "Name": "c",
+              "Inputs": [],
+              "Outputs": [
+                {
+                  "TypeID": "System.Int32",
+                  "Name": "Indentfier",
+                  "Value": "c",
+                  "Link": ""
+                }
+              ],
+              "X": -31,
+              "Y": 143
+            },
+            {
+              "NodeID": "f8416fc0-641d-4a20-ae58-e3da5d517c04",
+              "Name": "const",
+              "Inputs": [],
+              "Outputs": [
+                {
+                  "TypeID": "System.Int32",
+                  "Name": "Value",
+                  "Value": "5",
+                  "Link": "37c4c1b6-2ea2-4e66-87d3-c0c3140aebcd.1"
+                }
+              ],
+              "Y": 209
             }
           ],
+          "OffsetX": 97,
+          "OffsetY": 232,
           "Args": [
             {
               "TypeID": "System.Int32",

@@ -373,5 +373,36 @@ namespace ULEditor2
 
             Invalidate();
         }
+
+        private void btnReposition_Click(object sender, EventArgs e)
+        {
+            var startNode = nodes.Find((v) => v.Data.Name == ULNode.name_entry);
+            int lastPosX = 0;
+            int lastPosY = 0;
+
+            if(startNode!=null)
+            {
+                INode node = startNode;
+                while(node!=null)
+                {
+                    node.X = lastPosX;
+                    node.Y = lastPosY;
+
+                    lastPosX += node.Width + 100;
+
+                    if (node.PinOuts.Count>0 && node.PinOuts[0].Ins.Count>0 && node.PinOuts[0] is ControlPinOut)
+                    {
+                        node = node.PinOuts[0].Ins[0].Node;
+                    }
+                    else
+                    {
+                        node = null;
+                    }
+                }
+                Invalidate();
+            }
+
+            
+        }
     }
 }

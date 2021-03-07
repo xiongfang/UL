@@ -131,17 +131,19 @@ namespace UL.CompileNode
             graph.Nodes.Add(nodeIf);
 
             var cond = ExportExp(node.Condition);
-            cond.LinkTo(nodeIf, 1, 0);
+            cond.LinkTo(nodeIf, 0, 1);
 
             if (node.Statement != null)
             {
                 var node_true = ExportStatement(node.Statement);
-                nodeIf.LinkTo(node_true, 1, 0);
+                if(node_true!=null)
+                    nodeIf.LinkTo(node_true, 1, 0);
             }
-            if (node.Else.Statement != null)
+            if (node.Else!=null && node.Else.Statement != null)
             {
                 var node_false = ExportStatement(node.Else.Statement);
-                nodeIf.LinkTo(node_false, 2, 0);
+                if(node_false!=null)
+                    nodeIf.LinkTo(node_false, 2, 0);
             }
 
             return nodeIf;

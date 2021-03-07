@@ -34,6 +34,7 @@ namespace ULEditor2
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.labelScale = new System.Windows.Forms.Label();
             this.btnReset = new System.Windows.Forms.Button();
+            this.btnReposition = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -74,12 +75,23 @@ namespace ULEditor2
             this.btnReset.UseVisualStyleBackColor = true;
             this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
             // 
+            // btnReposition
+            // 
+            this.btnReposition.Location = new System.Drawing.Point(371, 0);
+            this.btnReposition.Name = "btnReposition";
+            this.btnReposition.Size = new System.Drawing.Size(75, 45);
+            this.btnReposition.TabIndex = 4;
+            this.btnReposition.Text = "重新排列";
+            this.btnReposition.UseVisualStyleBackColor = true;
+            this.btnReposition.Click += new System.EventHandler(this.btnReposition_Click);
+            // 
             // GraphEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ScrollBar;
             this.ContextMenuStrip = this.contextMenuStrip1;
+            this.Controls.Add(this.btnReposition);
             this.Controls.Add(this.btnReset);
             this.Controls.Add(this.labelScale);
             this.Controls.Add(this.trackBar1);
@@ -104,5 +116,6 @@ namespace ULEditor2
         private System.Windows.Forms.TrackBar trackBar1;
         private System.Windows.Forms.Label labelScale;
         private System.Windows.Forms.Button btnReset;
+        private System.Windows.Forms.Button btnReposition;
     }
 }
