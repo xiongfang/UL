@@ -107,5 +107,23 @@
     "Name": "Double",
     "Namespace": "System",
     "Members": []
+  },
+  {
+    "ID": "System.SByte",
+    "Name": "SByte",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.Int16",
+    "Name": "Int16",
+    "Namespace": "System",
+    "Members": []
+  },
+  {
+    "ID": "System.UInt16",
+    "Name": "UInt16",
+    "Namespace": "System",
+    "Members": []
   }
 ]
